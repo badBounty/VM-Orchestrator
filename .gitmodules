@@ -1,0 +1,3 @@
+[submodule "VM_Orchestrator/VM_OrchestratorApp/src/recon/tools/Sublist3r"]
+	path = VM_Orchestrator/VM_OrchestratorApp/src/recon/tools/Sublist3r
+	url = https://github.com/aboul3la/Sublist3r.git
