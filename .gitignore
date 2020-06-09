@@ -1,0 +1,6 @@
+Pipfile
+Pipfile.lock
+.vscode/settings.json
+VM_Orchestrator/settings.json
+VM_Orchestrator/celerybeat-schedule
+VM_Orchestrator/db.sqlite3
