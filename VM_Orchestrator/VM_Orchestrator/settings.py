@@ -11,10 +11,12 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os, json
+from datetime import datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 settings = json.loads(open(BASE_DIR+'/settings.json').read())
+settings['PROJECT']['START_DATE'] = datetime.strptime(settings['PROJECT']['START_DATE'],'%d-%m-%Y')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -120,7 +122,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-CELERY_BROKER_URL = settings['BROKER_URL']
+# Enviroment variables
+os.environ['C_FORCE_ROOT'] = settings['CELERY']['C_FORCE_ROOT']
+
+CELERY_BROKER_URL = settings['CELERY']['BROKER_URL']
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 

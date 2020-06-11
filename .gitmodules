@@ -1,3 +1,15 @@
 [submodule "VM_Orchestrator/VM_OrchestratorApp/src/recon/tools/Sublist3r"]
 	path = VM_Orchestrator/VM_OrchestratorApp/src/recon/tools/Sublist3r
 	url = https://github.com/aboul3la/Sublist3r.git
+[submodule "VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/testssl.sh"]
+        path = VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/testssl.sh
+        url = https://github.com/drwetter/testssl.sh.git
+[submodule "VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/CORScanner"]                      
+		path = VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/CORScanner                     
+		url = https://github.com/chenjj/CORScanner.git
+[submodule "VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/nmap/nmap-vulners"]                        
+		path = VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/nmap/nmap-vulners                       
+		url = https://github.com/vulnersCom/nmap-vulners.git
+[submodule "VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/LinkFinder"]                                  
+		path = VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/LinkFinder                                 
+		url = https://github.com/GerbenJavado/LinkFinder.git

@@ -6,7 +6,7 @@ import shutil
 import subprocess
 
 
-def start_aquatone(subdomain_list):
+def start_aquatone(subdomain_list, scan_information):
 
     # Subdomains are already alive
     # We need to put the subdomains into a text file for feeding it into aquatone
@@ -53,11 +53,11 @@ def parse_results(subdomain, OUTPUT_DIR):
             lines = fp.read()
             urls = lines.split('\n')
     except FileNotFoundError:
-        cleanup_after_scan(OUTPUT_DIR)
-        return
+        pass
 
-    if urls:
+    if urls and urls != ['']:
         urls_string = ';'.join(urls)
+        print('Url has links %s'% urls_string)
         has_urls = 'True'
     else:
         urls_string = ''
