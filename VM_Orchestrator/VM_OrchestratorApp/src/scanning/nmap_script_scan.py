@@ -1,21 +1,18 @@
+
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+from VM_Orchestrator.settings import settings
+
 import subprocess
 import os
 import xmltodict
 import json
 import base64
 import uuid
-
 from time import sleep
 from PIL import Image
 from io import BytesIO
-from ..slack import slack_sender
-from ..comms import image_creator
-from .. import constants
-from ..mongo import mongo
-from ..redmine import redmine
-from ...objects.vulnerability import Vulnerability
-from ...__init__ import wordlist
-
 
 def cleanup(path):
     try:
@@ -29,8 +26,8 @@ def cleanup(path):
 
 def handle_target(info):
     print('------------------- NMAP SCRIPT TARGET SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     scanned_hosts = list()
     for url in info['url_to_scan']:
@@ -62,7 +59,7 @@ def handle_target(info):
 def handle_single(scan_info):
     print('------------------- NMAP SCRIPT SCAN STARTING -------------------')
     url = scan_info['url_to_scan']
-    slack_sender.send_simple_message("Nmap scripts started against %s" % url)
+    slack.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
@@ -114,8 +111,8 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
         vulnerability.add_attachment(output_dir, 'nmap-result.png')
         os.remove(output_dir)
 
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
     return
 
@@ -208,8 +205,8 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
         brute = ROOT_DIR + '/tools/nmap/server_versions/ftp-brute.nse'
         port = '-p21'
         end_name = '.ftp.brute'
-    users = wordlist['ssh_ftp_user']
-    password = wordlist['ssh_ftp_pass']
+    users = settings['WORDLIST']['ssh_ftp_user']
+    password = settings['WORDLIST']['ssh_ftp_pass']
     random_filename = uuid.uuid4().hex
     output_dir = ROOT_DIR + '/tools_output/'+random_filename+end_name
     cleanup(output_dir)
@@ -290,7 +287,7 @@ def http_errors(target_name, url_to_scan, language):
     cleanup(output_dir)
     if message:
         vuln_name = constants.POSSIBLE_ERROR_PAGES_ENGLISH if language == "eng" else constants.POSSIBLE_ERROR_PAGES_SPANISH
-        redmine.create_new_issue(vuln_name, message)
+        #redmine.create_new_issue(vuln_name, message)
     return
 
 

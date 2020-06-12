@@ -1,3 +1,7 @@
+from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+
 import json
 import xmltodict
 import uuid
@@ -6,18 +10,11 @@ from datetime import datetime
 import subprocess
 import os
 
-from ..mongo import mongo
-from .. import constants
-from ..slack import slack_sender
-from ..redmine import redmine
-from ...objects.vulnerability import Vulnerability
-
-
 def handle_target(info):
     print('------------------- TARGET SSL/TLS SCAN STARTING -------------------')
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    slack_sender.send_simple_message("SSL/TLS scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("SSL/TLS scan started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     valid_ports = ['443']
     for url in info['url_to_scan']:
         sub_info = info
@@ -37,7 +34,7 @@ def handle_target(info):
 def handle_single(scan_info):
     # Url will come with http or https, we will strip and append ports that could have tls/ssl
     url = scan_info['url_to_scan']
-    slack_sender.send_simple_message("SSL/TLS scan started against %s" % url)
+    slack.send_simple_message("SSL/TLS scan started against %s" % url)
     valid_ports = ['443']
     split_url = url.split('/')
     try:
@@ -73,8 +70,8 @@ def cleanup(path):
 def add_vulnerability(scan_info, message):
     vulnerability = Vulnerability(constants.SSL_TLS, scan_info, message)
 
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
 

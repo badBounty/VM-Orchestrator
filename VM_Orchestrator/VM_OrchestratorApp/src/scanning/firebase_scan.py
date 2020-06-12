@@ -1,20 +1,18 @@
+from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+
 import urllib3
 import requests
 import re
-
-from ..slack import slack_sender
-from .. import constants
-from ..mongo import mongo
-from ..redmine import redmine
-from ...objects.vulnerability import Vulnerability
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def handle_target(info):
     print('------------------- FIREBASE TARGET SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Firebase scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("Firebase scan started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
@@ -27,7 +25,7 @@ def handle_target(info):
 
 def handle_single(scan_info):
     print('------------------- FIREBASE SINGLE SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Firebase scan started against %s" % scan_info['url_to_scan'])
+    slack.send_simple_message("Firebase scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- FIREBASE SINGLE SCAN FINISHED -------------------')
     return
@@ -36,8 +34,8 @@ def handle_single(scan_info):
 def add_vulnerability(scan_info, firebase_name):
     vulnerability = Vulnerability(constants.OPEN_FIREBASE, scan_info, 'Found open firebase %s at %s' % (firebase_name, scan_info['url_to_scan']))
 
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
 
@@ -77,5 +75,4 @@ def scan_target(scan_info, url_to_scan):
         except Exception as e:
             continue
         if firebase_response.status_code == 200:
-            slack_sender.send_simple_vuln('Found open firebase %s at %s' % (firebase, url_to_scan))
             add_vulnerability(scan_info, firebase)

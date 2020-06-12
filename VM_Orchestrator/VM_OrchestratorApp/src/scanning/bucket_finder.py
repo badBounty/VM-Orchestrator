@@ -4,12 +4,9 @@ import urllib3
 import subprocess
 from datetime import datetime
 
-from ..slack import slack_sender
-from ..utils import utils
-from .. import constants
-from ..mongo import mongo
-from ..redmine import redmine
-from ...objects.vulnerability import Vulnerability
+from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
 regions = ['us-east-2', 'us-east-1', 'us-west-1', 'us-west-2', 'ap-east-1', 'ap-south-1', 'ap-northeast-3',
            'ap-northeast-2', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ca-central-1', 'cn-north-1',
@@ -21,8 +18,8 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def handle_target(info):
     print('------------------- S3BUCKET TARGET SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Bucket finder scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("Bucket finder scan started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
@@ -35,7 +32,7 @@ def handle_target(info):
 
 def handle_single(scan_information):
     print('------------------- S3BUCKET SINGLE SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Bucket finder scan started against %s" % scan_information['target'])
+    slack.send_simple_message("Bucket finder scan started against %s" % scan_information['domain'])
     scan_target(scan_information, scan_information['url_to_scan'])
     print('------------------- S3BUCKET SINGLE SCAN FINISHED -------------------')
     return
@@ -67,12 +64,11 @@ def scan_target(scan_information, url_to_scan):
 
 
 def add_vulnerability_to_mongo(scanned_url, finding_name, bucket_name, description , scan_info):
-    timestamp = datetime.now()
     vuln_name = constants.BUCKET
 
     vulnerability = Vulnerability(vuln_name, scan_info, description)
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
     return
 
@@ -97,7 +93,6 @@ def get_ls_buckets(bucket_list, scanned_url, scan_information):
                 add_vulnerability_to_mongo(scanned_url, 'nf', bucket, description, scan_information)
                 does_not_exist_buckets.append(bucket)
             continue
-    return ls_allowed_buckets, does_not_exist_buckets
 
 
 # Buckets that allow copy and remove
@@ -113,7 +108,6 @@ def get_cprm_buckets(bucket_list, scanned_url, scan_information):
             cprm_allowed_buckets.append(bucket)
         except subprocess.CalledProcessError as e:
             continue
-    return cprm_allowed_buckets
 
 
 def get_buckets(scan_information, url_to_scan):
@@ -171,7 +165,6 @@ def get_buckets(scan_information, url_to_scan):
         bucket_list[i] = bucket_list[i].replace('/', '')
 
     # We now have to check the buckets
-    ls_allowed, does_not_exist = get_ls_buckets(bucket_list, url_to_scan, scan_information)
-    cprm_allowed = get_cprm_buckets(bucket_list, url_to_scan, scan_information)
-    access_denied = list(set(bucket_list) - set(ls_allowed) - set(cprm_allowed) - set(does_not_exist))
+    get_ls_buckets(bucket_list, url_to_scan, scan_information)
+    get_cprm_buckets(bucket_list, url_to_scan, scan_information)
 

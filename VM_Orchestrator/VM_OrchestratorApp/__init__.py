@@ -4,4 +4,5 @@ import pymongo
 from slack import WebClient
 
 MONGO_CLIENT = pymongo.MongoClient(MONGO_INFO['CLIENT_URL'])
-SLACK_WEB_CLIENT = WebClient(settings['SLACK']['SLACK_KEY'])
+INTERNAL_SLACK_WEB_CLIENT = WebClient(settings['SLACK']['INTERNAL_SLACK_KEY'])
+EXTERNAL_SLACK_WEB_CLIENT = WebClient(settings['SLACK']['EXTERNAL_SLACK_KEY'])

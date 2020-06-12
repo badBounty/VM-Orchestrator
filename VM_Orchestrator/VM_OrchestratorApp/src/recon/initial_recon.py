@@ -11,18 +11,13 @@ import json
 
 def run_recon(scan_info):
 
-    target_name = scan_info['target_name']
-
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     OUTPUT_DIR = ROOT_DIR + '/output'
 
-    # Recon start notification
-    #slack_sender.send_recon_start_message(target_name)
+    if not path.exists(OUTPUT_DIR + '/' + scan_info['domain']):
+        os.makedirs(OUTPUT_DIR + '/' + scan_info['domain'])
 
-    if not path.exists(OUTPUT_DIR + '/' + target_name):
-        os.makedirs(OUTPUT_DIR + '/' + target_name)
-
-    PROJECT_DIR = OUTPUT_DIR + '/' + target_name
+    PROJECT_DIR = OUTPUT_DIR + '/' + scan_info['domain']
 
     # Commands
     amass_dir = ROOT_DIR + '/tools/amass'
@@ -34,28 +29,26 @@ def run_recon(scan_info):
     f = open(PROJECT_DIR + '/amass_out.txt',"w+")
     f.close()
     #amass_process = subprocess.run(
-    #   [amass_dir, 'enum', '-active', '-d', target_name, '-o', PROJECT_DIR + '/amass_out.txt', '-timeout', '10'])
+    #   [amass_dir, 'enum', '-active', '-d', scan_info['domain'], '-o', PROJECT_DIR + '/amass_out.txt', '-timeout', '10'])
     if path.exists(PROJECT_DIR + '/amass_out.txt'):
         print('------------------- AMASS FINISHED CORRECTLY -------------------')
 
     # Subfinder
     print('------------------- SUBFINDER STARTING -------------------')
-    subfinder_process = subprocess.run([subfinder_dir, '-d', target_name, '-o', PROJECT_DIR + '/subfinder_out.txt'])
+    subfinder_process = subprocess.run([subfinder_dir, '-d', scan_info['domain'], '-o', PROJECT_DIR + '/subfinder_out.txt'])
     if path.exists(PROJECT_DIR + '/subfinder_out.txt'):
         print('------------------- SUBFINDER FINISHED CORRECTLY -------------------')
 
     # sublist3r
     print('------------------- SUBLIST3R STARTING -------------------')
     sublist3r_process = subprocess.run(
-       ['python3', sublist3r_dir, '-d', target_name, '-o', PROJECT_DIR + '/sublist3r_out.txt'])
+       ['python3', sublist3r_dir, '-d', scan_info['domain'], '-o', PROJECT_DIR + '/sublist3r_out.txt'])
     if path.exists(PROJECT_DIR + '/sublist3r_out.txt'):
         print('------------------- SUBLIST3R FINISHED CORRECTLY -------------------')
 
     parse_results(PROJECT_DIR, scan_info)
     gather_data(PROJECT_DIR, scan_info)
     cleanup(PROJECT_DIR, OUTPUT_DIR)
-
-    #slack_sender.send_recon_end_message(target_name)
 
     return
 
@@ -102,7 +95,7 @@ def gather_data(project_dir, scan_info):
             continue
 
         url_info={
-                'target_name': scan_info['target_name'],
+                'domain': scan_info['domain'],
                 'url': url,
                 'is_alive': is_alive_clause,
                 'ip': None,

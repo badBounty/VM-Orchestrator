@@ -1,21 +1,17 @@
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+from VM_Orchestrator.settings import settings
+
 import subprocess
 import os
 import xmltodict
 import json
 import base64
 import uuid
-
 from time import sleep
 from PIL import Image
 from io import BytesIO
-from ..slack import slack_sender
-from ..comms import image_creator
-from .. import constants
-from ..mongo import mongo
-from ..redmine import redmine
-from ...objects.vulnerability import Vulnerability
-from ...__init__ import wordlist
-
 
 def cleanup(path):
     try:
@@ -29,10 +25,9 @@ def cleanup(path):
 
 def handle_target(info):
     print('------------------- NMAP BASIC TARGET SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    print(os.getenv('C_FORCE_ROOT'))
     scanned_hosts = list()
     for url in info['url_to_scan']:
         sub_info = info
@@ -52,7 +47,7 @@ def handle_target(info):
 def handle_single(scan_info):
     print('------------------- NMAP BASIC SCAN STARTING -------------------')
     url = scan_info['url_to_scan']
-    slack_sender.send_simple_message("Nmap scripts started against %s" % url)
+    slack.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
     basic_scan(scan_info, host)
@@ -75,8 +70,8 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
     im = Image.open(BytesIO(base64.b64decode(img_str)))
     im.save(output_dir, 'PNG')
     vulnerability.add_attachment(output_dir, 'nmap-result.png')
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
     os.remove(output_dir)
     return

@@ -1,12 +1,11 @@
+from VM_Orchestrator.settings import settings
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+
 import json, requests, itertools, collections, os
 from bs4 import BeautifulSoup
-from ...__init__ import WAPPALIZE_KEY
-from .. import constants
-from ..slack import slack_sender
-from ..mongo import mongo
-from ..redmine import redmine
 from datetime import datetime
-from ...objects.vulnerability import Vulnerability
 
 endpoint = 'https://api.wappalyzer.com/lookup/v1/?url='
 
@@ -50,8 +49,8 @@ def get_cves_and_last_version(librarie):
 
 def add_libraries_vulnerability(scan_info, message):
     vulnerability = Vulnerability(constants.OUTDATED_3RD_LIBRARIES, scan_info, message)
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
 
@@ -73,7 +72,7 @@ def fastPrint(libraries):
 def analyze(scan_info, url_to_scan):
     print('Scanning target {}'.format(url_to_scan))
     target = endpoint + url_to_scan
-    headers = {'x-api-key': WAPPALIZE_KEY}
+    headers = {'x-api-key': settings['WAPPALIZE_KEY']}
     try:
         response = requests.get(target, headers=headers)
         libraries = response.json()[0]['applications']
@@ -90,9 +89,8 @@ def analyze(scan_info, url_to_scan):
 def handle_target(info):
     print('------------------- TARGET LIBRARIES SCAN STARTING -------------------')
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    slack_sender.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    slack.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
@@ -104,7 +102,7 @@ def handle_target(info):
 
 def handle_single(scan_info):
     print('------------------- SINGLE LIBRARIES SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
+    slack.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
     analyze(scan_info, scan_info['url_to_scan'])
     print('------------------- SINGLE LIBRARIES SCAN FINISHED -------------------')
     return

@@ -17,7 +17,12 @@ def index(request):
 
 def project_start(request):
     info_to_send = {
-        'target_name': 'tesla.com'
+        'domain': 'tesla.com',
+        'is_first_run': False,
+        'scan_type': 'target',
+        'invasive_scans': False,
+        'language': 'eng'
     }
-    manager.recon_task_manager(info_to_send)
+    #manager.recon_task_manager(info_to_send)
+    manager.test_vuln_scan(info_to_send)
     return JsonResponse({'data':'Hi'})

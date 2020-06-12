@@ -1,9 +1,7 @@
-from ..slack import slack_sender
-from ..mongo import mongo
-from ..redmine import redmine
-from .. import constants
-from ...objects.vulnerability import Vulnerability
-from ...__init__ import burp_config
+from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+from VM_Orchestrator.settings import settings
 
 import time
 import requests
@@ -36,21 +34,21 @@ stop_burp = "http://localhost:8090/burp/stop"
 
 def handle_target(info):
     print('------------------- BURP TARGET SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Burp scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("Burp scan started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
-        scan_target(sub_info, sub_info['url_to_scan'])
+        scan_target(sub_info)
     print('------------------- BURP TARGET SCAN FINISHED -------------------')
     return
 
 
 def handle_single(scan_information):
     print('------------------- BURP SINGLE SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Burp scan started against %s" % scan_information['url_to_scan'])
+    slack.send_simple_message("Burp scan started against %s" % scan_information['url_to_scan'])
     scan_target(scan_information)
     print('------------------- BURP SINGLE SCAN FINISHED -------------------')
     return
@@ -62,14 +60,14 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     json_data = json.loads(json_data)
     description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
     for issue in json_data['issues']['issue']:
-        if issue['name'] not in burp_config['blacklist_findings']:
+        if issue['name'] not in settings['BURP']['blacklist_findings']:
             name = "[BURP SCAN] - "+ issue['name']
             extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
             vulnerability = Vulnerability(name, scan_info, description+extra)
             vulnerability.add_file_string(file_string)
             vulnerability.add_attachment(file_dir, file_name)
-            slack_sender.send_simple_vuln(vulnerability)
-            redmine.create_new_issue(vulnerability)
+            slack.send_vulnerability(vulnerability)
+            #redmine.create_new_issue(vulnerability)
             mongo.add_vulnerability(vulnerability)
         else:
             print("Not reported: "+issue['name']+" because is in burp blacklist")
@@ -77,7 +75,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
 
 def scan_target(scan_info):
     print("LAUNCHING BURP")
-    burp_process = subprocess.Popen(burp_config['bash_folder'], stdout=subprocess.PIPE)
+    burp_process = subprocess.Popen(settings['BURP']['bash_folder'], stdout=subprocess.PIPE)
     time.sleep(120)
     print("BURP STARTED BEGINING SCAN")
     #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN

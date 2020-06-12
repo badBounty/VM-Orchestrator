@@ -2,20 +2,17 @@ import requests
 import urllib3
 from datetime import datetime
 
-from ..utils import utils
-from .. import constants
-from ..mongo import mongo
-from ..slack import slack_sender
-from ..redmine import redmine
-from ...objects.vulnerability import Vulnerability
+from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def handle_target(info):
     print('------------------- CSS TARGET SCAN STARTING -------------------')
-    slack_sender.send_simple_message("CSS scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("CSS scan started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
@@ -28,14 +25,13 @@ def handle_target(info):
 
 def handle_single(scan_info):
     print('------------------- CSS SINGLE SCAN STARTING -------------------')
-    slack_sender.send_simple_message("CSS scan started against %s" % scan_info['url_to_scan'])
+    slack.send_simple_message("CSS scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- CSS SINGLE SCAN FINISHED -------------------')
     return
 
 
 def add_vulnerability_to_mongo(scan_info, css_url, vuln_type):
-    timestamp = datetime.now()
     if vuln_type == 'Access':
         description = "Possible css injection found at %s from %s. File could not be accessed" \
                       % (css_url, scan_info['url_to_scan'])
@@ -44,8 +40,8 @@ def add_vulnerability_to_mongo(scan_info, css_url, vuln_type):
                       % (css_url, scan_info['url_to_scan'])
 
     vulnerability = Vulnerability(constants.CSS_INJECTION, scan_info, description)
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
 

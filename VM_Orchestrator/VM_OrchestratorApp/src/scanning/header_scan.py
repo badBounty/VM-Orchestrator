@@ -1,3 +1,7 @@
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+
 import requests
 import os
 import uuid
@@ -6,18 +10,12 @@ from PIL import Image
 from io import BytesIO
 from datetime import datetime
 
-from ..mongo import mongo
-from ..comms import image_creator
-from .. import constants
-from ..slack import slack_sender
-from ..redmine import redmine
-from ...objects.vulnerability import Vulnerability
 
 
 def handle_target(info):
     print('------------------- TARGET HEADER SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Header scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("Header scan started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
@@ -30,7 +28,7 @@ def handle_target(info):
 
 def handle_single(scan_info):
     print('------------------- SINGLE HEADER SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Header scan started against %s" % scan_info['url_to_scan'])
+    slack.send_simple_message("Header scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- SINGLE HEADER SCAN FINISHED -------------------')
     return
@@ -65,8 +63,8 @@ def add_header_value_vulnerability(scan_info, img_string, description):
 
     vulnerability.add_attachment(output_dir, 'headers-result.png')
 
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     os.remove(output_dir)
     mongo.add_vulnerability(vulnerability)
 
@@ -83,8 +81,8 @@ def add_header_missing_vulnerability(scan_info, img_string, description):
 
     vulnerability.add_attachment(output_dir, 'headers-result.png')
 
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     os.remove(output_dir)
     mongo.add_vulnerability(vulnerability)
 
@@ -92,7 +90,6 @@ def add_header_missing_vulnerability(scan_info, img_string, description):
 def scan_target(scan_info, url_to_scan):
     try:
         response = requests.get(url_to_scan)
-        print('------------- SAVING RESPONSE TO IMAGE -----------------')
         message = 'Response Headers From: ' + url_to_scan+'\n'
         for h in response.headers:
             message += h + " : " + response.headers[h]+'\n'

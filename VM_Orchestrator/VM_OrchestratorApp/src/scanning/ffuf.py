@@ -1,14 +1,12 @@
-from datetime import datetime
-from ..mongo import mongo
-from .. import constants
-from ..slack import slack_sender
-from ..redmine import redmine
-from ...objects.vulnerability import Vulnerability
+from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
 import subprocess
 import os
 import json
 import uuid
+from datetime import datetime
 
 
 def cleanup(path):
@@ -22,8 +20,8 @@ def cleanup(path):
 def handle_target(info):
     print('------------------- FFUF SCAN STARTING -------------------')
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    slack_sender.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
@@ -36,7 +34,7 @@ def handle_target(info):
 
 def handle_single(scan_info):
     print('------------------- FFUF SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
+    slack.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- FFUF SCAN FINISHED -------------------')
     return
@@ -46,8 +44,8 @@ def add_vulnerability(scan_info, affected_resource, description):
     timestamp = datetime.now()
     vulnerability = Vulnerability(constants.ENDPOINT, scan_info, description)
 
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
 

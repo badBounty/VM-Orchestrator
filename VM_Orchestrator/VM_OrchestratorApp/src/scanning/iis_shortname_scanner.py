@@ -1,3 +1,7 @@
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+
 import requests
 import os
 import subprocess
@@ -7,18 +11,12 @@ from io import BytesIO
 from datetime import datetime
 import uuid
 
-from ..mongo import mongo
-from ..comms import image_creator
-from ..slack import slack_sender
-from ..redmine import redmine
-from .. import constants
-from ...objects.vulnerability import Vulnerability
-
 
 def handle_target(info):
     print('------------------- IIS SHORTNAME SCAN STARTING -------------------')
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    slack_sender.send_simple_message("Check and scann : %s. %d alive urls found!"% (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("IIS Shortname scan started against domain: %s. %d alive urls found!"
+                                % (info['domain'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
@@ -31,7 +29,7 @@ def handle_target(info):
 
 def handle_single(scan_info):
     print('------------------- IIS SHORTNAME SCAN STARTING -------------------')
-    slack_sender.send_simple_message("IIS ShortName Scanner scan started against %s" % scan_info['url_to_scan'])
+    slack.send_simple_message("IIS ShortName Scanner scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- IIS SHORTNAME SCAN FINISHED -------------------')
     return
@@ -62,8 +60,8 @@ def scan_target(scan_info, url_to_scan):
 
                 vulnerability.add_image_string(img_str)
                 vulnerability.add_attachment(output_dir, 'IIS-Result.png')
-                slack_sender.send_simple_vuln(vulnerability)
-                redmine.create_new_issue(vulnerability)
+                slack.send_vulnerability(vulnerability)
+                #redmine.create_new_issue(vulnerability)
                 mongo.add_vulnerability(vulnerability)
                 os.remove(output_dir)
     except KeyError:

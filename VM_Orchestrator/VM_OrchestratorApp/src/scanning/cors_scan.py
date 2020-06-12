@@ -1,14 +1,12 @@
-from ..mongo import mongo
-from datetime import datetime
-from .. import constants
-from ..slack import slack_sender
-from ..redmine import redmine
-from ...objects.vulnerability import Vulnerability
+from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
 import os
 import subprocess
 import json
 import uuid
+from datetime import datetime
 
 
 def cleanup(path):
@@ -22,8 +20,8 @@ def cleanup(path):
 def handle_target(info):
     print('------------------- CORS SCAN STARTING -------------------')
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    slack_sender.send_simple_message("CORS scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+    slack.send_simple_message("CORS scan started against target: %s. %d alive urls found!"
+                                     % (info['domain'], len(info['url_to_scan'])))
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
     # We first put all the urls with http/s into a txt file
@@ -43,7 +41,7 @@ def handle_target(info):
 
 def handle_single(scan_info):
     print('------------------- CORS SCAN STARTING -------------------')
-    slack_sender.send_simple_message("CORS scan started against %s" % scan_info['url_to_scan'])
+    slack.send_simple_message("CORS scan started against %s" % scan_info['url_to_scan'])
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
     # Put urls in a single file
@@ -64,8 +62,8 @@ def handle_single(scan_info):
 
 def add_vulnerability(scan_info, vuln):
     vulnerability = Vulnerability(constants.CORS, scan_info, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
+    slack.send_vulnerability(vulnerability)
+    #redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
 
