@@ -40,6 +40,7 @@ def test_vuln_scan(information):
     for subdomain in subdomains_plain:
         only_subdomains.append(subdomain['subdomain'])
     ip_information['url_to_scan'] = only_subdomains
+    print(ip_information)
 
     # Run the scan
     execution_chain = chain(

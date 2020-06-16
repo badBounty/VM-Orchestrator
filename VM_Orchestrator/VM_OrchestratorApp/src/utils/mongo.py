@@ -13,7 +13,7 @@ libraries_versions = MONGO_CLIENT[MONGO_INFO['DATABASE']]['libraries_versions']
 def add_vulnerability(vulnerability):
     exists = vulnerabilities.find_one({'domain': vulnerability.target, 'subdomain': vulnerability.scanned_url,
                                           'vulnerability_name': vulnerability.vulnerability_name,
-                                          'language': vulnerability.language})
+                                          'language': vulnerability.language, 'extra_info': vulnerability.custom_description})
     if exists:
         vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
             'last_seen': vulnerability.time,
@@ -23,7 +23,7 @@ def add_vulnerability(vulnerability):
         }})
     else:
         resource = {
-            'target_name': vulnerability.target,
+            'domain': vulnerability.target,
             'subdomain': vulnerability.scanned_url,
             'vulnerability_name': vulnerability.vulnerability_name,
             'extra_info': vulnerability.custom_description,
@@ -96,7 +96,7 @@ def add_resource(url_info, scan_info):
                 'scanned': False,
         }
         if not scan_info['is_first_run']:
-            slack.send_new_resource_found("New resource found! NOT first run. %s" % url_info['url'])
+            slack.send_new_resource_found("New resource found! %s" % url_info['url'])
             print('New resource found!!\n')
             print(str(resource))
         resources.insert_one(resource)

@@ -138,11 +138,13 @@ def security_scan_finished():
 # ------ MONITOR TOOLS ------ #
 @shared_task
 def add_scanned_resources(list):
-    #mongo.add_scanned_resources(list)
+    mongo.add_scanned_resources(list)
     return
 
 # ------ PERIODIC TASKS ------ #
-@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
+#@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
+#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=17, minute=30),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_start_task():
     today_date = datetime.combine(date.today(), datetime.min.time())
@@ -153,12 +155,12 @@ def project_start_task():
     # We will use tesla for this test run
     information = {
         'domain': 'tesla.com',
-        'is_first_run': False,
+        'is_first_run': True,
         'scan_type': 'target',
         'invasive_scans': False,
         'language': 'eng'
     }
-    slack.send_monitor_recon_start_notification()
+    slack.send_project_start_recon_start_notification()
     # Recon is ran agains the target/s. If new subdomains are found, they will be flagged as 'scanned': 'false'
     subdomain_recon_task(information)
     resolver_recon_task(information)
@@ -183,7 +185,7 @@ def project_start_task():
         only_subdomains.append(subdomain['subdomain'])
     ip_information['url_to_scan'] = only_subdomains
 
-    slack.send_monitor_scan_start_notification()
+    slack.send_project_start_scan_start_notification()
     # Chain is defined
     # We flag the scanned resources as 'scanned'
     execution_chain = chain(
@@ -206,16 +208,17 @@ def project_start_task():
             #burp_scan_task.s(web_information).set(queue='slow_queue'),
             # Notice we send ip information to this scans
             nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
-            nmap_script_scan_task.s(ip_information).set(queue='slow_queue')
+            nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
+            add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
         body=security_scan_finished.si(),
-        immutable=True),
-        add_scanned_resources.si(web_information).set(queue='fast_queue')
+        immutable=True)
         )()
     return
 
+
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=0, minute=0),
+@periodic_task(run_every=crontab(hour=18, minute=10),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
@@ -280,10 +283,11 @@ def project_monitor_task():
             #burp_scan_task.s(web_information).set(queue='slow_queue'),
             # Notice we send ip information to this scans
             nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
-            nmap_script_scan_task.s(ip_information).set(queue='slow_queue')
+            nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
+            add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
         body=security_scan_finished.si(),
         immutable=True),
-        add_scanned_resources.si(web_information).set(queue='fast_queue')
+        add_scanned_resources.si(ip_information).set(queue='fast_queue')
         )()
     return

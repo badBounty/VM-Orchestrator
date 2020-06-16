@@ -6,7 +6,6 @@ def send_simple_message(message):
         INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text=str(message))
        
 def send_vulnerability(vulnerability):
-    return
     if INTERNAL_SLACK_WEB_CLIENT is not None:
         message = 'Found vulnerability %s at %s from resource %s. \n %s' % \
          (vulnerability.vulnerability_name, vulnerability.scanned_url, vulnerability.target, vulnerability.custom_description)
@@ -37,17 +36,23 @@ def send_recon_end_notification():
 
 def send_monitor_recon_start_notification():
     if INTERNAL_SLACK_WEB_CLIENT is not None:
-        INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text="Monitor recon started!")
-    
+        INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text='Monitor recon started!')
+
 def send_monitor_scan_start_notification():
     if INTERNAL_SLACK_WEB_CLIENT is not None:
-        INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text="Monitor scan started!")
+        INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text='Monitor scan started')
 
 
 def send_project_start_recon_start_notification():
     if INTERNAL_SLACK_WEB_CLIENT is not None:
-        INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text="Project started, executing recon...")
+        INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text='Project started, executing recon...')
+    if EXTERNAL_SLACK_WEB_CLIENT is not None:
+        EXTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['EXTERNAL_SLACK_CHANNEL'], text='Project started, executing recon...')
+  
     
 def send_project_start_scan_start_notification():
     if INTERNAL_SLACK_WEB_CLIENT is not None:
-        INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text="Starting vuln scan against found resources")
+        INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text='Starting vuln scan against found resources')
+    if EXTERNAL_SLACK_WEB_CLIENT is not None:
+        EXTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['EXTERNAL_SLACK_CHANNEL'], text='Starting vuln scan against found resources')
+  
