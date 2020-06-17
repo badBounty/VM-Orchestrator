@@ -248,7 +248,7 @@ def add_scanned_resources(list):
 # ------ PERIODIC TASKS ------ #
 #@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
 #queue='slow_queue', options={'queue': 'slow_queue'})
-@periodic_task(run_every=crontab(hour=18, minute=30),
+@periodic_task(run_every=crontab(hour=19, minute=30),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_start_task():
     today_date = datetime.combine(date.today(), datetime.min.time())
