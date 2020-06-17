@@ -3,6 +3,7 @@ from celery.task import periodic_task
 from celery.schedules import crontab
 
 from datetime import datetime, date
+import pandas as pd
 import copy
 
 from VM_OrchestratorApp.src.recon import initial_recon, aquatone
@@ -131,101 +132,174 @@ def burp_scan_task(scan_information):
     elif scan_information['scan_type'] == 'target':
         burp_scan.handle_target(scan_information)
 
-@shared_task
-def security_scan_finished():
-    print('Security scan finished!')
-
-# ------ MONITOR TOOLS ------ #
-@shared_task
-def add_scanned_resources(list):
-    mongo.add_scanned_resources(list)
-    return
-
-# ------ PERIODIC TASKS ------ #
-#@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
-#queue='slow_queue', options={'queue': 'slow_queue'})
-@periodic_task(run_every=crontab(hour=17, minute=30),
-queue='slow_queue', options={'queue': 'slow_queue'})
-def project_start_task():
-    today_date = datetime.combine(date.today(), datetime.min.time())
-    # This will make it so the tasks only runs once in the program existence
-    if(today_date.year != settings['PROJECT']['START_DATE'].year):
-       return
-    
-    # We will use tesla for this test run
-    information = {
+# ------ PREDEFINED TASKS ------ #
+'''
+information = {
         'domain': 'tesla.com',
         'is_first_run': True,
         'scan_type': 'target',
         'invasive_scans': False,
         'language': 'eng'
     }
-    slack.send_project_start_recon_start_notification()
-    # Recon is ran agains the target/s. If new subdomains are found, they will be flagged as 'scanned': 'false'
-    subdomain_recon_task(information)
-    resolver_recon_task(information)
+'''
+@shared_task
+def run_recon(scan_information):
+    subdomain_recon_task(scan_information)
+    resolver_recon_task(scan_information)
+    recon_finished()
+    return
 
+@shared_task
+def run_web_scanners(scan_information):
     # Deep copy just in case
-    web_information = copy.deepcopy(information)
-    ip_information = copy.deepcopy(information)
+    web_information = copy.deepcopy(scan_information)
 
-    # We will divide the cases in web and just ip
-    # This is the web case
-    subdomains_http = mongo.get_responsive_http_resources(information['domain'])
-    only_urls = list()
-    for subdomain in subdomains_http:
-        only_urls.append(subdomain['url_with_http'])
-    web_information['url_to_scan'] = only_urls
+    if web_information['type'] == 'domain':
+        web_information['scan_type'] = 'target'
+        subdomains_http = mongo.get_responsive_http_resources(web_information['domain'])
+        only_urls = list()
+        for subdomain in subdomains_http:
+            only_urls.append(subdomain['url_with_http'])
+        web_information['url_to_scan'] = only_urls
+    # Single url case
+    else:
+        mongo.add_simple_url_resource(scan_information)
+        web_information['scan_type'] = 'single'
+        web_information['url_to_scan'] = web_information['domain']
 
-    #subdomains_http C subdomains_plain
-    # Ip case
-    subdomains_plain = mongo.get_alive_subdomains_from_target(information['domain'])
-    only_subdomains = list()
-    for subdomain in subdomains_plain:
-        only_subdomains.append(subdomain['subdomain'])
-    ip_information['url_to_scan'] = only_subdomains
-
-    slack.send_project_start_scan_start_notification()
     # Chain is defined
     # We flag the scanned resources as 'scanned'
-    execution_chain = chain(
-        chord(
+    execution_chord =chord(
         [
             # Fast_scans
             header_scan_task.s(web_information).set(queue='fast_queue'),
             http_method_scan_task.s(web_information).set(queue='fast_queue'),
-            libraries_scan_task.s(web_information).set(queue='fast_queue'),
-            ffuf_task.s(web_information).set(queue='fast_queue'),
-            iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
-            bucket_finder_task.s(web_information).set(queue='fast_queue'),
-            token_scan_task.s(web_information).set(queue='fast_queue'),
-            css_scan_task.s(web_information).set(queue='fast_queue'),
-            firebase_scan_task.s(web_information).set(queue='fast_queue'),
-            host_header_attack_scan.s(web_information).set(queue='fast_queue'),
+            #libraries_scan_task.s(web_information).set(queue='fast_queue'),
+            #ffuf_task.s(web_information).set(queue='fast_queue'),
+            #iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
+            #bucket_finder_task.s(web_information).set(queue='fast_queue'),
+            #token_scan_task.s(web_information).set(queue='fast_queue'),
+            #css_scan_task.s(web_information).set(queue='fast_queue'),
+            #firebase_scan_task.s(web_information).set(queue='fast_queue'),
+            #host_header_attack_scan.s(web_information).set(queue='fast_queue'),
             # Slow_scans
-            cors_scan_task.s(web_information).set(queue='slow_queue'),
-            ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
-            #burp_scan_task.s(web_information).set(queue='slow_queue'),
-            # Notice we send ip information to this scans
-            nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
-            nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
+            #cors_scan_task.s(web_information).set(queue='slow_queue'),
+            #ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
+            #burp_scan_task.s(web_information).set(queue='slow_queue')
+        ],
+        body=web_security_scan_finished.si().set(queue='fast_queue'),
+        immutable=True)()
+    return
+
+@shared_task
+def run_ip_scans(scan_information):
+    # Deepcopy just in case
+    ip_information = copy.deepcopy(scan_information)
+    
+    if ip_information['type'] == 'domain':
+        ip_information['scan_type'] = 'target'
+        subdomains_plain = mongo.get_alive_subdomains_from_target(ip_information['domain'])
+        only_subdomains = list()
+        for subdomain in subdomains_plain:
+            only_subdomains.append(subdomain['subdomain'])
+        ip_information['url_to_scan'] = only_subdomains
+    else:
+        ip_information['scan_type'] = 'single'
+        if ip_information['type'] == 'ip':
+            ip_information['url_to_scan'] = ip_information['domain']
+            mongo.add_simple_ip_resource(ip_information)
+        else:
+            #We can scan an url for IP things, we just use the hostname, resource will be added before
+            ip_information['url_to_scan'] = ip_information['domain'].split('/')[2]
+
+    # We will flag the resource as scanned here, mainly because all alive resources will reach this point
+    execution_chord = chord(
+        [
+            #nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
+            #nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
             add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
-        body=security_scan_finished.si(),
-        immutable=True)
-        )()
+        body=ip_security_scan_finished.si().set(queue='fast_queue'),
+        immutable=True)()
+    return
+
+# ------ END ALERTS ------ #
+@shared_task
+def web_security_scan_finished():
+    print('Web security scan finished!')
+    return
+
+@shared_task
+def ip_security_scan_finished():
+    print('IP security scan finished!')
+    return
+
+@shared_task
+def recon_finished():
+    print('Recon finished!')
+    return
+
+# ------ MONITOR TOOLS ------ #
+@shared_task
+def add_scanned_resources(list):
+    #mongo.add_scanned_resources(list)
+    return
+
+# ------ PERIODIC TASKS ------ #
+#@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
+#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=18, minute=30),
+queue='slow_queue', options={'queue': 'slow_queue'})
+def project_start_task():
+    today_date = datetime.combine(date.today(), datetime.min.time())
+    # This will make it so the tasks only runs once in the program existence
+    if(today_date.year != settings['PROJECT']['START_DATE'].year):
+       return
+       
+    df = pd.read_csv(settings['PROJECT']['START_FILE'])
+    dictionary = df.to_dict('records')
+
+    slack.send_log_message("Project starting!")
+
+    for info in dictionary:
+        scan_info = {
+        'is_first_run': True,
+        'invasive_scans': False,
+        'language': 'eng'
+        }
+        scan_info['type'] = info['Type']
+        scan_info['priority'] = info['Priority']
+        scan_info['exposition'] = info['Exposition']
+        scan_info['domain'] = info['Resource']
+
+        if scan_info['type'] == 'domain':
+            slack.send_log_message("Recon starting against %s" % scan_info['domain'])
+            run_recon(scan_info)
+            slack.send_log_message("Web scans starting against %s" % scan_info['domain'])
+            run_web_scanners(scan_info)
+            slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
+            run_ip_scans(scan_info)
+        elif scan_info['type'] == 'ip':
+            slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
+            run_ip_scans(scan_info)
+        elif scan_info['type'] == 'url':
+            slack.send_log_message("Web scans starting against %s" % scan_info['domain'])
+            run_web_scanners(scan_info)
+            slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
+            run_ip_scans(scan_info)
+
     return
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=18, minute=10),
+@periodic_task(run_every=crontab(hour=15, minute=8),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
     # We first check if the project has started, we return if not
-    today_date = datetime.combine(date.today(), datetime.min.time())
-    if today_date < settings['PROJECT']['START_DATE']:
-        return
+    #today_date = datetime.combine(date.today(), datetime.min.time())
+    #if today_date < settings['PROJECT']['START_DATE']:
+    #    return
     
     # We will use tesla for this test run
     information = {
@@ -235,59 +309,12 @@ def project_monitor_task():
         'invasive_scans': False,
         'language': 'eng'
     }
-    slack.send_monitor_recon_start_notification()
+    slack.send_log_message("Monitor recon starting")
     # Recon is ran agains the target/s. If new subdomains are found, they will be flagged as 'scanned': 'false'
-    subdomain_recon_task(information)
-    resolver_recon_task(information)
+    #run_recon(information)
+    slack.send_log_message("Monitor web scan starting")
+    run_web_scanners(information)
+    slack.send_log_message("Monitor IP scan starting")
+    run_ip_scans(information)
 
-    # Deep copy just in case
-    web_information = copy.deepcopy(information)
-    ip_information = copy.deepcopy(information)
-
-    # We will divide the cases in web and just ip
-    # This is the web case
-    subdomains_http = mongo.get_responsive_http_resources(information['domain'])
-    only_urls = list()
-    for subdomain in subdomains_http:
-        only_urls.append(subdomain['url_with_http'])
-    web_information['url_to_scan'] = only_urls
-
-    #subdomains_http C subdomains_plain
-    # Ip case
-    subdomains_plain = mongo.get_alive_subdomains_from_target(information['domain'])
-    only_subdomains = list()
-    for subdomain in subdomains_plain:
-        only_subdomains.append(subdomain['subdomain'])
-    ip_information['url_to_scan'] = only_subdomains
-
-    slack.send_monitor_scan_start_notification()
-    # Chain is defined
-    # We flag the scanned resources as 'scanned'
-    execution_chain = chain(
-        chord(
-        [
-            # Fast_scans
-            header_scan_task.s(web_information).set(queue='fast_queue'),
-            http_method_scan_task.s(web_information).set(queue='fast_queue'),
-            libraries_scan_task.s(web_information).set(queue='fast_queue'),
-            ffuf_task.s(web_information).set(queue='fast_queue'),
-            iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
-            bucket_finder_task.s(web_information).set(queue='fast_queue'),
-            token_scan_task.s(web_information).set(queue='fast_queue'),
-            css_scan_task.s(web_information).set(queue='fast_queue'),
-            firebase_scan_task.s(web_information).set(queue='fast_queue'),
-            host_header_attack_scan.s(web_information).set(queue='fast_queue'),
-            # Slow_scans
-            cors_scan_task.s(web_information).set(queue='slow_queue'),
-            ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
-            #burp_scan_task.s(web_information).set(queue='slow_queue'),
-            # Notice we send ip information to this scans
-            nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
-            nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
-            add_scanned_resources.s(ip_information).set(queue='fast_queue')
-        ],
-        body=security_scan_finished.si(),
-        immutable=True),
-        add_scanned_resources.si(ip_information).set(queue='fast_queue')
-        )()
     return

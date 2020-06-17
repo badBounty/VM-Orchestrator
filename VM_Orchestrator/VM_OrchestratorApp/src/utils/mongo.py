@@ -38,13 +38,31 @@ def add_vulnerability(vulnerability):
     return
 
 def add_scanned_resources(urls):
-    for url in urls['url_to_scan']:
-        subdomain = resources.find_one({'domain': urls['domain'], 'subdomain': url, 'scanned': False})
-        resources.update_one({'_id': subdomain.get('_id')},
-         {'$set': 
+    if urls['type'] == 'domain':
+        for url in urls['url_to_scan']:
+            resource = resources.find_one({'domain': urls['domain'], 'subdomain': url, 'scanned': False, 'type': urls['type']})
+            resources.update_one({'_id': resource.get('_id')},
+            {'$set': 
+                {
+                'scanned': True
+                }})
+    else:
+        resource = resources.find_one({'domain': urls['domain'], 'subdomain': urls['url_to_scan'], 'scanned': False, 'type': urls['type']})
+        resources.update_one({'_id': resource.get('_id')},
+        {'$set': 
             {
             'scanned': True
             }})
+
+
+def remove_scanned_flag():
+    print('Updating...')
+    cursor = resources.find({})
+    for document in cursor:
+        resources.update_one({'_id': document.get('_id')}, {'$set': {
+            'scanned': False
+        }})
+        print(document)
 
 def get_responsive_http_resources(target):
     subdomains = resources.find({'domain': target, 'has_urls': 'True', 'scanned': False})
@@ -74,6 +92,75 @@ def find_last_version_of_librarie(name):
 
 
 # ------------------- RECON -------------------
+def add_simple_url_resource(scan_info):
+    exists = resources.find_one({'domain': scan_info['domain'], 'subdomain': scan_info['url_to_scan']})
+    timestamp = datetime.now()
+    if not exists:
+        resource ={
+                'domain': scan_info['domain'].split('/')[2],
+                'subdomain': scan_info['domain'],
+                'is_alive': True,
+                'ip': None,
+                'additional_info':{
+                    'isp': None,
+                    'asn': None,
+                    'country': None,
+                    'region': None,
+                    'city': None,
+                    'org': None,
+                    'lat': None,
+                    'lon': None,
+                },
+                'first_seen': timestamp,
+                'last_seen': timestamp,
+                'scanned': False,
+                'type': scan_info['type'],
+                'priority': scan_info['priority'],
+                'exposition': scan_info['exposition']
+        }
+        resources.insert_one(resource)
+    else:
+        resources.update_one({'_id': exists.get('_id')},
+         {'$set': 
+            {
+            'last_seen': timestamp
+            }})
+
+def add_simple_ip_resource(scan_info):
+    exists = resources.find_one({'domain': scan_info['domain'], 'subdomain': scan_info['url_to_scan']})
+    timestamp = datetime.now()
+    if not exists:
+        resource ={
+                'domain': scan_info['domain'],
+                'subdomain': scan_info['domain'],
+                'is_alive': True,
+                'ip': scan_info['domain'],
+                'additional_info':{
+                    'isp': None,
+                    'asn': None,
+                    'country': None,
+                    'region': None,
+                    'city': None,
+                    'org': None,
+                    'lat': None,
+                    'lon': None,
+                },
+                'first_seen': timestamp,
+                'last_seen': timestamp,
+                'scanned': False,
+                'type': scan_info['type'],
+                'priority': scan_info['priority'],
+                'exposition': scan_info['exposition']
+        }
+        resources.insert_one(resource)
+    else:
+        resources.update_one({'_id': exists.get('_id')},
+         {'$set': 
+            {
+            'last_seen': timestamp
+            }})
+
+
 def add_resource(url_info, scan_info):
     exists = resources.find_one({'domain': url_info['domain'], 'subdomain': url_info['url']})
     timestamp = datetime.now()
@@ -83,17 +170,22 @@ def add_resource(url_info, scan_info):
                 'subdomain': url_info['url'],
                 'is_alive': url_info['is_alive'],
                 'ip': url_info['ip'],
-                'isp': url_info['isp'],
-                'asn': url_info['asn'],
-                'country': url_info['country'],
-                'region': url_info['region'],
-                'city': url_info['city'],
-                'org': url_info['org'],
-                'lat': url_info['lat'],
-                'lon': url_info['lon'],
+                'additional_info':{
+                    'isp': url_info['isp'],
+                    'asn': url_info['asn'],
+                    'country': url_info['country'],
+                    'region': url_info['region'],
+                    'city': url_info['city'],
+                    'org': url_info['org'],
+                    'lat': url_info['lat'],
+                    'lon': url_info['lon'],
+                },
                 'first_seen': timestamp,
                 'last_seen': timestamp,
                 'scanned': False,
+                'type': scan_info['type'],
+                'priority': scan_info['priority'],
+                'exposition': scan_info['exposition']
         }
         if not scan_info['is_first_run']:
             slack.send_new_resource_found("New resource found! %s" % url_info['url'])
@@ -106,14 +198,16 @@ def add_resource(url_info, scan_info):
             {
             'is_alive': url_info['is_alive'],
             'ip': url_info['ip'],
-            'isp': url_info['isp'],
-            'asn': url_info['asn'],
-            'country': url_info['country'],
-            'region': url_info['region'],
-            'city': url_info['city'],
-            'org': url_info['org'],
-            'lat': url_info['lat'],
-            'lon': url_info['lon'],
+            'additional_info':{
+                    'isp': url_info['isp'],
+                    'asn': url_info['asn'],
+                    'country': url_info['country'],
+                    'region': url_info['region'],
+                    'city': url_info['city'],
+                    'org': url_info['org'],
+                    'lat': url_info['lat'],
+                    'lon': url_info['lon'],
+                },
             'last_seen': timestamp
             }})
     return

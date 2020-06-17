@@ -5,11 +5,15 @@ import VM_OrchestratorApp.tasks as tasks
 from celery import chain, chord
 import copy
 
+import pandas as pd
+from VM_Orchestrator.settings import settings
+
 """
 {
     'domain': 'tesla.com'
 }
 """
+
 def recon_task_manager(information):
     slack.send_recon_start_notification(information)
 
@@ -18,7 +22,7 @@ def recon_task_manager(information):
         tasks.subdomain_recon_task.si(information).set(queue='slow_queue'),
         tasks.resolver_recon_task.si(information).set(queue='slow_queue')
     )
-    execution_chain.apply_async(queue='fast_queue', interval=300)
+    execution_chain.apply_async(queue='fast_queue')
 
     return
 
@@ -68,5 +72,5 @@ def test_vuln_scan(information):
         immutable=True),
         tasks.add_scanned_resources.si(ip_information).set(queue='fast_queue')
         )
-    execution_chain.apply_async(queue='fast_queue', interval=100)
+    execution_chain.apply_async(queue='fast_queue')
     return

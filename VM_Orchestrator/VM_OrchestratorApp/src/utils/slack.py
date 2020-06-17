@@ -55,4 +55,10 @@ def send_project_start_scan_start_notification():
         INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text='Starting vuln scan against found resources')
     if EXTERNAL_SLACK_WEB_CLIENT is not None:
         EXTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['EXTERNAL_SLACK_CHANNEL'], text='Starting vuln scan against found resources')
-  
+
+
+def send_log_message(msg):
+    if INTERNAL_SLACK_WEB_CLIENT is not None:
+        INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text=str(msg))
+    if EXTERNAL_SLACK_WEB_CLIENT is not None:
+        EXTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['EXTERNAL_SLACK_CHANNEL'], text=str(msg))

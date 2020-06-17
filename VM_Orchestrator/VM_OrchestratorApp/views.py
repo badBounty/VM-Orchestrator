@@ -24,5 +24,6 @@ def project_start(request):
         'language': 'eng'
     }
     #manager.recon_task_manager(info_to_send)
-    manager.test_vuln_scan(info_to_send)
+    #manager.test_vuln_scan(info_to_send)
+    #mongo.remove_scanned_flag()
     return JsonResponse({'data':'Hi'})

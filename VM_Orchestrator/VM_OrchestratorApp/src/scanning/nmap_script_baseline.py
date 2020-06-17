@@ -49,7 +49,10 @@ def handle_single(scan_info):
     url = scan_info['url_to_scan']
     slack.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
-    host = url.split('/')[2]
+    try:
+        host = url.split('/')[2]
+    except IndexError:
+        host = url
     basic_scan(scan_info, host)
     print('------------------- NMAP BASIC SCAN FINISHED -------------------')
     return
@@ -96,7 +99,7 @@ def basic_scan(scan_info, url_to_scan):
     random_filename = uuid.uuid4().hex
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     output_dir = ROOT_DIR + '/tools_output/'+random_filename
-    basic_scan = subprocess.run(['nmap','-Pn','-sV','-sS','-vvv','--top-ports=1000','-oA',output_dir,url_to_scan])
+    basic_scan = subprocess.run(['nmap','-Pn','-sV','-vvv','--top-ports=1000','-oA',output_dir,url_to_scan])
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()

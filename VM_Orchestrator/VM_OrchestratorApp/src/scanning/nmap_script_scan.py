@@ -61,7 +61,10 @@ def handle_single(scan_info):
     url = scan_info['url_to_scan']
     slack.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
-    host = url.split('/')[2]
+    try:
+        host = url.split('/')[2]
+    except IndexError:
+        host = url
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
     outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
