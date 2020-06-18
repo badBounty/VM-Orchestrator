@@ -176,14 +176,14 @@ def run_web_scanners(scan_information):
             http_method_scan_task.s(web_information).set(queue='fast_queue'),
             #libraries_scan_task.s(web_information).set(queue='fast_queue'),
             #ffuf_task.s(web_information).set(queue='fast_queue'),
-            #iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
-            #bucket_finder_task.s(web_information).set(queue='fast_queue'),
-            #token_scan_task.s(web_information).set(queue='fast_queue'),
-            #css_scan_task.s(web_information).set(queue='fast_queue'),
-            #firebase_scan_task.s(web_information).set(queue='fast_queue'),
-            #host_header_attack_scan.s(web_information).set(queue='fast_queue'),
+            iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
+            bucket_finder_task.s(web_information).set(queue='fast_queue'),
+            token_scan_task.s(web_information).set(queue='fast_queue'),
+            css_scan_task.s(web_information).set(queue='fast_queue'),
+            firebase_scan_task.s(web_information).set(queue='fast_queue'),
+            host_header_attack_scan.s(web_information).set(queue='fast_queue'),
             # Slow_scans
-            #cors_scan_task.s(web_information).set(queue='slow_queue'),
+            cors_scan_task.s(web_information).set(queue='slow_queue'),
             #ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
             #burp_scan_task.s(web_information).set(queue='slow_queue')
         ],
@@ -215,7 +215,7 @@ def run_ip_scans(scan_information):
     # We will flag the resource as scanned here, mainly because all alive resources will reach this point
     execution_chord = chord(
         [
-            #nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
+            nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
             #nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
             add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
@@ -248,7 +248,7 @@ def add_scanned_resources(list):
 # ------ PERIODIC TASKS ------ #
 #@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
 #queue='slow_queue', options={'queue': 'slow_queue'})
-@periodic_task(run_every=crontab(hour=19, minute=30),
+@periodic_task(run_every=crontab(hour=12, minute=45),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_start_task():
     today_date = datetime.combine(date.today(), datetime.min.time())
@@ -257,20 +257,20 @@ def project_start_task():
        return
        
     df = pd.read_csv(settings['PROJECT']['START_FILE'])
-    dictionary = df.to_dict('records')
+    input_data = df.to_dict('records')
 
     slack.send_log_message("Project starting!")
 
-    for info in dictionary:
+    for data in input_data:
         scan_info = {
         'is_first_run': True,
         'invasive_scans': False,
         'language': 'eng'
         }
-        scan_info['type'] = info['Type']
-        scan_info['priority'] = info['Priority']
-        scan_info['exposition'] = info['Exposition']
-        scan_info['domain'] = info['Resource']
+        scan_info['type'] = data['Type']
+        scan_info['priority'] = data['Priority']
+        scan_info['exposition'] = data['Exposition']
+        scan_info['domain'] = data['Resource']
 
         if scan_info['type'] == 'domain':
             slack.send_log_message("Recon starting against %s" % scan_info['domain'])
@@ -292,29 +292,35 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=15, minute=8),
+@periodic_task(run_every=crontab(hour=13, minute=45),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
     # We first check if the project has started, we return if not
-    #today_date = datetime.combine(date.today(), datetime.min.time())
-    #if today_date < settings['PROJECT']['START_DATE']:
-    #    return
+    today_date = datetime.combine(date.today(), datetime.min.time())
+    if today_date < settings['PROJECT']['START_DATE']:
+        return
     
-    # We will use tesla for this test run
-    information = {
-        'domain': 'tesla.com',
-        'is_first_run': False,
-        'scan_type': 'target',
-        'invasive_scans': False,
-        'language': 'eng'
-    }
-    slack.send_log_message("Monitor recon starting")
-    # Recon is ran agains the target/s. If new subdomains are found, they will be flagged as 'scanned': 'false'
-    #run_recon(information)
-    slack.send_log_message("Monitor web scan starting")
-    run_web_scanners(information)
-    slack.send_log_message("Monitor IP scan starting")
-    run_ip_scans(information)
+    # The idea is similar to the project start, we just need to ge the same information from our database.
 
+    monitor_data = mongo.get_data_for_monitor()
+
+    for data in monitor_data:
+        scan_info = data
+        if scan_info['type'] == 'domain':
+            slack.send_log_message("Recon starting against %s" % scan_info['domain'])
+            run_recon(scan_info)
+            slack.send_log_message("Web scans starting against %s" % scan_info['domain'])
+            run_web_scanners(scan_info)
+            slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
+            run_ip_scans(scan_info)
+        elif scan_info['type'] == 'ip':
+            slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
+            run_ip_scans(scan_info)
+        elif scan_info['type'] == 'url':
+            slack.send_log_message("Web scans starting against %s" % scan_info['domain'])
+            run_web_scanners(scan_info)
+            slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
+            run_ip_scans(scan_info)
+    
     return
