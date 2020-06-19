@@ -33,24 +33,26 @@ download_report = "http://localhost:8090/burp/report?reportType=XML&urlPrefix=%s
 stop_burp = "http://localhost:8090/burp/stop"
 
 def handle_target(info):
-    print('------------------- BURP TARGET SCAN STARTING -------------------')
-    slack.send_simple_message("Burp scan started against target: %s. %d alive urls found!"
-                                     % (info['domain'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    for url in info['url_to_scan']:
-        sub_info = info
-        sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
-        scan_target(sub_info)
-    print('------------------- BURP TARGET SCAN FINISHED -------------------')
+    if settings.BURP_FOLDER:
+        print('------------------- BURP TARGET SCAN STARTING -------------------')
+        slack.send_simple_message("Burp scan started against target: %s. %d alive urls found!"
+                                        % (info['domain'], len(info['url_to_scan'])))
+        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+        for url in info['url_to_scan']:
+            sub_info = info
+            sub_info['url_to_scan'] = url
+            print('Scanning ' + url)
+            scan_target(sub_info)
+        print('------------------- BURP TARGET SCAN FINISHED -------------------')
     return
 
 
 def handle_single(scan_information):
-    print('------------------- BURP SINGLE SCAN STARTING -------------------')
-    slack.send_simple_message("Burp scan started against %s" % scan_information['url_to_scan'])
-    scan_target(scan_information)
-    print('------------------- BURP SINGLE SCAN FINISHED -------------------')
+    if settings.BURP_FOLDER:
+        print('------------------- BURP SINGLE SCAN STARTING -------------------')
+        slack.send_simple_message("Burp scan started against %s" % scan_information['url_to_scan'])
+        scan_target(scan_information)
+        print('------------------- BURP SINGLE SCAN FINISHED -------------------')
     return
 
 
@@ -60,7 +62,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     json_data = json.loads(json_data)
     description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
     for issue in json_data['issues']['issue']:
-        if issue['name'] not in settings['BURP']['blacklist_findings']:
+        if issue['name'] not in settings.BURP_BLACKLIST:
             name = "[BURP SCAN] - "+ issue['name']
             extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
             vulnerability = Vulnerability(name, scan_info, description+extra)
@@ -75,7 +77,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
 
 def scan_target(scan_info):
     print("LAUNCHING BURP")
-    burp_process = subprocess.Popen(settings['BURP']['bash_folder'], stdout=subprocess.PIPE)
+    burp_process = subprocess.Popen(settings.BURP_FOLDER, stdout=subprocess.PIPE)
     time.sleep(120)
     print("BURP STARTED BEGINING SCAN")
     #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN

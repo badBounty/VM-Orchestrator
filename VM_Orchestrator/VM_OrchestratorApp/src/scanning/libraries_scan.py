@@ -9,7 +9,6 @@ from datetime import datetime
 
 endpoint = 'https://api.wappalyzer.com/lookup/v1/?url='
 
-
 def get_latest_version(name):
     return mongo.find_last_version_of_librarie(name)
 
@@ -72,7 +71,7 @@ def fastPrint(libraries):
 def analyze(scan_info, url_to_scan):
     print('Scanning target {}'.format(url_to_scan))
     target = endpoint + url_to_scan
-    headers = {'x-api-key': settings['WAPPALIZE_KEY']}
+    headers = {'x-api-key': settings.WAPPA_KEY}
     try:
         response = requests.get(target, headers=headers)
         libraries = response.json()[0]['applications']
@@ -87,22 +86,24 @@ def analyze(scan_info, url_to_scan):
 
 
 def handle_target(info):
-    print('------------------- TARGET LIBRARIES SCAN STARTING -------------------')
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    slack.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
-                                     % (info['domain'], len(info['url_to_scan'])))
-    for url in info['url_to_scan']:
-        sub_info = info
-        sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
-        analyze(sub_info, sub_info['url_to_scan'])
-    print('-------------------  TARGET LIBRARIES SCAN FINISHED -------------------')
+    if settings.WAPPA_KEY:
+        print('------------------- TARGET LIBRARIES SCAN STARTING -------------------')
+        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+        slack.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
+                                        % (info['domain'], len(info['url_to_scan'])))
+        for url in info['url_to_scan']:
+            sub_info = info
+            sub_info['url_to_scan'] = url
+            print('Scanning ' + url)
+            analyze(sub_info, sub_info['url_to_scan'])
+        print('-------------------  TARGET LIBRARIES SCAN FINISHED -------------------')
     return
 
 
 def handle_single(scan_info):
-    print('------------------- SINGLE LIBRARIES SCAN STARTING -------------------')
-    slack.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
-    analyze(scan_info, scan_info['url_to_scan'])
-    print('------------------- SINGLE LIBRARIES SCAN FINISHED -------------------')
+    if settings.WAPPA_KEY:
+        print('------------------- SINGLE LIBRARIES SCAN STARTING -------------------')
+        slack.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
+        analyze(scan_info, scan_info['url_to_scan'])
+        print('------------------- SINGLE LIBRARIES SCAN FINISHED -------------------')
     return

@@ -1,6 +1,7 @@
 from VM_OrchestratorApp.src.utils import slack, utils, mongo
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+from VM_Orchestrator.settings import settings
 
 import subprocess
 import os
@@ -18,25 +19,27 @@ def cleanup(path):
 
 
 def handle_target(info):
-    print('------------------- FFUF SCAN STARTING -------------------')
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    slack.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
-                                     % (info['domain'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    for url in info['url_to_scan']:
-        sub_info = info
-        sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
-        scan_target(sub_info, sub_info['url_to_scan'])
-    print('-------------------  FFUF SCAN FINISHED -------------------')
+    if settings.FFUF_LIST:
+        print('------------------- FFUF SCAN STARTING -------------------')
+        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+        slack.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
+                                        % (info['domain'], len(info['url_to_scan'])))
+        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+        for url in info['url_to_scan']:
+            sub_info = info
+            sub_info['url_to_scan'] = url
+            print('Scanning ' + url)
+            scan_target(sub_info, sub_info['url_to_scan'])
+        print('-------------------  FFUF SCAN FINISHED -------------------')
     return
 
 
 def handle_single(scan_info):
-    print('------------------- FFUF SCAN STARTING -------------------')
-    slack.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
-    scan_target(scan_info, scan_info['url_to_scan'])
-    print('------------------- FFUF SCAN FINISHED -------------------')
+    if settings.FFUF_LIST:
+        print('------------------- FFUF SCAN STARTING -------------------')
+        slack.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
+        scan_target(scan_info, scan_info['url_to_scan'])
+        print('------------------- FFUF SCAN FINISHED -------------------')
     return
 
 

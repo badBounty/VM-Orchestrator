@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os, json
+import redminelib
+import requests
 from datetime import datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -130,3 +132,55 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
 MONGO_INFO = settings['MONGO']
+
+#Checking of settings for scans
+BURP_FOLDER = None
+BURP_BLACKLIST = None
+INT_USERS_LIST = None
+INT_PASS_LIST = None
+FFUF_LIST = None
+WAPPA_KEY = None
+redmine_client = None
+
+if settings['BURP']['bash_folder'] != '' and os.path.exists(settings['BURP']['bash_folder']):
+    BURP_FOLDER = settings['BURP']['bash_folder']
+    BURP_BLACKLIST = settings['BURP']['blacklist_findings']
+else:
+    raise Exception("Not valid path for burp suite, if you don't want tou use it just fill it empty in the settings.json file")
+
+if settings['WORDLIST']['ssh_ftp_user'] != '' and os.path.exists(settings['WORDLIST']['ssh_ftp_user']):
+    INT_USERS_LIST = settings['WORDLIST']['ssh_ftp_user']
+else:
+    raise Exception("Not valid path for ssh ftp users list, if you don't want tou use it just fill it empty in the settings.json file")
+
+if settings['WORDLIST']['ssh_ftp_pass'] != '' and os.path.exists(settings['WORDLIST']['ssh_ftp_pass']):
+    INT_PASS_LIST = settings['WORDLIST']['ssh_ftp_pass']
+else:
+    raise Exception("Not valid path for ssh ftp passwords list, if you don't want tou use it just fill it empty in the settings.json file")
+
+if settings['WORDLIST']['ffuf_list'] != '' and os.path.exists(settings['WORDLIST']['ffuf_list']):
+    FFUF_LIST = settings['WORDLIST']['ffuf_list']
+else:
+    raise Exception("Not valid path for ffuf wordlist, if you don't want tou use it just fill it empty in the settings.json file")
+
+if settings['WAPPALIZE_KEY'] != '':
+    WAPPA_KEY = settings['WAPPALIZE_KEY']
+
+# Redmine connection
+REDMINE_URL = settings['REDMINE']['url']
+REDMINE_USER = settings['REDMINE']['user']
+REDMINE_PASSWORD = settings['REDMINE']['password']
+try:
+    if REDMINE_URL != '' and REDMINE_USER != '' and REDMINE_PASSWORD != '':
+        redmine_client = redminelib.Redmine(str(REDMINE_URL), username=str(REDMINE_USER), password=str(REDMINE_PASSWORD),
+                            requests={'verify': False})
+        redmine_client.project.all()[0]
+except requests.exceptions.MissingSchema:
+    redmine_client = None
+    raise Exception("Missing schema for redmine")
+except redminelib.exceptions.AuthError:
+    redmine_client = None
+    raise Exception("Redmine authentication error, check your credentials")
+except Exception:
+    redmine_client = None
+    raise Exception("Somethig went wrong with the redmine, check credencials and url in settings.json configuration file")
