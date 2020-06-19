@@ -100,7 +100,7 @@ def get_data_for_monitor():
     information = list()
     for data in all_data:
         information.append({
-            'is_first_run': True,
+            'is_first_run': False,
             'invasive_scans': False,
             'language': 'eng',
             'type': data['type'],

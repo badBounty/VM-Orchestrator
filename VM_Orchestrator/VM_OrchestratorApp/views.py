@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 import VM_OrchestratorApp.tasks as tasks
 import VM_OrchestratorApp.src.utils.mongo as mongo
@@ -7,6 +9,7 @@ import VM_OrchestratorApp.src.utils.mongo as mongo
 from VM_Orchestrator.settings import settings
 
 from celery import chain
+import json
 from datetime import datetime, date
 
 import VM_OrchestratorApp.src.task_manager as manager
@@ -15,15 +18,10 @@ import VM_OrchestratorApp.src.task_manager as manager
 def index(request):
     return render(request, 'base.html')
 
-def project_start(request):
-    info_to_send = {
-        'domain': 'tesla.com',
-        'is_first_run': False,
-        'scan_type': 'target',
-        'invasive_scans': False,
-        'language': 'eng'
-    }
-    #manager.recon_task_manager(info_to_send)
-    #manager.test_vuln_scan(info_to_send)
-    #mongo.remove_scanned_flag()
+@csrf_exempt
+def on_demand_scan(request):
+    if request.method == 'POST':
+        received_json_data=json.loads(request.body)
+        print(received_json_data)
+        manager.on_demand_scan(received_json_data)
     return JsonResponse({'data':'Hi'})

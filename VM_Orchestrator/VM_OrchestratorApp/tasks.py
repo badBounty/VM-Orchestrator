@@ -163,9 +163,9 @@ def run_web_scanners(scan_information):
         web_information['url_to_scan'] = only_urls
     # Single url case
     else:
-        mongo.add_simple_url_resource(scan_information)
         web_information['scan_type'] = 'single'
         web_information['url_to_scan'] = web_information['domain']
+        mongo.add_simple_url_resource(web_information)
 
     # Chain is defined
     # We flag the scanned resources as 'scanned'
@@ -185,7 +185,7 @@ def run_web_scanners(scan_information):
             # Slow_scans
             cors_scan_task.s(web_information).set(queue='slow_queue'),
             ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
-            burp_scan_task.s(web_information).set(queue='slow_queue')
+            #burp_scan_task.s(web_information).set(queue='slow_queue')
         ],
         body=web_security_scan_finished.si().set(queue='fast_queue'),
         immutable=True)()
@@ -225,6 +225,11 @@ def run_ip_scans(scan_information):
 
 # ------ END ALERTS ------ #
 @shared_task
+def on_demand_scan_finished():
+    print('On demand scan finished!')
+    return
+
+@shared_task
 def web_security_scan_finished():
     print('Web security scan finished!')
     return
@@ -241,15 +246,15 @@ def recon_finished():
 
 # ------ MONITOR TOOLS ------ #
 @shared_task
-def add_scanned_resources(list):
-    mongo.add_scanned_resources(list)
+def add_scanned_resources(resource_list):
+    #mongo.add_scanned_resources(resource_list)
     return
 
 # ------ PERIODIC TASKS ------ #
-#@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
-#queue='slow_queue', options={'queue': 'slow_queue'})
-@periodic_task(run_every=crontab(hour=14, minute=40),
+@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
 queue='slow_queue', options={'queue': 'slow_queue'})
+#@periodic_task(run_every=crontab(hour=14, minute=40),
+#queue='slow_queue', options={'queue': 'slow_queue'})
 def project_start_task():
     today_date = datetime.combine(date.today(), datetime.min.time())
     # This will make it so the tasks only runs once in the program existence
@@ -292,7 +297,7 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=16, minute=40),
+@periodic_task(run_every=crontab(hour=6, minute=0),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
