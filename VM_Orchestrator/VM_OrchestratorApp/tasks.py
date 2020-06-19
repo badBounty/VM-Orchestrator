@@ -247,7 +247,7 @@ def recon_finished():
 # ------ MONITOR TOOLS ------ #
 @shared_task
 def add_scanned_resources(resource_list):
-    #mongo.add_scanned_resources(resource_list)
+    mongo.add_scanned_resources(resource_list)
     return
 
 # ------ PERIODIC TASKS ------ #
