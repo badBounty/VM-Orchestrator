@@ -27,50 +27,51 @@ def recon_task_manager(information):
     return
 
 
-def test_vuln_scan(information):
+'''
+information={
+    'invasive_scans': True/False
+    'type': 'domain' (Recon and scan)
+            'ip'    (Single ip, will only run scan. This can also be a subdomain)
+            'url'   (Single url, will only run scan (Must contain http/https))
+    'priority': 'Asset priority'
+    'exposition': 0 or 200
+    'resource': either the domain, ip or url
+}
+'''
+def on_demand_scan(information):
 
-    web_information = copy.deepcopy(information)
-    ip_information = copy.deepcopy(information)
+    information['is_first_run'] = False
+    information['language'] = 'eng'
 
-    subdomains_http = mongo.get_responsive_http_resources(information['domain'])
-    only_urls = list()
-    for subdomain in subdomains_http:
-        only_urls.append(subdomain['url_with_http'])
-    web_information['url_to_scan'] = only_urls
-
-    #subdomains_http C subdomains_plain
-    subdomains_plain = mongo.get_alive_subdomains_from_target(information['domain'])
-    only_subdomains = list()
-    for subdomain in subdomains_plain:
-        only_subdomains.append(subdomain['subdomain'])
-    ip_information['url_to_scan'] = only_subdomains
-    print(ip_information)
-
-    # Run the scan
-    execution_chain = chain(
-        chord(
-        [
-            # Fast_scans
-            tasks.header_scan_task.s(web_information).set(queue='fast_queue'),
-            #tasks.http_method_scan_task.s(web_information).set(queue='fast_queue'),
-            #tasks.libraries_scan_task.s(web_information).set(queue='fast_queue'),
-            #tasks.ffuf_task.s(web_information).set(queue='fast_queue'),
-            #tasks.iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
-            #tasks.bucket_finder_task.s(web_information).set(queue='fast_queue'),
-            #tasks.token_scan_task.s(web_information).set(queue='fast_queue'),
-            #tasks.css_scan_task.s(web_information).set(queue='fast_queue'),
-            #tasks.firebase_scan_task.s(web_information).set(queue='fast_queue'),
-            #tasks.host_header_attack_scan.s(web_information).set(queue='fast_queue'),
-            # Slow_scans
-            #tasks.cors_scan_task.s(web_information).set(queue='slow_queue'),
-            #tasks.ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
-            #tasks.nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
-            #tasks.nmap_script_scan_task.s(web_information).set(queue='slow_queue'),
-            #tasks.burp_scan_task.s(web_information).set(queue='slow_queue'),
-        ],
-        body=tasks.security_scan_finished.si(),
-        immutable=True),
-        tasks.add_scanned_resources.si(ip_information).set(queue='fast_queue')
+    if information['type'] == 'domain':
+        execution_chain = chain(
+            tasks.run_recon.si(information).set(queue='slow_queue'),
+            chord(
+                [
+                    tasks.run_web_scanners.si(information).set(queue='fast_queue'),
+                    tasks.run_ip_scans.si(information).set(queue='slow_queue')
+                ],
+                body=tasks.on_demand_scan_finished.si(),
+                immutable = True
+            )
         )
-    execution_chain.apply_async(queue='fast_queue')
-    return
+        execution_chain.apply_async(queue='fast_queue', interval=100)
+    elif information['type'] == 'ip':
+        execution_chord = chord(
+                [
+                    tasks.run_ip_scans.si(information).set(queue='slow_queue')
+                ],
+                body=tasks.on_demand_scan_finished.si(),
+                immutable = True
+            )
+        execution_chord.apply_async(queue='fast_queue', interval=100)
+    elif information['type'] == 'url':
+        execution_chord = chord(
+                [
+                    tasks.run_web_scanners.si(information).set(queue='fast_queue'),
+                    tasks.run_ip_scans.si(information).set(queue='slow_queue')
+                ],
+                body=tasks.on_demand_scan_finished.si(),
+                immutable = True
+            )
+        execution_chord.apply_async(queue='fast_queue', interval=100)
