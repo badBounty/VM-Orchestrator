@@ -1,7 +1,7 @@
 from VM_OrchestratorApp.src.utils import slack, utils, mongo
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
-from VM_Orchestrator.settings import settings
+from VM_Orchestrator.settings import settings,FFUF_LIST
 
 import subprocess
 import os
@@ -19,7 +19,7 @@ def cleanup(path):
 
 
 def handle_target(info):
-    if settings.FFUF_LIST:
+    if FFUF_LIST:
         print('------------------- FFUF SCAN STARTING -------------------')
         print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
         slack.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
@@ -35,7 +35,7 @@ def handle_target(info):
 
 
 def handle_single(scan_info):
-    if settings.FFUF_LIST:
+    if FFUF_LIST:
         print('------------------- FFUF SCAN STARTING -------------------')
         slack.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
         scan_target(scan_info, scan_info['url_to_scan'])

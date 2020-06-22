@@ -2,7 +2,7 @@
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
-from VM_Orchestrator.settings import settings
+from VM_Orchestrator.settings import settings,INT_USERS_LIST,INT_PASS_LIST
 
 import subprocess
 import os
@@ -44,12 +44,14 @@ def handle_target(info):
             print('------------------- NMAP WEB VERSIONS -------------------')
             web_versions(sub_info, host)
             if sub_info['invasive_scans']:
-                if settings.INT_USERS_LIST and settings.INT_PASS_LIST:
+                if INT_USERS_LIST and INT_PASS_LIST:
                     print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
                     ssh_ftp_brute_login(sub_info, host, True)#SHH
                     sleep(10)
                     ssh_ftp_brute_login(sub_info, host, False)#FTP
                     ftp_anon_login(sub_info, host)#FTP ANON
+                else:
+                    print("brute skipped missing lists")
                 print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
                 default_account(sub_info,host)#Default creds in web console
         scanned_hosts.append(host)
@@ -71,7 +73,7 @@ def handle_single(scan_info):
     print('------------------- NMAP WEB VERSIONS -------------------')
     web_versions(scan_info, host)
     if scan_info['invasive_scans']:
-        if settings.INT_USERS_LIST and settings.INT_PASS_LIST:
+        if INT_USERS_LIST and INT_PASS_LIST:
             print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
             ssh_ftp_brute_login(scan_info, host, True)#SHH
             sleep(10)
@@ -126,8 +128,7 @@ def outdated_software(scan_info, url_to_scan):
     TOOL_DIR = ROOT_DIR + '/tools/nmap/nmap-vulners/vulners.nse'
 
     outdated_software_process = subprocess.run(
-        ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script=' + TOOL_DIR, url_to_scan], capture_output=True
-    )
+        ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script=' + TOOL_DIR, url_to_scan], capture_output=True)
     text = outdated_software_process.stdout.decode()
     text = text.split('\n')
 

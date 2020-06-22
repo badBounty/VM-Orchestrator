@@ -1,4 +1,4 @@
-from VM_Orchestrator.settings import settings
+from VM_Orchestrator.settings import WAPPA_KEY
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
@@ -71,7 +71,7 @@ def fastPrint(libraries):
 def analyze(scan_info, url_to_scan):
     print('Scanning target {}'.format(url_to_scan))
     target = endpoint + url_to_scan
-    headers = {'x-api-key': settings.WAPPA_KEY}
+    headers = {'x-api-key': WAPPA_KEY}
     try:
         response = requests.get(target, headers=headers)
         libraries = response.json()[0]['applications']
@@ -101,7 +101,7 @@ def handle_target(info):
 
 
 def handle_single(scan_info):
-    if settings.WAPPA_KEY:
+    if WAPPA_KEY:
         print('------------------- SINGLE LIBRARIES SCAN STARTING -------------------')
         slack.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
         analyze(scan_info, scan_info['url_to_scan'])

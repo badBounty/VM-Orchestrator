@@ -142,26 +142,30 @@ FFUF_LIST = None
 WAPPA_KEY = None
 redmine_client = None
 
-if settings['BURP']['bash_folder'] != '' and os.path.exists(settings['BURP']['bash_folder']):
-    BURP_FOLDER = settings['BURP']['bash_folder']
-    BURP_BLACKLIST = settings['BURP']['blacklist_findings']
-else:
-    raise Exception("Not valid path for burp suite, if you don't want tou use it just fill it empty in the settings.json file")
+if settings['BURP']['bash_folder'] != '':
+    if os.path.exists(settings['BURP']['bash_folder']):
+        BURP_FOLDER = settings['BURP']['bash_folder']
+        BURP_BLACKLIST = settings['BURP']['blacklist_findings']
+    else:
+        raise Exception("Not valid path for burp suite, if you don't want tou use it just fill it empty in the settings.json file")
 
-if settings['WORDLIST']['ssh_ftp_user'] != '' and os.path.exists(settings['WORDLIST']['ssh_ftp_user']):
-    INT_USERS_LIST = settings['WORDLIST']['ssh_ftp_user']
-else:
-    raise Exception("Not valid path for ssh ftp users list, if you don't want tou use it just fill it empty in the settings.json file")
+if settings['WORDLIST']['ssh_ftp_user'] != '':
+    if os.path.exists(settings['WORDLIST']['ssh_ftp_user']):
+        INT_USERS_LIST = settings['WORDLIST']['ssh_ftp_user']
+    else:
+        raise Exception("Not valid path for ssh ftp users list, if you don't want tou use it just fill it empty in the settings.json file")
 
-if settings['WORDLIST']['ssh_ftp_pass'] != '' and os.path.exists(settings['WORDLIST']['ssh_ftp_pass']):
-    INT_PASS_LIST = settings['WORDLIST']['ssh_ftp_pass']
-else:
-    raise Exception("Not valid path for ssh ftp passwords list, if you don't want tou use it just fill it empty in the settings.json file")
+if settings['WORDLIST']['ssh_ftp_pass'] != '':
+    if os.path.exists(settings['WORDLIST']['ssh_ftp_pass']):
+        INT_PASS_LIST = settings['WORDLIST']['ssh_ftp_pass']
+    else:
+        raise Exception("Not valid path for ssh ftp passwords list, if you don't want tou use it just fill it empty in the settings.json file")
 
-if settings['WORDLIST']['ffuf_list'] != '' and os.path.exists(settings['WORDLIST']['ffuf_list']):
-    FFUF_LIST = settings['WORDLIST']['ffuf_list']
-else:
-    raise Exception("Not valid path for ffuf wordlist, if you don't want tou use it just fill it empty in the settings.json file")
+if settings['WORDLIST']['ffuf_list'] != '':
+    if os.path.exists(settings['WORDLIST']['ffuf_list']):
+        FFUF_LIST = settings['WORDLIST']['ffuf_list']
+    else:
+        raise Exception("Not valid path for ffuf wordlist, if you don't want tou use it just fill it empty in the settings.json file")
 
 if settings['WAPPALIZE_KEY'] != '':
     WAPPA_KEY = settings['WAPPALIZE_KEY']
