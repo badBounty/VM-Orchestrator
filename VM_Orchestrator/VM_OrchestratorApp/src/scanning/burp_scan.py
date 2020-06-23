@@ -1,4 +1,4 @@
-from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 from VM_Orchestrator.settings import settings,BURP_FOLDER,BURP_BLACKLIST
@@ -69,7 +69,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
             vulnerability.add_file_string(file_string)
             vulnerability.add_attachment(file_dir, file_name)
             slack.send_vulnerability(vulnerability)
-            #redmine.create_new_issue(vulnerability)
+            redmine.create_new_issue(vulnerability)
             mongo.add_vulnerability(vulnerability)
         else:
             print("Not reported: "+issue['name']+" because is in burp blacklist")

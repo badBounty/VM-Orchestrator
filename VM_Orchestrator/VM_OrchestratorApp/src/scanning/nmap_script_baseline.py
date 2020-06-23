@@ -1,4 +1,4 @@
-from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 from VM_Orchestrator.settings import settings
@@ -74,7 +74,7 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
     im.save(output_dir, 'PNG')
     vulnerability.add_attachment(output_dir, 'nmap-result.png')
     slack.send_vulnerability(vulnerability)
-    #redmine.create_new_issue(vulnerability)
+    redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
     os.remove(output_dir)
     return

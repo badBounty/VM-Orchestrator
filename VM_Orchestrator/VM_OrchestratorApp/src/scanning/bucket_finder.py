@@ -4,7 +4,7 @@ import urllib3
 import subprocess
 from datetime import datetime
 
-from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
@@ -60,15 +60,12 @@ def scan_target(scan_information, url_to_scan):
         get_buckets(scan_information, javascript)
     return
 
-# target: tesla.com, url_to_scan: vpn.tesla.com, javascript: un_javascript
-
-
 def add_vulnerability_to_mongo(scanned_url, finding_name, bucket_name, description , scan_info):
     vuln_name = constants.BUCKET
 
     vulnerability = Vulnerability(vuln_name, scan_info, description)
     slack.send_vulnerability(vulnerability)
-    #redmine.create_new_issue(vulnerability)
+    redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
     return
 

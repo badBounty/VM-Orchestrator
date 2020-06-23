@@ -1,4 +1,4 @@
-from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
@@ -71,7 +71,7 @@ def add_vulnerability(scan_info, message):
     vulnerability = Vulnerability(constants.SSL_TLS, scan_info, message)
 
     slack.send_vulnerability(vulnerability)
-    #redmine.create_new_issue(vulnerability)
+    redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
 

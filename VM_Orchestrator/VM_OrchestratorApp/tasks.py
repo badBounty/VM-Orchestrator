@@ -149,6 +149,7 @@ def run_recon(scan_information):
     recon_finished()
     return
 
+### WEB SCANS ###
 @shared_task
 def run_web_scanners(scan_information):
     # Deep copy just in case
@@ -175,22 +176,23 @@ def run_web_scanners(scan_information):
             header_scan_task.s(web_information).set(queue='fast_queue'),
             http_method_scan_task.s(web_information).set(queue='fast_queue'),
             #libraries_scan_task.s(web_information).set(queue='fast_queue'),
-            ffuf_task.s(web_information).set(queue='fast_queue'),
-            iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
-            bucket_finder_task.s(web_information).set(queue='fast_queue'),
-            token_scan_task.s(web_information).set(queue='fast_queue'),
-            css_scan_task.s(web_information).set(queue='fast_queue'),
-            firebase_scan_task.s(web_information).set(queue='fast_queue'),
-            host_header_attack_scan.s(web_information).set(queue='fast_queue'),
+            #ffuf_task.s(web_information).set(queue='fast_queue'),
+            #iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
+            #bucket_finder_task.s(web_information).set(queue='fast_queue'),
+            #token_scan_task.s(web_information).set(queue='fast_queue'),
+            #css_scan_task.s(web_information).set(queue='fast_queue'),
+            #firebase_scan_task.s(web_information).set(queue='fast_queue'),
+            #host_header_attack_scan.s(web_information).set(queue='fast_queue'),
             # Slow_scans
-            cors_scan_task.s(web_information).set(queue='slow_queue'),
-            ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
+            #cors_scan_task.s(web_information).set(queue='slow_queue'),
+            #ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
             #burp_scan_task.s(web_information).set(queue='slow_queue')
         ],
         body=web_security_scan_finished.si().set(queue='fast_queue'),
         immutable=True)()
     return
 
+### IP SCANS ###
 @shared_task
 def run_ip_scans(scan_information):
     # Deepcopy just in case
@@ -215,8 +217,8 @@ def run_ip_scans(scan_information):
     # We will flag the resource as scanned here, mainly because all alive resources will reach this point
     execution_chord = chord(
         [
-            nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
-            nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
+            #nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
+            #nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
             add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
         body=ip_security_scan_finished.si().set(queue='fast_queue'),
@@ -251,8 +253,8 @@ def add_scanned_resources(resource_list):
     return
 
 # ------ PERIODIC TASKS ------ #
-@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
-queue='slow_queue', options={'queue': 'slow_queue'})
+#@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
+#queue='slow_queue', options={'queue': 'slow_queue'})
 #@periodic_task(run_every=crontab(hour=14, minute=40),
 #queue='slow_queue', options={'queue': 'slow_queue'})
 def project_start_task():
@@ -297,8 +299,8 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=6, minute=0),
-queue='slow_queue', options={'queue': 'slow_queue'})
+#@periodic_task(run_every=crontab(hour=6, minute=0),
+#queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
     # We first check if the project has started, we return if not

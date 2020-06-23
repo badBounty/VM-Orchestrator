@@ -1,4 +1,4 @@
-from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 from VM_Orchestrator.settings import settings,FFUF_LIST
@@ -48,7 +48,7 @@ def add_vulnerability(scan_info, affected_resource, description):
     vulnerability = Vulnerability(constants.ENDPOINT, scan_info, description)
 
     slack.send_vulnerability(vulnerability)
-    #redmine.create_new_issue(vulnerability)
+    redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
 

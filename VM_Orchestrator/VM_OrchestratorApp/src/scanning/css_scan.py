@@ -2,7 +2,7 @@ import requests
 import urllib3
 from datetime import datetime
 
-from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
@@ -41,7 +41,7 @@ def add_vulnerability_to_mongo(scan_info, css_url, vuln_type):
 
     vulnerability = Vulnerability(constants.CSS_INJECTION, scan_info, description)
     slack.send_vulnerability(vulnerability)
-    #redmine.create_new_issue(vulnerability)
+    redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
 

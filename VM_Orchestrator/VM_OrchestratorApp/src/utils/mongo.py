@@ -43,18 +43,20 @@ def add_scanned_resources(urls):
     if urls['type'] == 'domain':
         for url in urls['url_to_scan']:
             resource = resources.find_one({'domain': urls['domain'], 'subdomain': url, 'scanned': False, 'type': urls['type']})
+            if resource is not None:
+                resources.update_one({'_id': resource.get('_id')},
+                {'$set': 
+                    {
+                    'scanned': True
+                    }})
+    else:
+        resource = resources.find_one({'domain': urls['domain'], 'subdomain': urls['url_to_scan'], 'scanned': False, 'type': urls['type']})
+        if resource is not None:
             resources.update_one({'_id': resource.get('_id')},
             {'$set': 
                 {
                 'scanned': True
                 }})
-    else:
-        resource = resources.find_one({'domain': urls['domain'], 'subdomain': urls['url_to_scan'], 'scanned': False, 'type': urls['type']})
-        resources.update_one({'_id': resource.get('_id')},
-        {'$set': 
-            {
-            'scanned': True
-            }})
 
 # Removing the scanned flag on all resources
 def remove_scanned_flag():
@@ -114,7 +116,7 @@ def get_data_for_monitor():
 
 # ------------------- RECON -------------------
 def add_simple_url_resource(scan_info):
-    exists = resources.find_one({'domain': scan_info['domain'], 'subdomain': scan_info['url_to_scan']})
+    exists = resources.find_one({'domain': scan_info['domain'].split('/')[2], 'subdomain': scan_info['url_to_scan']})
     timestamp = datetime.now()
     if not exists:
         resource ={
@@ -255,6 +257,8 @@ def add_urls_to_subdomain(subdomain, has_urls, url_list):
 
 
 def add_images_to_subdomain(subdomain, http_image, https_image):
+    ##########33
+    return
     subdomain = resources.find_one({'subdomain': subdomain})
     resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
         'http_image': http_image,

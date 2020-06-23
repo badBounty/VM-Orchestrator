@@ -1,4 +1,4 @@
-from VM_OrchestratorApp.src.utils import slack, utils, mongo
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
@@ -35,7 +35,7 @@ def add_vulnerability(scan_info, firebase_name):
     vulnerability = Vulnerability(constants.OPEN_FIREBASE, scan_info, 'Found open firebase %s at %s' % (firebase_name, scan_info['url_to_scan']))
 
     slack.send_vulnerability(vulnerability)
-    #redmine.create_new_issue(vulnerability)
+    redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
 

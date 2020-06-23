@@ -1,4 +1,4 @@
-from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
@@ -64,7 +64,7 @@ def add_header_value_vulnerability(scan_info, img_string, description):
     vulnerability.add_attachment(output_dir, 'headers-result.png')
 
     slack.send_vulnerability(vulnerability)
-    #redmine.create_new_issue(vulnerability)
+    redmine.create_new_issue(vulnerability)
     os.remove(output_dir)
     mongo.add_vulnerability(vulnerability)
 
@@ -82,7 +82,7 @@ def add_header_missing_vulnerability(scan_info, img_string, description):
     vulnerability.add_attachment(output_dir, 'headers-result.png')
 
     slack.send_vulnerability(vulnerability)
-    #redmine.create_new_issue(vulnerability)
+    redmine.create_new_issue(vulnerability)
     os.remove(output_dir)
     mongo.add_vulnerability(vulnerability)
 
