@@ -13,9 +13,10 @@ libraries_versions = MONGO_CLIENT[MONGO_INFO['DATABASE']]['libraries_versions']
 def add_vulnerability(vulnerability):
     exists = vulnerabilities.find_one({'domain': vulnerability.target, 'subdomain': vulnerability.scanned_url,
                                           'vulnerability_name': vulnerability.vulnerability_name,
-                                          'language': vulnerability.language, 'extra_info': vulnerability.custom_description})
+                                          'language': vulnerability.language})
     if exists:
         vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
+            'extra_info': vulnerability.custom_description,
             'last_seen': vulnerability.time,
             'extra_info': vulnerability.custom_description,
             'image_string': vulnerability.image_string,

@@ -86,7 +86,7 @@ def analyze(scan_info, url_to_scan):
 
 
 def handle_target(info):
-    if settings.WAPPA_KEY:
+    if WAPPA_KEY:
         print('------------------- TARGET LIBRARIES SCAN STARTING -------------------')
         print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
         slack.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
