@@ -19,7 +19,6 @@ def handle_target(info):
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- TOKEN FINDER TARGET SCAN FINISHED -------------------')
     return
@@ -44,11 +43,8 @@ def add_token_found_vuln(scan_info, message):
 
 def scan_target(scan_info, url_for_scanning):
     # We scan javascript files
-    print('Searching for javascript files...')
     javascript_files_found = utils.get_js_files_linkfinder(url_for_scanning)
-    print(str(len(javascript_files_found)) + ' javascript files found')
     for javascript in javascript_files_found:
-        print('Scanning %s' % javascript)
         scan_for_tokens(scan_info, url_for_scanning, javascript)
     return
 
@@ -213,5 +209,5 @@ def scan_for_tokens(scan_info, scanned_url, javascript):
                 for ind_token in token['list']:
                     extra_info = extra_info + token['keyword'] + ": " + ind_token + "\n"
         add_token_found_vuln(scan_info,
-                             "The following tokes were found at %s from %s: \n %s"% (javascript, scan_info['url_to_scan'], extra_info))
+                             "The following tokes were found at %s: \n %s"% (javascript, extra_info))
     return

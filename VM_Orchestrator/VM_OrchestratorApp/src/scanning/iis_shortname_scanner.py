@@ -21,7 +21,6 @@ def handle_target(info):
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
     print('-------------------  IIS SHORTNAME SCAN FINISHED -------------------')
     return
@@ -56,7 +55,7 @@ def scan_target(scan_info, url_to_scan):
                 im.save(output_dir, 'PNG')
 
                 vulnerability = Vulnerability(constants.IIS_SHORTNAME_MICROSOFT, scan_info,
-                                              "IIS Microsoft files and directories enumeration found at %s" % scan_info['url_to_scan'])
+                                              "IIS Microsoft files and directories enumeration found")
 
                 vulnerability.add_image_string(img_str)
                 vulnerability.add_attachment(output_dir, 'IIS-Result.png')

@@ -12,7 +12,6 @@ def handle_target(info):
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- TARGET HTTP METHOD SCAN FINISHED -------------------')
     return
@@ -63,7 +62,7 @@ def scan_target(scan_info, url_to_scan):
         return
 
     extensive_methods = False
-    message = "Found extended HTTP Methods at: %s" % url_to_scan + '\n'
+    message = "Found extended HTTP Methods:" + '\n'
     if not responses:
         return
     for response in responses:

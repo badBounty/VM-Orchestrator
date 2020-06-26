@@ -41,7 +41,6 @@ def handle_target(info):
         for url in info['url_to_scan']:
             sub_info = info
             sub_info['url_to_scan'] = url
-            print('Scanning ' + url)
             scan_target(sub_info)
         print('------------------- BURP TARGET SCAN FINISHED -------------------')
     return

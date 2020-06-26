@@ -25,7 +25,7 @@ def cleanup(path):
 
 def handle_target(info):
     print('------------------- NMAP BASIC TARGET SCAN STARTING -------------------')
-    slack.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
+    slack.send_simple_message("Nmap baseline scan started against target: %s. %d alive urls found!"
                                      % (info['domain'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     scanned_hosts = list()
@@ -37,7 +37,6 @@ def handle_target(info):
         except IndexError:
             host = url
         if host not in scanned_hosts:
-            print('Scanning ' + url)
             basic_scan(sub_info, host)
         scanned_hosts.append(host)
     print('------------------- NMAP BASIC TARGET SCAN FINISHED -------------------')
@@ -47,7 +46,7 @@ def handle_target(info):
 def handle_single(scan_info):
     print('------------------- NMAP BASIC SCAN STARTING -------------------')
     url = scan_info['url_to_scan']
-    slack.send_simple_message("Nmap scripts started against %s" % url)
+    slack.send_simple_message("Nmap baseline scan started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     try:
         host = url.split('/')[2]
