@@ -44,7 +44,7 @@ OUTDATED_3RD_LIBRARIES = {
     'status': 12
 }
 CORS = {
-    'english_name': 'CORS vulnerability found',
+    'english_name': 'CORS',
     'spanish_name': 'Se encontro una vulnerabilidad de CORS',
     'status': 12
 }

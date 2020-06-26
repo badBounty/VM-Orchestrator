@@ -6,6 +6,7 @@ import os
 import subprocess
 import json
 import uuid
+import copy
 from datetime import datetime
 
 
@@ -61,7 +62,9 @@ def handle_single(scan_info):
 
 
 def add_vulnerability(scan_info, vuln):
-    vulnerability = Vulnerability(constants.CORS, scan_info, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
+    specific_info = copy.deepcopy(scan_info)
+    specific_info['url_to_scan'] = vuln['origin']
+    vulnerability = Vulnerability(constants.CORS, specific_info, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
     slack.send_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
