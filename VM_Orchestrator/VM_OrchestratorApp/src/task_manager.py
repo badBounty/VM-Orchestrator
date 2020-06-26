@@ -30,6 +30,7 @@ def recon_task_manager(information):
 '''
 information={
     'invasive_scans': True/False
+    'nessus_scan' : True/False
     'type': 'domain' (Recon and scan)
             'ip'    (Single ip, will only run scan. This can also be a subdomain)
             'url'   (Single url, will only run scan (Must contain http/https))

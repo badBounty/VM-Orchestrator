@@ -9,7 +9,7 @@ import copy
 from VM_OrchestratorApp.src.recon import initial_recon, aquatone
 from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
-    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,iis_shortname_scanner, burp_scan
+    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,iis_shortname_scanner, burp_scan, nessus_scan
 from VM_Orchestrator.settings import settings
 from VM_OrchestratorApp.src.utils import mongo, slack
 
@@ -132,6 +132,13 @@ def burp_scan_task(scan_information):
     elif scan_information['scan_type'] == 'target':
         burp_scan.handle_target(scan_information)
 
+@shared_task
+def nessus_scan_task(scan_information):
+    if scan_information['scan_type'] == 'single':
+        nessus_scan.handle_single(scan_information)
+    elif scan_information['scan_type'] == 'target':
+        nessus_scan.handle_target(scan_information)
+
 # ------ PREDEFINED TASKS ------ #
 '''
 information = {
@@ -139,6 +146,7 @@ information = {
         'is_first_run': True,
         'scan_type': 'target',
         'invasive_scans': False,
+        'nessus_scan': False,
         'language': 'eng'
     }
 '''
@@ -176,7 +184,7 @@ def run_web_scanners(scan_information):
             header_scan_task.s(web_information).set(queue='fast_queue'),
             http_method_scan_task.s(web_information).set(queue='fast_queue'),
             libraries_scan_task.s(web_information).set(queue='fast_queue'),
-            #ffuf_task.s(web_information).set(queue='fast_queue'),
+            ffuf_task.s(web_information).set(queue='fast_queue'),
             iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
             bucket_finder_task.s(web_information).set(queue='fast_queue'),
             token_scan_task.s(web_information).set(queue='fast_queue'),
@@ -185,7 +193,7 @@ def run_web_scanners(scan_information):
             host_header_attack_scan.s(web_information).set(queue='fast_queue'),
             # Slow_scans
             cors_scan_task.s(web_information).set(queue='slow_queue'),
-            #ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
+            ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
             #burp_scan_task.s(web_information).set(queue='slow_queue')
         ],
         body=web_security_scan_finished.s().set(queue='fast_queue'),
@@ -217,8 +225,9 @@ def run_ip_scans(scan_information):
     # We will flag the resource as scanned here, mainly because all alive resources will reach this point
     execution_chord = chord(
         [
-            #nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
-            #nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
+            nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
+            nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
+            nessus_scan_task.s(ip_information).set(queue='slow_queue'),
             add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
         body=ip_security_scan_finished.s().set(queue='fast_queue'),
@@ -272,6 +281,7 @@ def project_start_task():
         scan_info = {
         'is_first_run': True,
         'invasive_scans': False,
+        'nessus_scan': False,
         'language': 'eng'
         }
         scan_info['type'] = data['Type']

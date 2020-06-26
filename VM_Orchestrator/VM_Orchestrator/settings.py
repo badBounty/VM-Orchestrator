@@ -191,3 +191,19 @@ except redminelib.exceptions.AuthError:
 except Exception:
     redmine_client = None
     raise Exception("Somethig went wrong with the redmine, check credencials and url in settings.json configuration file")
+
+nessus_info = settings['NESSUS']
+nessus = False
+try:
+    response = requests.post(nessus_info['URL']+'/session',data={'username':nessus_info['USER'],'password':nessus_info['PASSWORD']},verify=False)
+    json_resp = json.loads(response.text)
+    if json_resp['token']:
+        nessus = True
+    if not nessus:
+        raise Exception('Couldn\'t connect to the nessus server, check the credentials in the settings file')
+except KeyError:
+    raise Exception('Couldn\'t connect to the nessus server, check the credentials in the settings file')
+    pass
+except Exception:
+    print('Nessus connection failed, check the settings file or the VPN connection')
+    pass
