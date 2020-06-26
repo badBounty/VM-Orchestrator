@@ -176,7 +176,7 @@ def run_web_scanners(scan_information):
             header_scan_task.s(web_information).set(queue='fast_queue'),
             http_method_scan_task.s(web_information).set(queue='fast_queue'),
             libraries_scan_task.s(web_information).set(queue='fast_queue'),
-            #ffuf_task.s(web_information).set(queue='fast_queue'),
+            ffuf_task.s(web_information).set(queue='fast_queue'),
             iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
             bucket_finder_task.s(web_information).set(queue='fast_queue'),
             token_scan_task.s(web_information).set(queue='fast_queue'),
@@ -185,7 +185,7 @@ def run_web_scanners(scan_information):
             host_header_attack_scan.s(web_information).set(queue='fast_queue'),
             # Slow_scans
             cors_scan_task.s(web_information).set(queue='slow_queue'),
-            #ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
+            ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
             #burp_scan_task.s(web_information).set(queue='slow_queue')
         ],
         body=web_security_scan_finished.s().set(queue='fast_queue'),
@@ -217,8 +217,8 @@ def run_ip_scans(scan_information):
     # We will flag the resource as scanned here, mainly because all alive resources will reach this point
     execution_chord = chord(
         [
-            #nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
-            #nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
+            nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
+            nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
             add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
         body=ip_security_scan_finished.s().set(queue='fast_queue'),
@@ -255,7 +255,7 @@ def add_scanned_resources(resource_list):
 # ------ PERIODIC TASKS ------ #
 #@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
 #queue='slow_queue', options={'queue': 'slow_queue'})
-@periodic_task(run_every=crontab(hour=12, minute=36),
+@periodic_task(run_every=crontab(hour=12, minute=20),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_start_task():
     today_date = datetime.combine(date.today(), datetime.min.time())
