@@ -18,7 +18,6 @@ def handle_target(info):
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- HOST HEADER ATTACK TARGET SCAN FINISHED -------------------')
     return
@@ -33,8 +32,7 @@ def handle_single(scan_info):
 
 
 def add_vulnerability_to_mongo(scan_info):
-    vulnerability = Vulnerability(constants.HOST_HEADER_ATTACK, scan_info,
-                                  "Host header attack possible at url %s" % scan_info['url_to_scan'])
+    vulnerability = Vulnerability(constants.HOST_HEADER_ATTACK, scan_info, "Host header attack possible")
 
     slack.send_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)

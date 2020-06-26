@@ -132,8 +132,7 @@ def add_simple_url_resource(scan_info):
                     'region': None,
                     'city': None,
                     'org': None,
-                    'lat': None,
-                    'lon': None,
+                    'geoloc': '0, 0'
                 },
                 'first_seen': timestamp,
                 'last_seen': timestamp,
@@ -166,8 +165,7 @@ def add_simple_ip_resource(scan_info):
                     'region': None,
                     'city': None,
                     'org': None,
-                    'lat': None,
-                    'lon': None,
+                    'geoloc': '0, 0'
                 },
                 'first_seen': timestamp,
                 'last_seen': timestamp,
@@ -201,8 +199,7 @@ def add_resource(url_info, scan_info):
                     'region': url_info['region'],
                     'city': url_info['city'],
                     'org': url_info['org'],
-                    'lat': url_info['lat'],
-                    'lon': url_info['lon'],
+                    'geoloc': '%s, %s' % (str(url_info['lat']),str(url_info['lon']))
                 },
                 'first_seen': timestamp,
                 'last_seen': timestamp,
@@ -229,8 +226,7 @@ def add_resource(url_info, scan_info):
                     'region': url_info['region'],
                     'city': url_info['city'],
                     'org': url_info['org'],
-                    'lat': url_info['lat'],
-                    'lon': url_info['lon'],
+                    'geoloc': '%s, %s' % (str(url_info['lat']),str(url_info['lon']))
                 },
             'last_seen': timestamp
             }})
@@ -264,4 +260,18 @@ def add_images_to_subdomain(subdomain, http_image, https_image):
     resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
         'http_image': http_image,
         'https_image': https_image}})
+    return
+
+def update_issue_if_needed(redmine_issue):
+    target = redmine_issue.custom_fields.get(2).value
+    vuln_name = redmine_issue.subject
+    scanned_url = redmine_issue.custom_fields.get(4).value
+
+    vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
+    'domain': target, 'subdomain': scanned_url})
+    # We need to do some parsing here. Status_id is a number and we need a string
+    status = redmine_issue.status_id
+    if status != vulnerability['status']:
+        #Modify
+        pass
     return

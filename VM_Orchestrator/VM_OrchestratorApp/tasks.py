@@ -11,7 +11,7 @@ from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_t
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
     firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,iis_shortname_scanner, burp_scan, nessus_scan
 from VM_Orchestrator.settings import settings
-from VM_OrchestratorApp.src.utils import mongo, slack
+from VM_OrchestratorApp.src.utils import mongo, slack, redmine
 
 # ------ RECON ------ #
 @shared_task
@@ -262,9 +262,9 @@ def add_scanned_resources(resource_list):
     return
 
 # ------ PERIODIC TASKS ------ #
-#@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
+#@periodic_task(run_every=crontab(hour=14, minute=5),
 #queue='slow_queue', options={'queue': 'slow_queue'})
-@periodic_task(run_every=crontab(hour=12, minute=36),
+@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_start_task():
     today_date = datetime.combine(date.today(), datetime.min.time())
@@ -340,4 +340,12 @@ def project_monitor_task():
             slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
             run_ip_scans(scan_info)
     
+    return
+
+#@periodic_task(run_every=crontab(hour=0, minute=0),
+#queue='slow_queue', options={'queue': 'slow_queue'})
+def check_redmine_for_updates():
+    issues = redmine.get_issues_from_project()
+    for issue in issues:
+        mongo.update_issue_if_needed(issue)
     return

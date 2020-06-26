@@ -17,7 +17,6 @@ def handle_target(info):
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- CSS TARGET SCAN FINISHED -------------------')
     return
@@ -33,11 +32,11 @@ def handle_single(scan_info):
 
 def add_vulnerability_to_mongo(scan_info, css_url, vuln_type):
     if vuln_type == 'Access':
-        description = "Possible css injection found at %s from %s. File could not be accessed" \
-                      % (css_url, scan_info['url_to_scan'])
+        description = "Possible css injection found at %s. File could not be accessed" \
+                      % (css_url)
     elif vuln_type == 'Status':
-        description = "Possible css injection found at %s from %s. File did not return 200" \
-                      % (css_url, scan_info['url_to_scan'])
+        description = "Possible css injection found at %s. File did not return 200" \
+                      % (css_url)
 
     vulnerability = Vulnerability(constants.CSS_INJECTION, scan_info, description)
     slack.send_vulnerability(vulnerability)
@@ -47,12 +46,8 @@ def add_vulnerability_to_mongo(scan_info, css_url, vuln_type):
 
 def scan_target(scan_info, url_to_scan):
     # We take every .css file from our linkfinder utils
-    print('Searching for css files...')
     css_files_found = utils.get_css_files_linkfinder(url_to_scan)
-    print(str(len(css_files_found)) + ' css files found')
-
     for css_file in css_files_found:
-        print('Scanning %s' % css_file)
         url_split = css_file.split('/')
         host_split = url_to_scan.split('/')
 

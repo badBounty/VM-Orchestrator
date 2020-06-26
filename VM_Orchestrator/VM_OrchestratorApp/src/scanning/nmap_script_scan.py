@@ -37,7 +37,6 @@ def handle_target(info):
             host = url.split('/')[2]
         except IndexError:
             host = url
-        print('Scanning ' + url)
         print('------------------- NMAP OUTDATED SOFTWARE -------------------')
         if host not in scanned_hosts:
             outdated_software(sub_info, host)

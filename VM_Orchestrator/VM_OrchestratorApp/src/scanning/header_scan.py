@@ -20,7 +20,6 @@ def handle_target(info):
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
     print('-------------------  TARGET HEADER SCAN FINISHED -------------------')
     return
@@ -103,8 +102,8 @@ def scan_target(scan_info, url_to_scan):
                          'Strict-Transport-Security', 'Access-Control-Allow-Origin']
     reported_invalid = False
     reported_exists = False
-    message_invalid = "Headers with invalid values were found at %s \n" % url_to_scan
-    message_exists = "Headers were not found at %s \n" % url_to_scan
+    message_invalid = "Headers with invalid values were found \n"
+    message_exists = "Headers were not found \n"
     if response.status_code != 404:
         for header in important_headers:
             try:

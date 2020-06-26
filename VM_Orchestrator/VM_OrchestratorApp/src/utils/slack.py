@@ -10,7 +10,7 @@ def send_simple_message(message):
 
 def send_vulnerability(vulnerability):
     if INTERNAL_SLACK_WEB_CLIENT is not None:
-        message = 'Found vulnerability %s at %s from resource %s. \n %s' % \
+        message = 'Found vulnerability \" %s \" at %s from resource %s. \n %s' % \
          (vulnerability.vulnerability_name, vulnerability.scanned_url, vulnerability.target, vulnerability.custom_description)
         try:
             INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text=str(message))

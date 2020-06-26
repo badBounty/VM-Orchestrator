@@ -17,7 +17,6 @@ def handle_target(info):
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- FIREBASE TARGET SCAN FINISHED -------------------')
     return
@@ -32,7 +31,7 @@ def handle_single(scan_info):
 
 
 def add_vulnerability(scan_info, firebase_name):
-    vulnerability = Vulnerability(constants.OPEN_FIREBASE, scan_info, 'Found open firebase %s at %s' % (firebase_name, scan_info['url_to_scan']))
+    vulnerability = Vulnerability(constants.OPEN_FIREBASE, scan_info, 'Found open firebase %s' % (firebase_name))
 
     slack.send_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)

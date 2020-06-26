@@ -28,7 +28,6 @@ def handle_target(info):
         for url in info['url_to_scan']:
             sub_info = info
             sub_info['url_to_scan'] = url
-            print('Scanning ' + url)
             scan_target(sub_info, sub_info['url_to_scan'])
         print('-------------------  FFUF SCAN FINISHED -------------------')
     return
@@ -80,7 +79,7 @@ def scan_target(scan_info, url_with_http):
             one_found = True
 
     if one_found:
-        description = "The following endpoints were found at %s:\n %s" % (url_with_http, extra_info_message)
+        description = "The following endpoints were found:\n %s" % (extra_info_message)
         add_vulnerability(scan_info, url_with_http, description)
 
     cleanup(JSON_RESULT)

@@ -24,7 +24,6 @@ def handle_target(info):
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- S3BUCKET TARGET SCAN FINISHED -------------------')
     return
@@ -49,14 +48,10 @@ def filter_invalids(some_list):
 
 def scan_target(scan_information, url_to_scan):
     # We first search for buckets inside the html code
-    print('Scanning html file...')
     get_buckets(scan_information, url_to_scan)
     # We now scan javascript files
-    print('Searching for javascript files..')
     javascript_files_found = utils.get_js_files_linkfinder(url_to_scan)
-    print(str(len(javascript_files_found)) + ' javascript files found')
     for javascript in javascript_files_found:
-        print('Scanning %s' % javascript)
         get_buckets(scan_information, javascript)
     return
 
@@ -79,14 +74,14 @@ def get_ls_buckets(bucket_list, scanned_url, scan_information):
             continue
         try:
             output = subprocess.check_output('aws s3 ls s3://' + bucket, shell=True, stderr=subprocess.STDOUT)
-            description = 'Bucket %s allows content listing. Found at %s from %s' \
-                          % (bucket, scanned_url, scan_information['url_to_scan'])
+            description = 'Bucket %s allows content listing.' \
+                          % (bucket)
             add_vulnerability_to_mongo(scanned_url, 'ls', bucket, description, scan_information)
             ls_allowed_buckets.append(bucket)
         except subprocess.CalledProcessError as e:
             if 'does not exist' in e.output.decode():
-                description = 'Bucket %s is being used but it does not exist. Found at %s from %s' \
-                              % (bucket, scanned_url, scan_information['url_to_scan'])
+                description = 'Bucket %s is being used but it does not exist' \
+                              % (bucket)
                 add_vulnerability_to_mongo(scanned_url, 'nf', bucket, description, scan_information)
                 does_not_exist_buckets.append(bucket)
             continue
@@ -99,8 +94,8 @@ def get_cprm_buckets(bucket_list, scanned_url, scan_information):
         try:
             output = subprocess.check_output('aws s3 cp test.txt s3://' + bucket, shell=True, stderr=subprocess.DEVNULL)
             subprocess.check_output('aws s3 rm s3://' + bucket + '/test.txt', shell=True)
-            description = 'Bucket %s allows copy and remove operations. Found at %s from %s' \
-                          % (bucket, scanned_url, scan_information['url_to_scan'])
+            description = 'Bucket %s allows copy and remove operations.' \
+                          % (bucket)
             add_vulnerability_to_mongo(scanned_url, 'cprm', bucket, description, scan_information)
             cprm_allowed_buckets.append(bucket)
         except subprocess.CalledProcessError as e:
