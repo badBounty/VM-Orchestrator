@@ -38,4 +38,13 @@ def create_new_issue(vulnerability):
     issue.custom_fields= [{'id': 2, 'value': vulnerability.target},
      {'id': 4, 'value': vulnerability.scanned_url},
     {'id':5, 'value': str(vulnerability.time.strftime("%Y-%m-%d"))}]
-    issue.save()
+    if vulnerability.attachment_path is not None:
+        issue.uploads = [{'path': vulnerability.attachment_path,
+                          'filename': vulnerability.attachment_name}]
+    try:
+        issue.save()
+    except Exception as e:
+        print("Issue saving error:\n")
+        print(e)
+        print("Continuing...")
+        pass
