@@ -249,13 +249,13 @@ def recon_finished():
 # ------ MONITOR TOOLS ------ #
 @shared_task
 def add_scanned_resources(resource_list):
-    mongo.add_scanned_resources(resource_list)
+    #mongo.add_scanned_resources(resource_list)
     return
 
 # ------ PERIODIC TASKS ------ #
 #@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
 #queue='slow_queue', options={'queue': 'slow_queue'})
-@periodic_task(run_every=crontab(hour=12, minute=20),
+@periodic_task(run_every=crontab(hour=14, minute=5),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_start_task():
     today_date = datetime.combine(date.today(), datetime.min.time())
