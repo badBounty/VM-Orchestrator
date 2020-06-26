@@ -4,6 +4,9 @@ from VM_Orchestrator.settings import settings, redmine_client
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+def get_issues_from_project():
+    return redmine_client.issue.filter(project_id=settings['REDMINE']['project_name'])
+
 def issue_already_exists(vulnerability):
     issues = redmine_client.issue.filter(project_id=settings['REDMINE']['project_name'])
     for issue in issues:
