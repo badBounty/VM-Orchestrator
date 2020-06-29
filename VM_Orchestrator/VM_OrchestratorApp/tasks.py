@@ -253,9 +253,9 @@ def add_scanned_resources(resource_list):
     return
 
 # ------ PERIODIC TASKS ------ #
-#@periodic_task(run_every=crontab(hour=14, minute=5),
+#@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
 #queue='slow_queue', options={'queue': 'slow_queue'})
-@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
+@periodic_task(run_every=crontab(hour=12, minute=12),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_start_task():
     today_date = datetime.combine(date.today(), datetime.min.time())
@@ -298,7 +298,7 @@ def project_start_task():
     return
 
 
-@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
+#@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
 #@periodic_task(run_every=crontab(hour=6, minute=0),
 #queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
