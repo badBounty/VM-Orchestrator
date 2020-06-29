@@ -86,7 +86,7 @@ def scan_target(scan_info, url, url_with_port):
     cleanup(OUTPUT_FULL_NAME)
     # We first run the subprocess that creates the xml output file
     testssl_process = subprocess.run(
-       ['bash', TOOL_DIR, '--fast', '--warnings=off', '-oj', OUTPUT_FULL_NAME, url_with_port])
+       ['bash', TOOL_DIR, '--fast', '--warnings=off', '-oj', OUTPUT_FULL_NAME, url_with_port], capture_output=True)
 
     with open(OUTPUT_FULL_NAME) as f:
         results = json.load(f)

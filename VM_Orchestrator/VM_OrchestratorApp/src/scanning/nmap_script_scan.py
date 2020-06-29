@@ -217,7 +217,7 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     cleanup(output_dir)
     brute_subprocess = subprocess.run(
         ['nmap', '-Pn', '-sV', port, '--script', brute, '--script-args',
-         'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1', '-oA', output_dir,url_to_scan])
+         'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1', '-oA', output_dir,url_to_scan], capture_output=True)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -242,7 +242,7 @@ def ftp_anon_login(scan_info,url_to_scan):
     output_dir = ROOT_DIR + '/tools_output/' + random_filename + end_name
     cleanup(output_dir)
     anonynomus_subprocess = subprocess.run(
-        ['nmap', '-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon', '-oA', output_dir,url_to_scan])
+        ['nmap', '-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon', '-oA', output_dir,url_to_scan], capture_output=True)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()

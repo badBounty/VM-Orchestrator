@@ -64,7 +64,7 @@ def scan_target(scan_info, url_with_http):
 
     ffuf_process = subprocess.run(
         [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-c', '-v',
-         '-o', JSON_RESULT])
+         '-o', JSON_RESULT], capture_output=True)
 
     with open(JSON_RESULT) as json_file:
         json_data = json.load(json_file)

@@ -269,9 +269,13 @@ def update_issue_if_needed(redmine_issue):
 
     vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
     'domain': target, 'subdomain': scanned_url})
-    # We need to do some parsing here. Status_id is a number and we need a string
-    status = redmine_issue.status_id
-    if status != vulnerability['status']:
-        #Modify
-        pass
+    status = redmine_issue.status.name
+    if status == 'QA - Confirmada':
+        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'confirmed' 
+        }})
+    elif status == 'Rechazada':
+        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'rejected' 
+        }})
     return

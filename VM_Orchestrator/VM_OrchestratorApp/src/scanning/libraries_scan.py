@@ -69,7 +69,6 @@ def fastPrint(libraries):
 
 
 def analyze(scan_info, url_to_scan):
-    print('Scanning target {}'.format(url_to_scan))
     target = endpoint + url_to_scan
     headers = {'x-api-key': WAPPA_KEY}
     try:
