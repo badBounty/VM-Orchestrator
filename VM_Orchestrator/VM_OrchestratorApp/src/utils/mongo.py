@@ -66,7 +66,6 @@ def remove_scanned_flag():
         resources.update_one({'_id': document.get('_id')}, {'$set': {
             'scanned': False
         }})
-        print(document)
 
 
 # This will return every url with http/https
@@ -210,8 +209,6 @@ def add_resource(url_info, scan_info):
         }
         if not scan_info['is_first_run']:
             slack.send_new_resource_found("New resource found! %s" % url_info['url'])
-            print('New resource found!!\n')
-            print(str(resource))
         resources.insert_one(resource)
     else:
         resources.update_one({'_id': exists.get('_id')},

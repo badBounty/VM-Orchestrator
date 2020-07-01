@@ -47,7 +47,5 @@ def create_new_issue(vulnerability):
     try:
         issue.save()
     except Exception as e:
-        print("Issue saving error:\n")
-        print(e)
-        print("Continuing...")
+        print(str(e))
         pass

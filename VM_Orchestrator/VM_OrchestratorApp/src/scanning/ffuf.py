@@ -20,25 +20,23 @@ def cleanup(path):
 
 def handle_target(info):
     if FFUF_LIST:
-        print('------------------- FFUF SCAN STARTING -------------------')
-        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+        print('Module ffuf starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
         slack.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
                                         % (info['domain'], len(info['url_to_scan'])))
-        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
         for url in info['url_to_scan']:
             sub_info = info
             sub_info['url_to_scan'] = url
             scan_target(sub_info, sub_info['url_to_scan'])
-        print('-------------------  FFUF SCAN FINISHED -------------------')
+        print('Module ffuf finished')
     return
 
 
 def handle_single(scan_info):
     if FFUF_LIST:
-        print('------------------- FFUF SCAN STARTING -------------------')
+        print('Module ffuf starting against %s' % scan_info['url_to_scan'])
         slack.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
         scan_target(scan_info, scan_info['url_to_scan'])
-        print('------------------- FFUF SCAN FINISHED -------------------')
+        print('Module ffuf finished')
     return
 
 

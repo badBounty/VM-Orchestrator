@@ -24,10 +24,9 @@ def cleanup(path):
 
 
 def handle_target(info):
-    print('------------------- NMAP BASIC TARGET SCAN STARTING -------------------')
+    print('Module Nmap baseline starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_simple_message("Nmap baseline scan started against target: %s. %d alive urls found!"
                                      % (info['domain'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     scanned_hosts = list()
     for url in info['url_to_scan']:
         sub_info = info
@@ -39,12 +38,12 @@ def handle_target(info):
         if host not in scanned_hosts:
             basic_scan(sub_info, host)
         scanned_hosts.append(host)
-    print('------------------- NMAP BASIC TARGET SCAN FINISHED -------------------')
+    print('Module Nmap baseline finished')
     return
 
 
 def handle_single(scan_info):
-    print('------------------- NMAP BASIC SCAN STARTING -------------------')
+    print('Module Nmap baseline starting against %s' % scan_info['url_to_scan'])
     url = scan_info['url_to_scan']
     slack.send_simple_message("Nmap baseline scan started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
@@ -53,7 +52,7 @@ def handle_single(scan_info):
     except IndexError:
         host = url
     basic_scan(scan_info, host)
-    print('------------------- NMAP BASIC SCAN FINISHED -------------------')
+    print('Module Nmap baseline finished')
     return
 
 def add_vuln_to_mongo(scan_info, scan_type, description, img_str):

@@ -34,24 +34,23 @@ stop_burp = "http://localhost:8090/burp/stop"
 
 def handle_target(info):
     if BURP_FOLDER:
-        print('------------------- BURP TARGET SCAN STARTING -------------------')
+        print('Module Burp Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
         slack.send_simple_message("Burp scan started against target: %s. %d alive urls found!"
                                         % (info['domain'], len(info['url_to_scan'])))
-        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
         for url in info['url_to_scan']:
             sub_info = info
             sub_info['url_to_scan'] = url
             scan_target(sub_info)
-        print('------------------- BURP TARGET SCAN FINISHED -------------------')
+        print('Module Burp Scan Finished')
     return
 
 
 def handle_single(scan_information):
     if BURP_FOLDER:
-        print('------------------- BURP SINGLE SCAN STARTING -------------------')
+        print('Module Burp Scan starting against %s' % scan_information['url_to_scan'])
         slack.send_simple_message("Burp scan started against %s" % scan_information['url_to_scan'])
         scan_target(scan_information)
-        print('------------------- BURP SINGLE SCAN FINISHED -------------------')
+        print('Module Burp Scan Finished')
     return
 
 
@@ -70,15 +69,11 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
             slack.send_vulnerability(vulnerability)
             redmine.create_new_issue(vulnerability)
             mongo.add_vulnerability(vulnerability)
-        else:
-            print("Not reported: "+issue['name']+" because is in burp blacklist")
 
 
 def scan_target(scan_info):
-    print("LAUNCHING BURP")
     burp_process = subprocess.Popen(BURP_FOLDER, stdout=subprocess.PIPE)
     time.sleep(120)
-    print("BURP STARTED BEGINING SCAN")
     #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN
     pid = burp_process.stdout.readline().decode('utf-8')[30:34]
     header = {'accept': '*/*'}
@@ -93,7 +88,6 @@ def scan_target(scan_info):
     query_scope_response = requests.get(query_in_scope_url % scan_info['url_to_scan'], headers=header)
     if not query_scope_response.json()['inScope']:
         return
-    print("Added %s to scope!" % scan_info['url_to_scan'])
 
     spider_response = requests.post(spider_url % scan_info['url_to_scan'], headers=header)
     if spider_response.status_code != 200:
@@ -102,7 +96,6 @@ def scan_target(scan_info):
     while spider_status_response.json()['spiderPercentage'] != 100:
         spider_status_response = requests.get(spider_status_url, headers=header)
         time.sleep(1)
-    print("Spider on %s finished!" % scan_info['url_to_scan'])
 
     passive_scan_response = requests.post(passive_scan_url % scan_info['url_to_scan'], headers=header)
     if passive_scan_response.status_code != 200:
@@ -111,7 +104,6 @@ def scan_target(scan_info):
     while scanner_status_response.json()['scanPercentage'] != 100:
         scanner_status_response = requests.get(scan_status_url, headers=header)
         time.sleep(5)
-    print("Passive scan on %s finished!" % scan_info['url_to_scan'])
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     random_filename = uuid.uuid4().hex
@@ -122,11 +114,9 @@ def scan_target(scan_info):
     open(OUTPUT_DIR, 'wb').write(download_response.content)
     add_vulnerability(scan_info, download_response.content,OUTPUT_DIR, 'burp_result.xml')
     
-    print("------------- STOPING BURP SUITE -------------")
     burp_process.kill()
     os.system("kill -9 "+pid)
     try:
         os.remove(OUTPUT_DIR)
     except FileNotFoundError:
-        print("File %s is supposed to exist!" % OUTPUT_DIR)
         return

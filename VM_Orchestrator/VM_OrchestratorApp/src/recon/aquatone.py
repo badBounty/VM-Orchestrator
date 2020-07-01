@@ -20,8 +20,7 @@ def start_aquatone(subdomain_list, scan_information):
     INPUT_DIR = OUTPUT_DIR + '/aquatone_input.txt'
     AQUATONE_DIR = ROOT_DIR + '/tools/aquatone'
 
-    print('------------------- AQUATONE STARTING -------------------')
-    print('Scanning ' + str(len(subdomain_list)) + ' targets')
+    print('Aquatone starting against ' + str(len(subdomain_list) + ' subdomains'))
     for subdomain in subdomain_list:
         run_aquatone(subdomain['subdomain'], AQUATONE_DIR, OUTPUT_DIR)
 
@@ -32,7 +31,6 @@ def start_aquatone(subdomain_list, scan_information):
 
 def run_aquatone(subdomain, AQUATONE_DIR, OUTPUT_DIR):
 
-    print('Scanning ' + subdomain)
     command = ['echo', subdomain, '|', AQUATONE_DIR, '-ports', 'large', '-out', OUTPUT_DIR]
     aquatone_process = subprocess.run(
        ' '.join(command), shell=True)
@@ -57,7 +55,6 @@ def parse_results(subdomain, OUTPUT_DIR):
 
     if urls and urls != ['']:
         urls_string = ';'.join(urls)
-        print('Url has links %s'% urls_string)
         has_urls = 'True'
     else:
         urls_string = ''
@@ -85,27 +82,27 @@ def cleanup_after_scan(OUTPUT_DIR):
     try:
         os.remove(OUTPUT_DIR + '/aquatone_report.html')
     except FileNotFoundError as e:
-        print("Error: %s : %s" % (OUTPUT_DIR + '/headers', e.strerror))
+        pass
     try:
         os.remove(OUTPUT_DIR + '/aquatone_session.json')
     except FileNotFoundError as e:
-        print("Error: %s : %s" % (OUTPUT_DIR + '/aquatone_session.json', e.strerror))
+        pass
     try:
         os.remove(OUTPUT_DIR + '/aquatone_urls.txt')
     except FileNotFoundError as e:
-        print("Error: %s : %s" % (OUTPUT_DIR + '/aquatone_urls.txt', e.strerror))
+        pass
     try:
         shutil.rmtree(OUTPUT_DIR + '/headers')
     except OSError as e:
-        print("Error: %s : %s" % (OUTPUT_DIR + '/headers', e.strerror))
+        pass
     try:
         shutil.rmtree(OUTPUT_DIR + '/html')
     except OSError as e:
-        print("Error: %s : %s" % (OUTPUT_DIR + '/html', e.strerror))
+        pass
     try:
         shutil.rmtree(OUTPUT_DIR + '/screenshots')
     except OSError as e:
-        print("Error: %s : %s" % (OUTPUT_DIR + '/screenshots', e.strerror))
+        pass
 
     return
 
@@ -115,5 +112,5 @@ def cleanup(OUTPUT_DIR):
     try:
         shutil.rmtree(OUTPUT_DIR)
     except OSError as e:
-        print("Error: %s : %s" % (OUTPUT_DIR, e.strerror))
+        pass
     return

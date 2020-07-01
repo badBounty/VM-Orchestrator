@@ -11,8 +11,7 @@ import subprocess
 import os
 
 def handle_target(info):
-    print('------------------- TARGET SSL/TLS SCAN STARTING -------------------')
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    print('Module SSL/TLS starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_simple_message("SSL/TLS scan started against target: %s. %d alive urls found!"
                                      % (info['domain'], len(info['url_to_scan'])))
     valid_ports = ['443']
@@ -27,7 +26,7 @@ def handle_target(info):
             final_url = url
         for port in valid_ports:
             scan_target(sub_info, url, final_url+':'+port)
-    print('-------------------  TARGET SSL/TLS SCAN FINISHED -------------------')
+    print('Module SSL/TLS finished')
     return
 
 
@@ -41,10 +40,10 @@ def handle_single(scan_info):
         final_url = split_url[2]
     except IndexError:
         final_url = url
-    print('------------------- SINGLE SSL/TLS SCAN STARTING -------------------')
+    print('Module SSL/TLS starting against %s' % scan_info['url_to_scan'])
     for port in valid_ports:
         scan_target(scan_info, url, final_url+':'+port)
-    print('------------------- SINGLE SSL/TLS SCAN FINISHED -------------------')
+    print('Module SSL/TLS finished')
     return
 
 

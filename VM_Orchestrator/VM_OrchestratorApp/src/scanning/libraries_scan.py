@@ -42,7 +42,6 @@ def get_cves_and_last_version(librarie):
                   range(max(map(len, result.values())))]
         return result, last_version
     else:
-        print("No CVE'S found for: " + librarie['name'])
         return {}, ""
 
 
@@ -79,29 +78,27 @@ def analyze(scan_info, url_to_scan):
 
         message = fastPrint(libraries)
         add_libraries_vulnerability(scan_info,  message)
-        print('\nActive Scan completed\n')
     except Exception as e:
-        print('\nSomethig went wrong! :' + '\n' + str(e))
+        print(str(e))
 
 
 def handle_target(info):
     if WAPPA_KEY:
-        print('------------------- TARGET LIBRARIES SCAN STARTING -------------------')
-        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+        print('Module Libraries Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
         slack.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
                                         % (info['domain'], len(info['url_to_scan'])))
         for url in info['url_to_scan']:
             sub_info = info
             sub_info['url_to_scan'] = url
             analyze(sub_info, sub_info['url_to_scan'])
-        print('-------------------  TARGET LIBRARIES SCAN FINISHED -------------------')
+        print('Module Libraries Scan Finished')
     return
 
 
 def handle_single(scan_info):
     if WAPPA_KEY:
-        print('------------------- SINGLE LIBRARIES SCAN STARTING -------------------')
+        print('Module Libraries Scan starting against %s' % scan_info['url_to_scan'])
         slack.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
         analyze(scan_info, scan_info['url_to_scan'])
-        print('------------------- SINGLE LIBRARIES SCAN FINISHED -------------------')
+        print('Module Libraries Scan Finished')
     return

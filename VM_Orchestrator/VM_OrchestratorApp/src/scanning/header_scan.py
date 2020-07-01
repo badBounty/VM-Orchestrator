@@ -13,23 +13,22 @@ from datetime import datetime
 
 
 def handle_target(info):
-    print('------------------- TARGET HEADER SCAN STARTING -------------------')
+    print('Module Header Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_simple_message("Header scan started against target: %s. %d alive urls found!"
                                      % (info['domain'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('-------------------  TARGET HEADER SCAN FINISHED -------------------')
+    print('Module Header Scan Finished')
     return
 
 
 def handle_single(scan_info):
-    print('------------------- SINGLE HEADER SCAN STARTING -------------------')
+    print('Module Header Scan starting against %s' % scan_info['url_to_scan'])
     slack.send_simple_message("Header scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
-    print('------------------- SINGLE HEADER SCAN FINISHED -------------------')
+    print('Module Header Scan Finished')
     return
 
 
