@@ -14,6 +14,8 @@ from datetime import datetime, date
 
 import VM_OrchestratorApp.src.task_manager as manager
 
+import VM_OrchestratorApp.tasks as tasks
+
 # Create your views here.
 def index(request):
     return render(request, 'base.html')

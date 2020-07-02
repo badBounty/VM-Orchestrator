@@ -276,3 +276,17 @@ def update_issue_if_needed(redmine_issue):
             'state': 'rejected' 
         }})
     return
+
+# TODO Temporary function for result revision
+def get_vulnerabilities_for_email(scan_information):
+    # In information we are going to have the scan type, if scan_type != domain, url_to_scan == domain
+    return_list = list()
+    if scan_information['type'] != 'domain':
+        found_vulns = vulnerabilities.find({'domain': scan_information['domain'], 'subdomain': scan_information['domain']})
+    else:
+        found_vulns = vulnerabilities.find({'domain': scan_information['domain']})
+
+    for vuln in found_vulns:
+            return_list.append(vuln)
+
+    return  return_list
