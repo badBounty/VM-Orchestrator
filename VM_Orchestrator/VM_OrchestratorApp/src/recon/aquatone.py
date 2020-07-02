@@ -20,7 +20,7 @@ def start_aquatone(subdomain_list, scan_information):
     INPUT_DIR = OUTPUT_DIR + '/aquatone_input.txt'
     AQUATONE_DIR = ROOT_DIR + '/tools/aquatone'
 
-    print('Aquatone starting against ' + str(len(subdomain_list) + ' subdomains'))
+    print('Aquatone starting against ' + str(len(subdomain_list)) + ' subdomains')
     for subdomain in subdomain_list:
         run_aquatone(subdomain['subdomain'], AQUATONE_DIR, OUTPUT_DIR)
 
