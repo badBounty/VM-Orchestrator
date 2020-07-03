@@ -27,6 +27,7 @@ def add_vulnerability(vulnerability):
             'domain': vulnerability.target,
             'subdomain': vulnerability.scanned_url,
             'vulnerability_name': vulnerability.vulnerability_name,
+            'observation': vulnerability.get_json_observation(),
             'extra_info': vulnerability.custom_description,
             'image_string': vulnerability.image_string,
             'file_string': vulnerability.file_string,
@@ -131,7 +132,7 @@ def add_simple_url_resource(scan_info):
                     'region': None,
                     'city': None,
                     'org': None,
-                    'geoloc': '0, 0'
+                    'geoloc': '0 , 0'
                 },
                 'first_seen': timestamp,
                 'last_seen': timestamp,
@@ -164,7 +165,7 @@ def add_simple_ip_resource(scan_info):
                     'region': None,
                     'city': None,
                     'org': None,
-                    'geoloc': '0, 0'
+                    'geoloc': '0 , 0'
                 },
                 'first_seen': timestamp,
                 'last_seen': timestamp,
@@ -198,7 +199,7 @@ def add_resource(url_info, scan_info):
                     'region': url_info['region'],
                     'city': url_info['city'],
                     'org': url_info['org'],
-                    'geoloc': '%s, %s' % (str(url_info['lat']),str(url_info['lon']))
+                    'geoloc': '%s , %s' % (str(url_info['lat']),str(url_info['lon']))
                 },
                 'first_seen': timestamp,
                 'last_seen': timestamp,
@@ -223,7 +224,7 @@ def add_resource(url_info, scan_info):
                     'region': url_info['region'],
                     'city': url_info['city'],
                     'org': url_info['org'],
-                    'geoloc': '%s, %s' % (str(url_info['lat']),str(url_info['lon']))
+                    'geoloc': '%s , %s' % (str(url_info['lat']),str(url_info['lon']))
                 },
             'last_seen': timestamp
             }})

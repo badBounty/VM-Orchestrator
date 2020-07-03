@@ -6,3 +6,5 @@ VM_Orchestrator/celerybeat-schedule
 VM_Orchestrator/db.sqlite3
 VM_Orchestrator/csv_input.csv
 VM_Orchestrator/VM_OrchestratorApp/src/recon/output/*/*.txt
+VM_Orchestrator/celerybeat-schedule.db
+VM_Orchestrator/logfile

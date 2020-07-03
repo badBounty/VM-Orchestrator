@@ -4,10 +4,12 @@ import os
 
 from celery import Celery
 
+from VM_OrchestratorApp import settings
+
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'VM_Orchestrator.settings')
 
-app = Celery('VM_Orchestrator', backend='amqp')
+app = Celery('VM_Orchestrator', backend=settings['CELERY']['BROKER_URL'], broker=settings['CELERY']['BROKER_URL'])
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
