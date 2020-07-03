@@ -31,6 +31,7 @@ def recon_task_manager(information):
 information={
     'invasive_scans': True/False
     'nessus_scan' : True/False
+    'acunetix_scan' : True/False
     'type': 'domain' (Recon and scan)
             'ip'    (Single ip, will only run scan. This can also be a subdomain)
             'url'   (Single url, will only run scan (Must contain http/https))
@@ -56,7 +57,7 @@ def on_demand_scan(information):
                 immutable = True
             )
         )
-        execution_chain.apply_async(queue='fast_queue', interval=60)
+        execution_chain.apply_async(queue='fast_queue', interval=300)
     elif information['type'] == 'ip':
         execution_chord = chord(
                 [
@@ -65,7 +66,7 @@ def on_demand_scan(information):
                 body=tasks.on_demand_scan_finished.s().set(queue='fast_queue'),
                 immutable = True
             )
-        execution_chord.apply_async(queue='fast_queue', interval=60)
+        execution_chord.apply_async(queue='fast_queue', interval=300)
     elif information['type'] == 'url':
         execution_chord = chord(
                 [
@@ -75,4 +76,4 @@ def on_demand_scan(information):
                 body=tasks.on_demand_scan_finished.s().set(queue='fast_queue'),
                 immutable = True
             )
-        execution_chord.apply_async(queue='fast_queue', interval=60)
+        execution_chord.apply_async(queue='fast_queue', interval=300)

@@ -24,4 +24,4 @@ def on_demand_scan(request):
         received_json_data=json.loads(request.body)
         print(received_json_data)
         manager.on_demand_scan(received_json_data)
-    return JsonResponse({'data':'Scan started!'})
+    return JsonResponse({'data':'Hi'})
