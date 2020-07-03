@@ -22,7 +22,7 @@ def handle_target(info):
 
 
 def handle_single(scan_info):
-    print('Module Firebase Scan starting against %s' % scan_information['url_to_scan'])
+    print('Module Firebase Scan starting against %s' % scan_info['url_to_scan'])
     slack.send_simple_message("Firebase scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
     print('Module Firebase Scan Finished')

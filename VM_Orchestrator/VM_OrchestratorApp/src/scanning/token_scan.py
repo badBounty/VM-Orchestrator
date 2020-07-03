@@ -24,7 +24,7 @@ def handle_target(info):
 
 
 def handle_single(scan_info):
-    print('Module Token Finder starting against %s' % scan_information['url_to_scan'])
+    print('Module Token Finder starting against %s' % scan_info['url_to_scan'])
     slack.send_simple_message("Token finder scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
     print('Module Token Finder finished')
