@@ -67,7 +67,7 @@ def handle_target(info):
             small_list=[a,b,c,d]
             info['url_to_scan'] = small_list
             scan_target(info)
-        print('Module Acunetix Scan Finished')
+        print('Module Acunetix Scan Finished against %s alive urls from %s' % (str(len(full_list)), info['domain']))
     return
 
 
@@ -78,7 +78,7 @@ def handle_single(scan_information):
         urls = [scan_information['url_to_scan']]
         scan_information['url_to_scan'] = urls
         scan_target(scan_information)
-        print('Module Acunetix Sigle Scan Finished')
+        print('Module Acunetix Sigle Scan Finished against %s' % scan_information['url_to_scan'])
     return
 
 def add_vulnerability(scan_info,scan_id,vulns):

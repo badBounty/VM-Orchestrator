@@ -61,19 +61,19 @@ def handle_target(info):
             sub_info['url_to_scan'] = url_list[:divider]
             sub_info['nessus_target'] = urls
             scan_target(sub_info)
-        print('Module Nessus Scan Finished')
+        print('Module Nessus Scan Finished against %s alive urls from %s' % (str(len(targets)), info['domain']))
     return
 
 
 def handle_single(scan_information):
     if scan_information['nessus_scan'] and nessus and is_not_ip(scan_information['url_to_scan']):
-        print('Module Nessus Sigle Scan Starting')
+        print('Module Nessus Sigle Scan Starting against %s' % scan_information['url_to_scan'])
         slack.send_simple_message("Nessus scan started against %s" % scan_information['url_to_scan'])
         url_plain = get_only_url(scan_information['url_to_scan'])
         scan_information['nessus_target'] = url_plain
         scan_information['url_to_scan'] = list().append(scan_information['url_to_scan'])
         scan_target(scan_information)
-        print('Module Nessus Scan Finished')
+        print('Module Nessus Scan Finished against %s' % scan_information['url_to_scan'])
     else:
         print('Scan not started: the url was an IP number or couldn\'t connect to the nessus server')
     return
