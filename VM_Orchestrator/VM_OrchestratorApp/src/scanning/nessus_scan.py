@@ -1,4 +1,5 @@
 from VM_OrchestratorApp.src.utils import slack, mongo, redmine
+from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 from VM_Orchestrator.settings import settings,nessus,nessus_info
 
@@ -88,7 +89,7 @@ def add_vulnerability(scan_info,json_data,header):
         for host_vuln in json.loads(r.text)['vulnerabilities']:
             #Only update the vulnerabilities with severity medium or more
             if host_vuln['severity'] >= nessus_info['WHITE_LIST_SEVERITY'] and host_vuln['plugin_name'] not in nessus_info['BLACK_LIST']:
-                name = "[NESSUS SCAN] - "+ host_vuln['plugin_name']
+                name = {'english_name':constants.NESSUS_SCAN['english_name']+ host_vuln['plugin_name']}
                 plug_id = str(host_vuln['plugin_id'])
                 #Get full detail of the vulnerability
                 r = requests.get(scan_url+scan_id+'/plugins/'+plug_id,verify=verify,headers=header)
