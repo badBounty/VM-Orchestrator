@@ -5,6 +5,7 @@ from celery.schedules import crontab
 from datetime import datetime, date
 import pandas as pd
 import copy
+import os
 
 from VM_OrchestratorApp.src.recon import initial_recon, aquatone
 from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_tls_scan,\
@@ -197,7 +198,8 @@ def run_web_scanners(scan_information):
             #burp_scan_task.s(web_information).set(queue='slow_queue')
         ],
         body=web_security_scan_finished.s().set(queue='fast_queue'),
-        immutable=True)()
+        immutable=True)
+    execution_chord.apply_async(queue='fast_queue', interval=60)
     return
 
 ### IP SCANS ###
@@ -231,12 +233,26 @@ def run_ip_scans(scan_information):
             add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
         body=ip_security_scan_finished.s().set(queue='fast_queue'),
-        immutable=True)()
+        immutable=True)
+    execution_chord.apply_async(queue='fast_queue', interval=60)
     return
 
 # ------ END ALERTS ------ #
 @shared_task
-def on_demand_scan_finished(results):
+def on_demand_scan_finished(results, information):
+    # TODO REMOVE Send email with scan results
+    vulnerabilities = mongo.get_vulnerabilities_for_email(information)
+    df = pd.DataFrame(vulnerabilities)
+    print(df)
+    from VM_OrchestratorApp.src.utils import email_handler
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'vulnerability_name', 'extra_info',
+    'date_found', 'last_seen', 'language', 'state'])
+    email_handler.send_email(ROOT_DIR+'/output.csv', information['email'])
+    try:
+        os.remove(ROOT_DIR + '/output.csv')
+    except FileNotFoundError:
+        pass
     print('On demand scan finished!')
     return
 
@@ -262,10 +278,10 @@ def add_scanned_resources(resource_list):
     return
 
 # ------ PERIODIC TASKS ------ #
-#@periodic_task(run_every=crontab(hour=14, minute=5),
+#@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
 #queue='slow_queue', options={'queue': 'slow_queue'})
-@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
-queue='slow_queue', options={'queue': 'slow_queue'})
+#@periodic_task(run_every=crontab(hour=12, minute=12),
+#queue='slow_queue', options={'queue': 'slow_queue'})
 def project_start_task():
     today_date = datetime.combine(date.today(), datetime.min.time())
     # This will make it so the tasks only runs once in the program existence
@@ -308,7 +324,7 @@ def project_start_task():
     return
 
 
-@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
+#@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
 #@periodic_task(run_every=crontab(hour=6, minute=0),
 #queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():

@@ -13,24 +13,22 @@ import uuid
 
 
 def handle_target(info):
-    print('------------------- IIS SHORTNAME SCAN STARTING -------------------')
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    print('Module IIS Shortname starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_simple_message("IIS Shortname scan started against domain: %s. %d alive urls found!"
                                 % (info['domain'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('-------------------  IIS SHORTNAME SCAN FINISHED -------------------')
+    print('Module IIS Shortname finished against %s' % info['domain'])
     return
 
 
 def handle_single(scan_info):
-    print('------------------- IIS SHORTNAME SCAN STARTING -------------------')
+    print('Module IIS Shortname starting against %s' % scan_info['url_to_scan'])
     slack.send_simple_message("IIS ShortName Scanner scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
-    print('------------------- IIS SHORTNAME SCAN FINISHED -------------------')
+    print('Module IIS Shortname finished against %s' % scan_info['url_to_scan'])
     return
 
 
@@ -64,5 +62,5 @@ def scan_target(scan_info, url_to_scan):
                 mongo.add_vulnerability(vulnerability)
                 os.remove(output_dir)
     except KeyError:
-        print("No server header was found")
+        pass
     return

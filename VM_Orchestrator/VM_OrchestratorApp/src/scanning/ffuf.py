@@ -20,25 +20,23 @@ def cleanup(path):
 
 def handle_target(info):
     if FFUF_LIST:
-        print('------------------- FFUF SCAN STARTING -------------------')
-        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+        print('Module ffuf starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
         slack.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
                                         % (info['domain'], len(info['url_to_scan'])))
-        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
         for url in info['url_to_scan']:
             sub_info = info
             sub_info['url_to_scan'] = url
             scan_target(sub_info, sub_info['url_to_scan'])
-        print('-------------------  FFUF SCAN FINISHED -------------------')
+        print('Module ffuf finished from %s' % info['domain'])
     return
 
 
 def handle_single(scan_info):
     if FFUF_LIST:
-        print('------------------- FFUF SCAN STARTING -------------------')
+        print('Module ffuf starting against %s' % scan_info['url_to_scan'])
         slack.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
         scan_target(scan_info, scan_info['url_to_scan'])
-        print('------------------- FFUF SCAN FINISHED -------------------')
+        print('Module ffuf finished against %s' % scan_info['url_to_scan'])
     return
 
 
@@ -63,13 +61,23 @@ def scan_target(scan_info, url_with_http):
         url_with_http = url_with_http + '/'
 
     ffuf_process = subprocess.run(
-        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-c', '-v',
-         '-o', JSON_RESULT])
+        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-c', '-v', '-mc', '200,403',
+         '-o', JSON_RESULT], capture_output=True)
 
     with open(JSON_RESULT) as json_file:
         json_data = json.load(json_file)
 
+    count = 0
+    with open(WORDLIST_DIR, 'r') as f:
+        for line in f:
+            count += 1
+
     vulns = json_data['results']
+
+    #If more than half of the endpoints are found, the result is discarded
+    if len(vulns) > count/2:
+        return
+
     valid_codes = [200, 403]
     one_found = False
     extra_info_message = ""

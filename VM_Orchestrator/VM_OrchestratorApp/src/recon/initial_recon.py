@@ -25,26 +25,32 @@ def run_recon(scan_info):
     sublist3r_dir = ROOT_DIR + "/tools/Sublist3r/sublist3r.py"
 
     # Amass
-    print('------------------- AMASS STARTING -------------------')
+    print('Amass starting')
     f = open(PROJECT_DIR + '/amass_out.txt',"w+")
     f.close()
     amass_process = subprocess.run(
        [amass_dir, 'enum', '-active', '-d', scan_info['domain'], '-o', PROJECT_DIR + '/amass_out.txt', '-timeout', '10'])
     if path.exists(PROJECT_DIR + '/amass_out.txt'):
-        print('------------------- AMASS FINISHED CORRECTLY -------------------')
+        print('Amass finished correctly')
+    else:
+        print('Amass outfile does not exist')
 
     # Subfinder
-    print('------------------- SUBFINDER STARTING -------------------')
+    print('Subfinder starting')
     subfinder_process = subprocess.run([subfinder_dir, '-d', scan_info['domain'], '-o', PROJECT_DIR + '/subfinder_out.txt'])
     if path.exists(PROJECT_DIR + '/subfinder_out.txt'):
-        print('------------------- SUBFINDER FINISHED CORRECTLY -------------------')
+        print('Subfinder finished correctly')
+    else:
+        print('Subfinder outfile does not exist')
 
     # sublist3r
-    print('------------------- SUBLIST3R STARTING -------------------')
+    print('Sublist3r starting')
     sublist3r_process = subprocess.run(
        ['python3', sublist3r_dir, '-d', scan_info['domain'], '-o', PROJECT_DIR + '/sublist3r_out.txt'])
     if path.exists(PROJECT_DIR + '/sublist3r_out.txt'):
-        print('------------------- SUBLIST3R FINISHED CORRECTLY -------------------')
+        print('Sublist3r finished correctly')
+    else:
+        print('Sublist3r outfile does not exist')
 
     parse_results(PROJECT_DIR, scan_info)
     gather_data(PROJECT_DIR, scan_info)

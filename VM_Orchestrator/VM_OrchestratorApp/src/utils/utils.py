@@ -54,9 +54,7 @@ def url_screenshot(url):
     driver = webdriver.Chrome(options=options)
     driver.set_window_size(1920,1080)
     driver.get(url)
-    print('--------------- TAKING URL SCREENSHOT ----------------')
     name = url.replace("http://","").replace("https://","").split("/")[0]
     OUTPUT_DIR = ROOT_DIR+'/../security/tools_output'
     driver.save_screenshot(OUTPUT_DIR+name+".png")
     driver.quit()
-    print('---------------        DONE!!!!!!         ----------------')

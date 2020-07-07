@@ -27,6 +27,7 @@ def add_vulnerability(vulnerability):
             'domain': vulnerability.target,
             'subdomain': vulnerability.scanned_url,
             'vulnerability_name': vulnerability.vulnerability_name,
+            'observation': vulnerability.get_json_observation(),
             'extra_info': vulnerability.custom_description,
             'image_string': vulnerability.image_string,
             'file_string': vulnerability.file_string,
@@ -66,7 +67,6 @@ def remove_scanned_flag():
         resources.update_one({'_id': document.get('_id')}, {'$set': {
             'scanned': False
         }})
-        print(document)
 
 
 # This will return every url with http/https
@@ -132,7 +132,7 @@ def add_simple_url_resource(scan_info):
                     'region': None,
                     'city': None,
                     'org': None,
-                    'geoloc': '0, 0'
+                    'geoloc': '0 , 0'
                 },
                 'first_seen': timestamp,
                 'last_seen': timestamp,
@@ -165,7 +165,7 @@ def add_simple_ip_resource(scan_info):
                     'region': None,
                     'city': None,
                     'org': None,
-                    'geoloc': '0, 0'
+                    'geoloc': '0 , 0'
                 },
                 'first_seen': timestamp,
                 'last_seen': timestamp,
@@ -199,7 +199,7 @@ def add_resource(url_info, scan_info):
                     'region': url_info['region'],
                     'city': url_info['city'],
                     'org': url_info['org'],
-                    'geoloc': '%s, %s' % (str(url_info['lat']),str(url_info['lon']))
+                    'geoloc': '%s , %s' % (str(url_info['lat']),str(url_info['lon']))
                 },
                 'first_seen': timestamp,
                 'last_seen': timestamp,
@@ -210,8 +210,6 @@ def add_resource(url_info, scan_info):
         }
         if not scan_info['is_first_run']:
             slack.send_new_resource_found("New resource found! %s" % url_info['url'])
-            print('New resource found!!\n')
-            print(str(resource))
         resources.insert_one(resource)
     else:
         resources.update_one({'_id': exists.get('_id')},
@@ -226,7 +224,7 @@ def add_resource(url_info, scan_info):
                     'region': url_info['region'],
                     'city': url_info['city'],
                     'org': url_info['org'],
-                    'geoloc': '%s, %s' % (str(url_info['lat']),str(url_info['lon']))
+                    'geoloc': '%s , %s' % (str(url_info['lat']),str(url_info['lon']))
                 },
             'last_seen': timestamp
             }})
@@ -269,9 +267,27 @@ def update_issue_if_needed(redmine_issue):
 
     vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
     'domain': target, 'subdomain': scanned_url})
-    # We need to do some parsing here. Status_id is a number and we need a string
-    status = redmine_issue.status_id
-    if status != vulnerability['status']:
-        #Modify
-        pass
+    status = redmine_issue.status.name
+    if status == 'QA - Confirmada':
+        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'confirmed' 
+        }})
+    elif status == 'Rechazada':
+        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'rejected' 
+        }})
     return
+
+# TODO Temporary function for result revision
+def get_vulnerabilities_for_email(scan_information):
+    # In information we are going to have the scan type, if scan_type != domain, url_to_scan == domain
+    return_list = list()
+    if scan_information['type'] != 'domain':
+        found_vulns = vulnerabilities.find({'domain': scan_information['domain'], 'subdomain': scan_information['domain']})
+    else:
+        found_vulns = vulnerabilities.find({'domain': scan_information['domain']})
+
+    for vuln in found_vulns:
+            return_list.append(vuln)
+
+    return  return_list

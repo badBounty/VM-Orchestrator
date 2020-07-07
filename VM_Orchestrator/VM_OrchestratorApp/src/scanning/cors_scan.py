@@ -19,8 +19,7 @@ def cleanup(path):
 
 
 def handle_target(info):
-    print('------------------- CORS SCAN STARTING -------------------')
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    print('Module CORS Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_simple_message("CORS scan started against target: %s. %d alive urls found!"
                                      % (info['domain'], len(info['url_to_scan'])))
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,12 +35,12 @@ def handle_target(info):
     scan_target(info, FILE_WITH_URLS)
     # Delete all created files
     cleanup(FILE_WITH_URLS)
-    print('-------------------  CORS SCAN FINISHED -------------------')
+    print('Module CORS Scan finished against %s' % info['domain'])
     return
 
 
 def handle_single(scan_info):
-    print('------------------- CORS SCAN STARTING -------------------')
+    print('Module CORS Scan starting against %s' % scan_info['url_to_scan'])
     slack.send_simple_message("CORS scan started against %s" % scan_info['url_to_scan'])
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -57,7 +56,7 @@ def handle_single(scan_info):
 
     # Delete all created files
     cleanup(FILE_WITH_URL)
-    print('------------------- CORS SCAN FINISHED -------------------')
+    print('Module CORS Scan finished against %s' % scan_info['url_to_scan'])
     return
 
 
@@ -79,7 +78,7 @@ def scan_target(scan_info, file_name):
     TOOL_DIR = ROOT_DIR + '/tools/CORScanner/cors_scan.py'
     cleanup(FILE_WITH_JSON_RESULT)
     cors_process = subprocess.run(
-        ['python3', TOOL_DIR, '-i', file_name, '-o', FILE_WITH_JSON_RESULT])
+        ['python3', TOOL_DIR, '-i', file_name, '-o', FILE_WITH_JSON_RESULT], capture_output=True)
     with open(FILE_WITH_JSON_RESULT) as json_file:
         vulns = json.load(json_file)
 

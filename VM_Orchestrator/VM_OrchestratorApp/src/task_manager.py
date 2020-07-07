@@ -44,6 +44,8 @@ def on_demand_scan(information):
     information['is_first_run'] = False
     information['language'] = 'eng'
 
+    # The "Information" argument on chord body is temporary
+
     if information['type'] == 'domain':
         execution_chain = chain(
             tasks.run_recon.si(information).set(queue='slow_queue'),
@@ -52,7 +54,7 @@ def on_demand_scan(information):
                     tasks.run_web_scanners.si(information).set(queue='fast_queue'),
                     tasks.run_ip_scans.si(information).set(queue='slow_queue')
                 ],
-                body=tasks.on_demand_scan_finished.s().set(queue='fast_queue'),
+                body=tasks.on_demand_scan_finished.s(information).set(queue='fast_queue'),
                 immutable = True
             )
         )
@@ -62,7 +64,7 @@ def on_demand_scan(information):
                 [
                     tasks.run_ip_scans.si(information).set(queue='slow_queue')
                 ],
-                body=tasks.on_demand_scan_finished.s().set(queue='fast_queue'),
+                body=tasks.on_demand_scan_finished.s(information).set(queue='fast_queue'),
                 immutable = True
             )
         execution_chord.apply_async(queue='fast_queue', interval=60)
@@ -72,7 +74,7 @@ def on_demand_scan(information):
                     tasks.run_web_scanners.si(information).set(queue='fast_queue'),
                     tasks.run_ip_scans.si(information).set(queue='slow_queue')
                 ],
-                body=tasks.on_demand_scan_finished.s().set(queue='fast_queue'),
+                body=tasks.on_demand_scan_finished.s(information).set(queue='fast_queue'),
                 immutable = True
             )
         execution_chord.apply_async(queue='fast_queue', interval=60)

@@ -17,23 +17,22 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def handle_target(info):
-    print('------------------- S3BUCKET TARGET SCAN STARTING -------------------')
+    print('Module S3 Bucket Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_simple_message("Bucket finder scan started against target: %s. %d alive urls found!"
                                      % (info['domain'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('------------------- S3BUCKET TARGET SCAN FINISHED -------------------')
+    print('Module S3 Bucket Scan finished against %s' % info['domain'])
     return
 
 
 def handle_single(scan_information):
-    print('------------------- S3BUCKET SINGLE SCAN STARTING -------------------')
-    slack.send_simple_message("Bucket finder scan started against %s" % scan_information['domain'])
+    print('Module S3 Bucket Scan starting against %s' % scan_information['url_to_scan'])
+    slack.send_simple_message("Bucket finder scan started against %s" % scan_information['url_to_scan'])
     scan_target(scan_information, scan_information['url_to_scan'])
-    print('------------------- S3BUCKET SINGLE SCAN FINISHED -------------------')
+    print('Module S3 Bucket Scan finished against %s' % scan_information['url_to_scan'])
     return
 
 

@@ -130,10 +130,6 @@ STATIC_URL = '/static/'
 # Enviroment variables
 os.environ['C_FORCE_ROOT'] = settings['CELERY']['C_FORCE_ROOT']
 
-CELERY_BROKER_URL = settings['CELERY']['BROKER_URL']
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-
 MONGO_INFO = settings['MONGO']
 
 #Checking of settings for scans
@@ -207,3 +203,13 @@ except KeyError:
 except Exception:
     print('Nessus connection failed, check the settings file or the VPN connection')
     pass
+
+
+#TODO This is temporary!!!
+### EMAIL SETTINGS ###
+EMAIL_BACKEND = settings['EMAIL']['BACKEND']
+EMAIL_USE_TLS = settings['EMAIL']['USE_TLS']
+EMAIL_HOST = settings['EMAIL']['HOST']
+EMAIL_HOST_USER = settings['EMAIL']['HOST_USER']
+EMAIL_HOST_PASSWORD = settings['EMAIL']['HOST_PASSWORD']
+EMAIL_PORT = settings['EMAIL']['PORT']

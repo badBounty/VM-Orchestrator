@@ -10,23 +10,22 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def handle_target(info):
-    print('------------------- CSS TARGET SCAN STARTING -------------------')
+    print('Module CSS Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_simple_message("CSS scan started against target: %s. %d alive urls found!"
                                      % (info['domain'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('------------------- CSS TARGET SCAN FINISHED -------------------')
+    print('Module CSS Scan finished against %s' % info['domain'])
     return
 
 
 def handle_single(scan_info):
-    print('------------------- CSS SINGLE SCAN STARTING -------------------')
+    print('Module CSS Scan starting against %s' % scan_info['url_to_scan'])
     slack.send_simple_message("CSS scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
-    print('------------------- CSS SINGLE SCAN FINISHED -------------------')
+    print('Module CSS Scan finished against %s' % scan_info['url_to_scan'])
     return
 
 
