@@ -26,7 +26,7 @@ def handle_target(info):
             final_url = url
         for port in valid_ports:
             scan_target(sub_info, url, final_url+':'+port)
-    print('Module SSL/TLS finished')
+    print('Module SSL/TLS finished against %s' % info['domain'])
     return
 
 
@@ -43,7 +43,7 @@ def handle_single(scan_info):
     print('Module SSL/TLS starting against %s' % scan_info['url_to_scan'])
     for port in valid_ports:
         scan_target(scan_info, url, final_url+':'+port)
-    print('Module SSL/TLS finished')
+    print('Module SSL/TLS finished against %s' % scan_info['url_to_scan'])
     return
 
 

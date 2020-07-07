@@ -35,7 +35,7 @@ def handle_target(info):
     scan_target(info, FILE_WITH_URLS)
     # Delete all created files
     cleanup(FILE_WITH_URLS)
-    print('Module CORS Scan Finished')
+    print('Module CORS Scan finished against %s' % info['domain'])
     return
 
 
@@ -56,7 +56,7 @@ def handle_single(scan_info):
 
     # Delete all created files
     cleanup(FILE_WITH_URL)
-    print('Module CORS Scan Finished')
+    print('Module CORS Scan finished against %s' % scan_info['url_to_scan'])
     return
 
 

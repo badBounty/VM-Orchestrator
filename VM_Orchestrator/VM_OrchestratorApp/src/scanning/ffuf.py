@@ -27,7 +27,7 @@ def handle_target(info):
             sub_info = info
             sub_info['url_to_scan'] = url
             scan_target(sub_info, sub_info['url_to_scan'])
-        print('Module ffuf finished')
+        print('Module ffuf finished from %s' % info['domain'])
     return
 
 
@@ -36,7 +36,7 @@ def handle_single(scan_info):
         print('Module ffuf starting against %s' % scan_info['url_to_scan'])
         slack.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
         scan_target(scan_info, scan_info['url_to_scan'])
-        print('Module ffuf finished')
+        print('Module ffuf finished against %s' % scan_info['url_to_scan'])
     return
 
 
@@ -61,13 +61,23 @@ def scan_target(scan_info, url_with_http):
         url_with_http = url_with_http + '/'
 
     ffuf_process = subprocess.run(
-        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-c', '-v',
+        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-c', '-v', '-mc', '200,403',
          '-o', JSON_RESULT], capture_output=True)
 
     with open(JSON_RESULT) as json_file:
         json_data = json.load(json_file)
 
+    count = 0
+    with open(WORDLIST_DIR, 'r') as f:
+        for line in f:
+            count += 1
+
     vulns = json_data['results']
+
+    #If more than half of the endpoints are found, the result is discarded
+    if len(vulns) > count/2:
+        return
+
     valid_codes = [200, 403]
     one_found = False
     extra_info_message = ""

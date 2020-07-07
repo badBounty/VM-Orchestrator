@@ -24,7 +24,7 @@ def handle_target(info):
         sub_info = info
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('Module S3 Bucket Scan Finished')
+    print('Module S3 Bucket Scan finished against %s' % info['domain'])
     return
 
 
@@ -32,7 +32,7 @@ def handle_single(scan_information):
     print('Module S3 Bucket Scan starting against %s' % scan_information['url_to_scan'])
     slack.send_simple_message("Bucket finder scan started against %s" % scan_information['url_to_scan'])
     scan_target(scan_information, scan_information['url_to_scan'])
-    print('Module S3 Bucket Scan Finished')
+    print('Module S3 Bucket Scan finished against %s' % scan_information['url_to_scan'])
     return
 
 

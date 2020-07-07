@@ -17,7 +17,7 @@ def handle_target(info):
         sub_info = info
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('Module CSS Scan Finished')
+    print('Module CSS Scan finished against %s' % info['domain'])
     return
 
 
@@ -25,7 +25,7 @@ def handle_single(scan_info):
     print('Module CSS Scan starting against %s' % scan_info['url_to_scan'])
     slack.send_simple_message("CSS scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
-    print('Module CSS Scan Finished')
+    print('Module CSS Scan finished against %s' % scan_info['url_to_scan'])
     return
 
 

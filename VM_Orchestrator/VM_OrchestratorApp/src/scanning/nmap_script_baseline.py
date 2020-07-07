@@ -38,7 +38,7 @@ def handle_target(info):
         if host not in scanned_hosts:
             basic_scan(sub_info, host)
         scanned_hosts.append(host)
-    print('Module Nmap baseline finished')
+    print('Module Nmap baseline finished against %s' % info['domain'])
     return
 
 
@@ -52,7 +52,7 @@ def handle_single(scan_info):
     except IndexError:
         host = url
     basic_scan(scan_info, host)
-    print('Module Nmap baseline finished')
+    print('Module Nmap baseline finished against %s' % scan_info['url_to_scan'])
     return
 
 def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
@@ -79,8 +79,13 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
 
 def check_ports_and_report(scan_info,ports,scan_type,json_scan,img_str):
     message=''
+    nmap_ports = list()
     try:
-        for port in json_scan['nmaprun']['host']['ports']['port']:
+        if type(json_scan['nmaprun']['host']['ports']['port']) == list:
+            nmap_ports += json_scan['nmaprun']['host']['ports']['port']
+        else:
+            nmap_ports.append(json_scan['nmaprun']['host']['ports']['port'])
+        for port in nmap_ports:
             if port['@portid'] in ports and port['state']['@state'] == 'open':
                 message+= 'Port: '+port['@portid']+'\n'
                 message+= 'Service: '+port['service']['@name']+'\n'

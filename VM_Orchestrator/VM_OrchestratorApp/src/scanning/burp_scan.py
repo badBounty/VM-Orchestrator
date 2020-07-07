@@ -41,7 +41,7 @@ def handle_target(info):
             sub_info = info
             sub_info['url_to_scan'] = url
             scan_target(sub_info)
-        print('Module Burp Scan Finished')
+        print('Module Burp Scan finished against %s' % info['domain'])
     return
 
 
@@ -50,7 +50,7 @@ def handle_single(scan_information):
         print('Module Burp Scan starting against %s' % scan_information['url_to_scan'])
         slack.send_simple_message("Burp scan started against %s" % scan_information['url_to_scan'])
         scan_target(scan_information)
-        print('Module Burp Scan Finished')
+        print('Module Burp Scan finished against %s' % scan_information['url_to_scan'])
     return
 
 

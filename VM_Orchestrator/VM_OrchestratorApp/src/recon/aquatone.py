@@ -45,6 +45,7 @@ def run_aquatone(subdomain, AQUATONE_DIR, OUTPUT_DIR):
 
 def parse_results(subdomain, OUTPUT_DIR):
 
+    urls = list()
     # Check if we have http and https
     try:
         with open(OUTPUT_DIR + '/aquatone_urls.txt') as fp:

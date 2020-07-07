@@ -47,7 +47,7 @@ def handle_target(info):
                     ftp_anon_login(sub_info, host)#FTP ANON
                 default_account(sub_info,host)#Default creds in web console
         scanned_hosts.append(host)
-    print('Module Nmap Scripts Finished')
+    print('Module Nmap Scripts finished against %s' % info['domain'])
     return
 
 
@@ -69,7 +69,7 @@ def handle_single(scan_info):
             ssh_ftp_brute_login(scan_info, host, False)#FTP
             ftp_anon_login(scan_info, host)#FTP ANON
         default_account(scan_info,host)#Default creds in web console
-    print('Module Nmap Scripts Finished')
+    print('Module Nmap Scripts finished against %s' % scan_info['url_to_scan'])
     return
 
 
