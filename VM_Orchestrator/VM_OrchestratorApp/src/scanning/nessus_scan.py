@@ -1,4 +1,5 @@
-from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
+from VM_OrchestratorApp.src.utils import slack, mongo, redmine
+from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 from VM_Orchestrator.settings import settings,nessus,nessus_info
 
@@ -42,41 +43,38 @@ def is_not_ip(url):
 
 def handle_target(info):
     if info['nessus_scan'] and nessus:
-        print('------------------- NESSUS TARGET SCAN STARTING -------------------')
+        print('Module Nessus Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
         targets = len(info['url_to_scan'])
         if targets > 0:
             url_list = info['url_to_scan']
             slack.send_simple_message("Nessus scan started against target: %s. %d alive urls found!"
                                             % (info['domain'], len(info['url_to_scan'])))
-            print('Found ' + str(targets) + ' targets to scan')
             divider = targets//2
             #Plain list for nessus scan
             urls = ','.join(get_only_url(l) for l in url_list[divider:])
             sub_info = info
             sub_info['url_to_scan'] = url_list[divider:]
             sub_info['nessus_target'] = urls
-            print('Scanning ' + urls)
             scan_target(sub_info)
             #Plain list for nessus scan
             urls = ','.join(get_only_url(l) for l in url_list[:divider])
             sub_info = info
             sub_info['url_to_scan'] = url_list[:divider]
             sub_info['nessus_target'] = urls
-            print('Scanning ' + urls)
             scan_target(sub_info)
-        print('------------------- NESSUS TARGET SCAN FINISHED -------------------')
+        print('Module Nessus Scan Finished against %s alive urls from %s' % (str(len(targets)), info['domain']))
     return
 
 
 def handle_single(scan_information):
     if scan_information['nessus_scan'] and nessus and is_not_ip(scan_information['url_to_scan']):
-        print('------------------- NESSUS SINGLE SCAN STARTING -------------------')
+        print('Module Nessus Sigle Scan Starting against %s' % scan_information['url_to_scan'])
         slack.send_simple_message("Nessus scan started against %s" % scan_information['url_to_scan'])
         url_plain = get_only_url(scan_information['url_to_scan'])
         scan_information['nessus_target'] = url_plain
         scan_information['url_to_scan'] = list().append(scan_information['url_to_scan'])
         scan_target(scan_information)
-        print('------------------- NESSUS SINGLE SCAN FINISHED -------------------')
+        print('Module Nessus Scan Finished against %s' % scan_information['url_to_scan'])
     else:
         print('Scan not started: the url was an IP number or couldn\'t connect to the nessus server')
     return
@@ -90,8 +88,8 @@ def add_vulnerability(scan_info,json_data,header):
         r = requests.get(scan_url+scan_id+'/hosts/'+str(nessus_hosts['host_id']),verify=verify,headers=header) 
         for host_vuln in json.loads(r.text)['vulnerabilities']:
             #Only update the vulnerabilities with severity medium or more
-            if host_vuln['severity'] >= 2:
-                name = "[NESSUS SCAN] - "+ host_vuln['plugin_name']
+            if host_vuln['severity'] >= nessus_info['WHITE_LIST_SEVERITY'] and host_vuln['plugin_name'] not in nessus_info['BLACK_LIST']:
+                name = {'english_name':constants.NESSUS_SCAN['english_name']+ host_vuln['plugin_name']}
                 plug_id = str(host_vuln['plugin_id'])
                 #Get full detail of the vulnerability
                 r = requests.get(scan_url+scan_id+'/plugins/'+plug_id,verify=verify,headers=header)

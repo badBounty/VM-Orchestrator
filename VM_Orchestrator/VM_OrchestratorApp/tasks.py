@@ -10,7 +10,7 @@ import os
 from VM_OrchestratorApp.src.recon import initial_recon, aquatone
 from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
-    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,iis_shortname_scanner, burp_scan, nessus_scan
+    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,iis_shortname_scanner, burp_scan, nessus_scan, acunetix_scan
 from VM_Orchestrator.settings import settings
 from VM_OrchestratorApp.src.utils import mongo, slack, redmine
 
@@ -140,6 +140,13 @@ def nessus_scan_task(scan_information):
     elif scan_information['scan_type'] == 'target':
         nessus_scan.handle_target(scan_information)
 
+@shared_task
+def acunetix_scan_task(scan_information):
+    if scan_information['scan_type'] == 'single':
+        acunetix_scan.handle_single(scan_information)
+    elif scan_information['scan_type'] == 'target':
+        acunetix_scan.handle_target(scan_information)
+
 # ------ PREDEFINED TASKS ------ #
 '''
 information = {
@@ -148,9 +155,11 @@ information = {
         'scan_type': 'target',
         'invasive_scans': False,
         'nessus_scan': False,
+        'acunetix_scan': False,
         'language': 'eng'
     }
 '''
+
 @shared_task
 def run_recon(scan_information):
     subdomain_recon_task(scan_information)
@@ -195,6 +204,7 @@ def run_web_scanners(scan_information):
             # Slow_scans
             cors_scan_task.s(web_information).set(queue='slow_queue'),
             ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
+            acunetix_scan_task.s(web_information).set(queue='slow_queue'),
             #burp_scan_task.s(web_information).set(queue='slow_queue')
         ],
         body=web_security_scan_finished.s().set(queue='fast_queue'),
@@ -298,6 +308,7 @@ def project_start_task():
         'is_first_run': True,
         'invasive_scans': False,
         'nessus_scan': False,
+        'acunetix_scan': False,
         'language': 'eng'
         }
         scan_info['type'] = data['Type']
