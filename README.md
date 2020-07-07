@@ -37,6 +37,9 @@ We are going to install requirements for our project and subprojects
 `pipenv install -r VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/CORScanner/requirements.txt`  
 `pipenv install -r VM_Orchestrator/VM_OrchestratorApp/src/utils/tools/LinkFinder/requirements.txt`  
 
+`sudo apt-get install dnsutils`  
+`sudo apt-get install nmap`  
+
 We will now install our rabbitMQ server (Our broker)  
 `sudo apt-get install rabbitmq-server`  
 `sudo rabbitmqctl add_user myuser pass` 
