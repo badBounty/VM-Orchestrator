@@ -33,7 +33,7 @@ def create_new_issue(vulnerability):
     issue.description = vulnerability.custom_description
     issue.status_id = vulnerability.status
     issue.priority_id = vulnerability.resolve_priority()
-    issue.assigned_to_id = 17
+    issue.assigned_to_id = 29
     issue.watcher_user_ids = [17]
     # [2]: Resource
     # [4]: Sub_resource

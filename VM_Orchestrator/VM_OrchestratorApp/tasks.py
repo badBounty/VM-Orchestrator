@@ -238,9 +238,9 @@ def run_ip_scans(scan_information):
     execution_chord = chord(
         [
             nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
-            nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
-            nessus_scan_task.s(ip_information).set(queue='slow_queue'),
-            add_scanned_resources.s(ip_information).set(queue='fast_queue')
+            #nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
+            #nessus_scan_task.s(ip_information).set(queue='slow_queue'),
+            #add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
         body=ip_security_scan_finished.s().set(queue='fast_queue'),
         immutable=True)
