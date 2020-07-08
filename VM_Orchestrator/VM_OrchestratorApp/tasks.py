@@ -205,7 +205,7 @@ def run_web_scanners(scan_information):
             cors_scan_task.s(web_information).set(queue='slow_queue'),
             ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
             acunetix_scan_task.s(web_information).set(queue='slow_queue'),
-            #burp_scan_task.s(web_information).set(queue='slow_queue')
+            burp_scan_task.s(web_information).set(queue='slow_queue')
         ],
         body=web_security_scan_finished.s().set(queue='fast_queue'),
         immutable=True)
