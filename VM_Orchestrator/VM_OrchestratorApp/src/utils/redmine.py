@@ -47,5 +47,5 @@ def create_new_issue(vulnerability):
     try:
         issue.save()
     except Exception as e:
-        print(str(e))
+        print("Redmine error" + str(e))
         pass

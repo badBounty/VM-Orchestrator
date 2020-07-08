@@ -62,7 +62,6 @@ def handle_target(info):
                                         % (info['domain'], len(info['url_to_scan'])))
         #We can have repeated urls differenced by http o https so we get only one (The https one's)
         full_list = remove_duplicates_if_exists(sorted(info['url_to_scan'],reverse=True))
-        print('Goint to scan: '+str(len(full_list))+' urls')
         for a,b,c,d  in zip(*[iter(full_list)]*4):
             small_list=[a,b,c,d]
             info['url_to_scan'] = small_list
@@ -153,7 +152,6 @@ def check_acu_status_and_create_vuln(scan_info,id_list,headers,session):
             scan_session_id = ''
             if status_scan != 'processing' and status_scan != 'completed':
                 id_list.remove(scan_id)
-                print('The scanned url: '+scan_id[1]+' has been paused or stopped go to acunetix and checked manually')
             elif status_scan == 'completed':
                 
                 target_id = json_scan['target_id']
@@ -176,7 +174,6 @@ def check_acu_status_and_create_vuln(scan_info,id_list,headers,session):
                         final_vulns.append(vul)
                 add_vulnerability(scan_info,scan_id, final_vulns)
                 #Deleting target after scan is performed
-                print('Deleting target with id: '+target_id)
                 session.delete(basic_url+create_target_url+'/'+target_id,verify=verify,headers=headers)
         time.sleep(180)
         if len(id_list) == 0:

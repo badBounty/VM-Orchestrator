@@ -79,7 +79,7 @@ def analyze(scan_info, url_to_scan):
         message = fastPrint(libraries)
         add_libraries_vulnerability(scan_info,  message)
     except Exception as e:
-        print(str(e))
+        print("Libraries scan error" + str(e))
 
 
 def handle_target(info):
