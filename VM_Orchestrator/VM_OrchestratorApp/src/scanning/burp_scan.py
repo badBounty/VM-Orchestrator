@@ -75,7 +75,7 @@ def scan_target(scan_info):
     burp_process = subprocess.Popen(BURP_FOLDER, stdout=subprocess.PIPE)
     time.sleep(120)
     #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN
-    pid = burp_process.stdout.readline().decode('utf-8')[30:34]
+    pid = burp_process.stdout.readline().decode('utf-8').split()[3]
     header = {'accept': '*/*'}
     
     subprocess.run(['curl', '-k', '-x', 'http://127.0.0.1:8080', '-L', scan_info['url_to_scan']],
@@ -112,7 +112,7 @@ def scan_target(scan_info):
     download_response = requests.get(download_report % scan_info['url_to_scan'], headers=header)
 
     open(OUTPUT_DIR, 'wb').write(download_response.content)
-    add_vulnerability(scan_info, download_response.content,OUTPUT_DIR, 'burp_result.xml')
+    #add_vulnerability(scan_info, download_response.content,OUTPUT_DIR, 'burp_result.xml')
     
     burp_process.kill()
     os.system("kill -9 "+pid)
