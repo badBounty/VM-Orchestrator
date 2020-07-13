@@ -60,17 +60,20 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
     description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
-    for issue in json_data['issues']['issue']:
-        if issue['name'] not in BURP_BLACKLIST:
-            name = copy.deepcopy(constants.BURP_SCAN)
-            name['english_name'] = name['english_name'] + issue['name']
-            extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
-            vulnerability = Vulnerability(name, scan_info, description+extra)
-            vulnerability.add_file_string(file_string)
-            vulnerability.add_attachment(file_dir, file_name)
-            slack.send_vulnerability(vulnerability)
-            redmine.create_new_issue(vulnerability)
-            mongo.add_vulnerability(vulnerability)
+    try:
+        for issue in json_data['issues']['issue']:
+            if issue['name'] not in BURP_BLACKLIST:
+                name = copy.deepcopy(constants.BURP_SCAN)
+                name['english_name'] = name['english_name'] + issue['name']
+                extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
+                vulnerability = Vulnerability(name, scan_info, description+extra)
+                vulnerability.add_file_string(file_string)
+                vulnerability.add_attachment(file_dir, file_name)
+                slack.send_vulnerability(vulnerability)
+                redmine.create_new_issue(vulnerability)
+                mongo.add_vulnerability(vulnerability)
+    except KeyError:
+        return
 
 
 def scan_target(scan_info):
