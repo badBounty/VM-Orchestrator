@@ -205,7 +205,7 @@ def run_web_scanners(scan_information):
             cors_scan_task.s(web_information).set(queue='slow_queue'),
             ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
             acunetix_scan_task.s(web_information).set(queue='slow_queue'),
-            #burp_scan_task.s(web_information).set(queue='slow_queue')
+            burp_scan_task.s(web_information).set(queue='slow_queue')
         ],
         body=web_security_scan_finished.s().set(queue='fast_queue'),
         immutable=True)
@@ -253,7 +253,6 @@ def on_demand_scan_finished(results, information):
     # TODO REMOVE Send email with scan results
     vulnerabilities = mongo.get_vulnerabilities_for_email(information)
     df = pd.DataFrame(vulnerabilities)
-    print(df)
     from VM_OrchestratorApp.src.utils import email_handler
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'vulnerability_name', 'extra_info',

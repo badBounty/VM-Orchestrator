@@ -1,0 +1,127 @@
+[{
+  "_id": {
+    "$oid": "5eb4077c99f32584b75c7f54"
+  },
+  "name": "jQuery",
+  "version": "3.5.1",
+  "url": "https://jquery.com/download/"
+},{
+  "_id": {
+    "$oid": "5eb4077e99f32584b75c7f56"
+  },
+  "name": "WordPress",
+  "version": "5.4.1",
+  "url": "https://es-ar.wordpress.org/download/"
+},{
+  "_id": {
+    "$oid": "5eb40786f777e417cdeb7bac"
+  },
+  "name": "WordPress",
+  "version": "5.4.1",
+  "url": "https://es-ar.wordpress.org/download/"
+},{
+  "_id": {
+    "$oid": "5eb4077e99f32584b75c7f59"
+  },
+  "name": "Drupal",
+  "version": "8.8.5",
+  "url": "https://www.drupal.org/project/drupal"
+},{
+  "_id": {
+    "$oid": "5eb4078ff777e417cdeb7bb3"
+  },
+  "name": "WordPress",
+  "version": "5.4.1",
+  "url": "https://es-ar.wordpress.org/download/"
+},{
+  "_id": {
+    "$oid": "5eb4078ff777e417cdeb7bb6"
+  },
+  "name": "Drupal",
+  "version": "8.8.5",
+  "url": "https://www.drupal.org/project/drupal"
+},{
+  "_id": {
+    "$oid": "5eb40786f777e417cdeb7bad"
+  },
+  "name": "Lodash",
+  "version": "4.17.15",
+  "url": "https://www.npmjs.com/package/lodash"
+},{
+  "_id": {
+    "$oid": "5eb40786f777e417cdeb7bae"
+  },
+  "name": "PHP",
+  "version": "7.4.5",
+  "url": "https://www.npmjs.com/package/lodash"
+},{
+  "_id": {
+    "$oid": "5eb4078ff777e417cdeb7bb5"
+  },
+  "name": "PHP",
+  "version": "7.4.5",
+  "url": "https://www.npmjs.com/package/lodash"
+},{
+  "_id": {
+    "$oid": "5eb4077e99f32584b75c7f58"
+  },
+  "name": "PHP",
+  "version": "7.4.5",
+  "url": "https://www.npmjs.com/package/lodash"
+},{
+  "_id": {
+    "$oid": "5eb40784f777e417cdeb7baa"
+  },
+  "name": "jQuery",
+  "version": "3.5.1",
+  "url": "https://jquery.com/download/"
+},{
+  "_id": {
+    "$oid": "5eb40785f777e417cdeb7bab"
+  },
+  "name": "jQuery UI",
+  "version": "1.12.1",
+  "url": "https://jqueryui.com/download/"
+},{
+  "_id": {
+    "$oid": "5eb40786f777e417cdeb7baf"
+  },
+  "name": "Drupal",
+  "version": "8.8.5",
+  "url": "https://www.drupal.org/project/drupal"
+},{
+  "_id": {
+    "$oid": "5eb4077d99f32584b75c7f55"
+  },
+  "name": "jQuery UI",
+  "version": "1.12.1",
+  "url": "https://jqueryui.com/download/"
+},{
+  "_id": {
+    "$oid": "5eb4078ef777e417cdeb7bb2"
+  },
+  "name": "jQuery UI",
+  "version": "1.12.1",
+  "url": "https://jqueryui.com/download/"
+},{
+  "_id": {
+    "$oid": "5eb4077e99f32584b75c7f57"
+  },
+  "name": "Lodash",
+  "version": "4.17.15",
+  "url": "https://www.npmjs.com/package/lodash"
+},{
+  "_id": {
+    "$oid": "5eb4078ff777e417cdeb7bb4"
+  },
+  "name": "Lodash",
+  "version": "4.17.15",
+  "url": "https://www.npmjs.com/package/lodash"
+},{
+  "_id": {
+    "$oid": "5eb4078cf777e417cdeb7bb1"
+  },
+  "name": "jQuery",
+  "version": "3.5.1",
+  "url": "https://jquery.com/download/"
+}]

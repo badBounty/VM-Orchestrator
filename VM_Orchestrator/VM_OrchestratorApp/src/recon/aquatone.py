@@ -55,7 +55,10 @@ def parse_results(subdomain, OUTPUT_DIR):
         pass
 
     if urls and urls != ['']:
-        urls_string = ';'.join(urls)
+        for url in urls:
+            urls_string = url
+            if 'https://' in url:
+                break
         has_urls = 'True'
     else:
         urls_string = ''
