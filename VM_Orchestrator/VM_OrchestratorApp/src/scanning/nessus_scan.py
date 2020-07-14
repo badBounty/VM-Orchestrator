@@ -75,7 +75,7 @@ def handle_single(scan_information):
         scan_information['nessus_target'] = url_plain
         scan_information['url_to_scan'] = list().append(scan_information['url_to_scan'])
         scan_target(scan_information)
-        print('Module Nessus Scan Finished against %s' % scan_information['url_to_scan'])
+        print('Module Nessus Scan Finished against %s' % scan_information['nessus_target'])
     else:
         print('Scan not started: the url was an IP number or couldn\'t connect to the nessus server')
     return
