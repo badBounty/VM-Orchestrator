@@ -239,6 +239,9 @@ def run_ip_scans(scan_information):
 # ------ END ALERTS ------ #
 @shared_task
 def on_demand_scan_finished(results, information):
+     if information['email'] is None:
+        print('On demand scan finished!')
+        return
     # TODO REMOVE Send email with scan results
     vulnerabilities = mongo.get_vulnerabilities_for_email(information)
     df = pd.DataFrame(vulnerabilities)
@@ -266,6 +269,9 @@ def ip_security_scan_finished(results):
 
 @shared_task
 def recon_finished(scan_information):
+    if scan_information['email'] is None:
+        print('Recon finished!')
+        return
     # TODO REMOVE Send email with scan results
     resources = mongo.get_resources_for_email(scan_information)
     df = pd.DataFrame(resources)
@@ -336,7 +342,7 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=15, minute=30),
+@periodic_task(run_every=crontab(hour=4, minute=0),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
@@ -351,6 +357,7 @@ def project_monitor_task():
 
     for data in monitor_data:
         scan_info = data
+        scan_info['email'] = None
         slack.send_message_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
             #slack.send_log_message("Recon starting against %s" % scan_info['domain'])
@@ -377,3 +384,8 @@ def check_redmine_for_updates():
     for issue in issues:
         mongo.update_issue_if_needed(issue)
     return
+
+@periodic_task(run_every=crontab(minute='*/15'),
+queue='fast_queue', options={'queue':'slow_queue'})
+def update_elasticsearch():
+    mongo.update_elasticsearch()

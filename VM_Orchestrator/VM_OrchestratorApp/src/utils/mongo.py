@@ -278,6 +278,85 @@ def update_issue_if_needed(redmine_issue):
         }})
     return
 
+def update_elasticsearch():
+    new_resources = resources.find()
+    resources_list = list()
+    for resource in new_resources:
+        resources_list.append({
+            'resource_id': str(resource['_id']),
+            'resource_domain': resource['domain'],
+            'resource_subdomain': resource['subdomain'],
+            'resource_is_alive': bool(resource['is_alive']),
+            'resource_ip': resource['ip'],
+            'resource_additional_info':{
+                'resource_isp': resource['additional_info']['isp'],
+                'resource_asn': resource['additional_info']['asn'],
+                'resource_country': resource['additional_info']['country'],
+                'resource_region': resource['additional_info']['region'],
+                'resource_city': resource['additional_info']['city'],
+                'resource_org': resource['additional_info']['org'],
+                'resource_geoloc': resource['additional_info']['geoloc']
+                },
+            'resource_first_seen': resource['first_seen'],
+            'resource_last_seen': resource['last_seen'],
+            'resource_scanned': bool(resource['scanned']),
+            'resource_type': resource['type'],
+            'resource_priority': resource['priority'],
+            'resource_exposition': resource['exposition'],
+            'resource_has_urls': resource['has_urls'],
+            'resource_responsive_urls': resource['responsive_urls']
+            })
+
+    ### VULNS ###
+    new_vulnerabilities = vulnerabilities.find()
+    vulnerabilities_list = list()
+    print('Adding vulns')
+    for vuln in new_vulnerabilities:
+        if not vuln['observation']:
+            observation_data = {
+                    'vulnerability_title': None,
+                    'vulnerability_observation_title': None,
+                    'vulnerability_observation_note': None,
+                    'vulnerability_implication': None,
+                    'vulnerability_recommendation_title': None,
+                    'vulnerability_recommendation_note': None,
+                    'vulnerability_severity': None
+                }
+        else:
+            observation_data = {
+                    'vulnerability_title': vuln['observation']['title'],
+                    'vulnerability_observation_title': vuln['observation']['observation_title'],
+                    'vulnerability_observation_note': vuln['observation']['observation_note'],
+                    'vulnerability_implication': vuln['observation']['implication'],
+                    'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
+                    'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
+                    'vulnerability_severity': vuln['observation']['severity']
+                }
+        vulnerabilities_list.append({
+                'vulnerability_id': str(vuln['_id']),
+                'vulnerability_domain': vuln['domain'],
+                'vulnerability_subdomain': vuln['subdomain'],
+                'vulnerability_vulnerability_name': vuln['vulnerability_name'],
+                'vulnerability_observation': observation_data,
+                'vulnerability_extra_info': vuln['extra_info'],
+                'vulnerability_date_found': vuln['date_found'],
+                'vulnerability_last_seen': vuln['last_seen'],
+                'vulnerability_language': vuln['language'],
+                'vulnerability_state': vuln['state']
+            })
+
+    # Import Elasticsearch package 
+    from elasticsearch import Elasticsearch 
+    # Connect to the elastic cluster
+    es=Elasticsearch([{'host':'localhost','port':9200}])
+    print('Adding resources to elasticsearch')
+    for resource in resources_list:
+        res = es.index(index='test',doc_type='_doc',id=resource['resource_id'],body=resource)
+    print('Adding vulnerabilities to elasticsearch')
+    for vuln in vulnerabilities_list:
+        res = es.index(index='test',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
+
+
 # TODO Temporary function for result revision
 def get_vulnerabilities_for_email(scan_information):
     # In information we are going to have the scan type, if scan_type != domain, url_to_scan == domain
