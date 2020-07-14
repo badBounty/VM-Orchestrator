@@ -312,7 +312,6 @@ def update_elasticsearch():
     ### VULNS ###
     new_vulnerabilities = vulnerabilities.find()
     vulnerabilities_list = list()
-    print('Adding vulns')
     for vuln in new_vulnerabilities:
         if not vuln['observation']:
             observation_data = {

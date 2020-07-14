@@ -36,13 +36,14 @@ def scan_target(scan_info, url_to_scan):
     responses = list()
     try:
         put_response = requests.put(url_to_scan, data={'key': 'value'})
+        responses.append({'method': 'PUT', 'response': put_response})
     except requests.exceptions.SSLError:
         return
     except requests.exceptions.ConnectionError:
         return
-
-    responses.append({'method': 'PUT', 'response': put_response})
-
+    except requests.exceptions.TooManyRedirects:
+        return
+    
     try:
         delete_response = requests.delete(url_to_scan)
         responses.append({'method': 'DELETE', 'response': delete_response})
@@ -50,7 +51,8 @@ def scan_target(scan_info, url_to_scan):
         return
     except requests.exceptions.ConnectionError:
         return
-    responses.append({'method': 'DELETE', 'response': delete_response})
+    except requests.exceptions.TooManyRedirects:
+        return
 
     try:
         options_response = requests.options(url_to_scan)
@@ -58,6 +60,8 @@ def scan_target(scan_info, url_to_scan):
     except requests.exceptions.SSLError:
         return
     except requests.exceptions.ConnectionError:
+        return
+    except requests.exceptions.TooManyRedirects:
         return
 
     extensive_methods = False
