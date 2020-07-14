@@ -336,7 +336,7 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=15, minute=0),
+@periodic_task(run_every=crontab(hour=15, minute=30),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
