@@ -206,7 +206,9 @@ def add_resource(url_info, scan_info):
                 'scanned': False,
                 'type': scan_info['type'],
                 'priority': scan_info['priority'],
-                'exposition': scan_info['exposition']
+                'exposition': scan_info['exposition'],
+                'has_urls': False,
+                'responsive_urls': ''
         }
         if not scan_info['is_first_run']:
             slack.send_new_resource_found("New resource found! %s" % url_info['url'])
