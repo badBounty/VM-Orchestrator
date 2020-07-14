@@ -148,20 +148,9 @@ def acunetix_scan_task(scan_information):
         acunetix_scan.handle_target(scan_information)
 
 # ------ PREDEFINED TASKS ------ #
-'''
-information = {
-        'domain': 'tesla.com',
-        'is_first_run': True,
-        'scan_type': 'target',
-        'invasive_scans': False,
-        'nessus_scan': False,
-        'acunetix_scan': False,
-        'language': 'eng'
-    }
-'''
-
 @shared_task
 def run_recon(scan_information):
+    slack.send_message_to_channel('Starting recon agains %s' % scan_information['domain'], '#vm-recon-module')
     subdomain_recon_task(scan_information)
     resolver_recon_task(scan_information)
     recon_finished(scan_information)
@@ -347,8 +336,8 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-#@periodic_task(run_every=crontab(hour=6, minute=0),
-#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=4, minute=0),
+queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
     # We first check if the project has started, we return if not
@@ -362,20 +351,21 @@ def project_monitor_task():
 
     for data in monitor_data:
         scan_info = data
+        slack.send_message_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
-            slack.send_log_message("Recon starting against %s" % scan_info['domain'])
+            #slack.send_log_message("Recon starting against %s" % scan_info['domain'])
             run_recon(scan_info)
-            slack.send_log_message("Web scans starting against %s" % scan_info['domain'])
+            #slack.send_log_message("Web scans starting against %s" % scan_info['domain'])
             run_web_scanners(scan_info)
-            slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
+            #slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
             run_ip_scans(scan_info)
         elif scan_info['type'] == 'ip':
-            slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
+            #slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
             run_ip_scans(scan_info)
         elif scan_info['type'] == 'url':
-            slack.send_log_message("Web scans starting against %s" % scan_info['domain'])
+            #slack.send_log_message("Web scans starting against %s" % scan_info['domain'])
             run_web_scanners(scan_info)
-            slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
+            #slack.send_log_message("IP scans starting against %s" % scan_info['domain'])
             run_ip_scans(scan_info)
     
     return

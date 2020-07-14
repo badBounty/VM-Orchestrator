@@ -1,6 +1,13 @@
 from VM_Orchestrator.settings import settings
 from VM_OrchestratorApp import INTERNAL_SLACK_WEB_CLIENT, EXTERNAL_SLACK_WEB_CLIENT
 
+def send_message_to_channel(message, channel):
+    if INTERNAL_SLACK_WEB_CLIENT is not None:
+        try:
+            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text=message)
+        except Exception as e:
+            print("Slack error" + str(e))
+
 def send_simple_message(message):
     if INTERNAL_SLACK_WEB_CLIENT is not None:
         try:
