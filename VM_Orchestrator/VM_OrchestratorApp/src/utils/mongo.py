@@ -291,3 +291,12 @@ def get_vulnerabilities_for_email(scan_information):
             return_list.append(vuln)
 
     return  return_list
+
+# TODO Temporary function for result revision
+def get_resources_for_email(scan_information):
+    return_list = list()
+    found_resources = resources.find({'domain': scan_information['domain']})
+    for resource in found_resources:
+        return_list.append(resource)
+    
+    return return_list

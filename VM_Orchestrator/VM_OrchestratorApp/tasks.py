@@ -164,7 +164,7 @@ information = {
 def run_recon(scan_information):
     subdomain_recon_task(scan_information)
     resolver_recon_task(scan_information)
-    recon_finished()
+    recon_finished(scan_information)
     return
 
 ### WEB SCANS ###
@@ -276,7 +276,19 @@ def ip_security_scan_finished(results):
     return
 
 @shared_task
-def recon_finished():
+def recon_finished(scan_information):
+    # TODO REMOVE Send email with scan results
+    resources = mongo.get_resources_for_email(scan_information)
+    df = pd.DataFrame(resources)
+    from VM_OrchestratorApp.src.utils import email_handler
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'is_alive', 'ip',
+    'first_seen', 'last_seen', 'scanned', 'type', 'priority', 'exposition'])
+    email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'])
+    try:
+        os.remove(ROOT_DIR + '/output.csv')
+    except FileNotFoundError:
+        pass
     print('Recon finished!')
     return
 
