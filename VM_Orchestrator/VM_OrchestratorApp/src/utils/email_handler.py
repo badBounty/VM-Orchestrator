@@ -4,11 +4,10 @@ import json
 import os
 from VM_OrchestratorApp import settings
 
-def send_email(file_dir, email_to):
+def send_email(file_dir, email_to, message):
 	if not settings['EMAIL']['HOST_USER']:
 		print("Couldn't seend email, email user not configurated")
 		return
-	message="CSV with findings attached to mail"
 	email = EmailMessage("Orchestator: Vuls finded", message, settings['EMAIL']['HOST_USER'], [email_to])
 	email.attach_file(file_dir)
 	email.send()

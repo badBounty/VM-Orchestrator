@@ -246,7 +246,7 @@ def on_demand_scan_finished(results, information):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'vulnerability_name', 'extra_info',
     'date_found', 'last_seen', 'language', 'state'])
-    email_handler.send_email(ROOT_DIR+'/output.csv', information['email'])
+    email_handler.send_email(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email")
     try:
         os.remove(ROOT_DIR + '/output.csv')
     except FileNotFoundError:
@@ -272,8 +272,8 @@ def recon_finished(scan_information):
     from VM_OrchestratorApp.src.utils import email_handler
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'is_alive', 'ip',
-    'first_seen', 'last_seen', 'scanned', 'type', 'priority', 'exposition'])
-    email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'])
+    'has_urls', 'responsive_urls', 'first_seen', 'last_seen', 'scanned', 'type', 'priority', 'exposition'])
+    email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email")
     try:
         os.remove(ROOT_DIR + '/output.csv')
     except FileNotFoundError:
