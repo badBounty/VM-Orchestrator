@@ -72,12 +72,12 @@ def handle_target(info):
 
 def handle_single(scan_information):
     if scan_information['acunetix_scan'] and acunetix and is_url(scan_information['url_to_scan']):
-        print('Module Acunetix Sigle Scan Starting')
+        print('Module Acunetix Single Scan Starting')
         slack.send_simple_message("Acunetix scan started against %s" % scan_information['url_to_scan'])
         urls = [scan_information['url_to_scan']]
         scan_information['url_to_scan'] = urls
         scan_target(scan_information)
-        print('Module Acunetix Sigle Scan Finished against %s' % scan_information['url_to_scan'])
+        print('Module Acunetix Single Scan Finished against %s' % scan_information['url_to_scan'])
     return
 
 def add_vulnerability(scan_info,scan_id,vulns):
