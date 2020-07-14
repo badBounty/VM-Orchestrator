@@ -239,7 +239,7 @@ def run_ip_scans(scan_information):
 # ------ END ALERTS ------ #
 @shared_task
 def on_demand_scan_finished(results, information):
-     if information['email'] is None:
+    if information['email'] is None:
         print('On demand scan finished!')
         return
     # TODO REMOVE Send email with scan results
