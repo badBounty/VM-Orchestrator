@@ -18,7 +18,6 @@ def add_vulnerability(vulnerability):
         vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
             'extra_info': vulnerability.custom_description,
             'last_seen': vulnerability.time,
-            'extra_info': vulnerability.custom_description,
             'image_string': vulnerability.image_string,
             'file_string': vulnerability.file_string
         }})
