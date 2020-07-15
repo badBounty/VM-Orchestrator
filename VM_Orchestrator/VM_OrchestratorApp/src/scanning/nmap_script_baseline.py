@@ -13,6 +13,9 @@ from time import sleep
 from PIL import Image
 from io import BytesIO
 
+MODULE_NAME = 'Nmap Baseline module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-nmap-baseline'
+
 def cleanup(path):
     try:
         os.remove(path + '.xml')
@@ -25,8 +28,7 @@ def cleanup(path):
 
 def handle_target(info):
     print('Module Nmap baseline starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-    slack.send_simple_message("Nmap baseline scan started against target: %s. %d alive urls found!"
-                                     % (info['domain'], len(info['url_to_scan'])))
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     scanned_hosts = list()
     for url in info['url_to_scan']:
         sub_info = info
@@ -38,21 +40,23 @@ def handle_target(info):
         if host not in scanned_hosts:
             basic_scan(sub_info, host)
         scanned_hosts.append(host)
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     print('Module Nmap baseline finished against %s' % info['domain'])
     return
 
 
-def handle_single(scan_info):
-    print('Module Nmap baseline starting against %s' % scan_info['url_to_scan'])
-    url = scan_info['url_to_scan']
-    slack.send_simple_message("Nmap baseline scan started against %s" % url)
+def handle_single(info):
+    print('Module Nmap baseline starting against %s' % info['url_to_scan'])
+    url = info['url_to_scan']
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     # We receive the url with http/https, we will get only the host so nmap works
     try:
         host = url.split('/')[2]
     except IndexError:
         host = url
-    basic_scan(scan_info, host)
-    print('Module Nmap baseline finished against %s' % scan_info['url_to_scan'])
+    basic_scan(info, host)
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    print('Module Nmap baseline finished against %s' % info['url_to_scan'])
     return
 
 def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
@@ -71,7 +75,7 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
     im = Image.open(BytesIO(base64.b64decode(img_str)))
     im.save(output_dir, 'PNG')
     vulnerability.add_attachment(output_dir, 'nmap-result.png')
-    slack.send_vulnerability(vulnerability)
+    slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
     os.remove(output_dir)

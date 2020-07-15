@@ -8,6 +8,9 @@ from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
+MODULE_NAME = 'S3Bucket module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-s3buckets'
+
 regions = ['us-east-2', 'us-east-1', 'us-west-1', 'us-west-2', 'ap-east-1', 'ap-south-1', 'ap-northeast-3',
            'ap-northeast-2', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ca-central-1', 'cn-north-1',
            'cn-northwest-1', 'eu-central-1', 'eu-west-1', 'eu-west-2', 'eu-west-3', 'eu-north-1', 'me-south-1',
@@ -18,21 +21,22 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def handle_target(info):
     print('Module S3 Bucket Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-    slack.send_simple_message("Bucket finder scan started against target: %s. %d alive urls found!"
-                                     % (info['domain'], len(info['url_to_scan'])))
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     print('Module S3 Bucket Scan finished against %s' % info['domain'])
     return
 
 
-def handle_single(scan_information):
-    print('Module S3 Bucket Scan starting against %s' % scan_information['url_to_scan'])
-    slack.send_simple_message("Bucket finder scan started against %s" % scan_information['url_to_scan'])
-    scan_target(scan_information, scan_information['url_to_scan'])
-    print('Module S3 Bucket Scan finished against %s' % scan_information['url_to_scan'])
+def handle_single(info):
+    print('Module S3 Bucket Scan starting against %s' % info['url_to_scan'])
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    scan_target(info, info['url_to_scan'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    print('Module S3 Bucket Scan finished against %s' % info['url_to_scan'])
     return
 
 
@@ -58,7 +62,7 @@ def add_vulnerability_to_mongo(scanned_url, finding_name, bucket_name, descripti
     vuln_name = constants.BUCKET
 
     vulnerability = Vulnerability(vuln_name, scan_info, description)
-    slack.send_vulnerability(vulnerability)
+    slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
     return

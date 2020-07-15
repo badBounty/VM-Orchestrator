@@ -11,24 +11,27 @@ from io import BytesIO
 from datetime import datetime
 import uuid
 
+MODULE_NAME = 'IIS shortname module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-iis'
 
 def handle_target(info):
     print('Module IIS Shortname starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-    slack.send_simple_message("IIS Shortname scan started against domain: %s. %d alive urls found!"
-                                % (info['domain'], len(info['url_to_scan'])))
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     print('Module IIS Shortname finished against %s' % info['domain'])
     return
 
 
-def handle_single(scan_info):
-    print('Module IIS Shortname starting against %s' % scan_info['url_to_scan'])
-    slack.send_simple_message("IIS ShortName Scanner scan started against %s" % scan_info['url_to_scan'])
-    scan_target(scan_info, scan_info['url_to_scan'])
-    print('Module IIS Shortname finished against %s' % scan_info['url_to_scan'])
+def handle_single(info):
+    print('Module IIS Shortname starting against %s' % info['url_to_scan'])
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    scan_target(info, info['url_to_scan'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    print('Module IIS Shortname finished against %s' % info['url_to_scan'])
     return
 
 
@@ -57,7 +60,7 @@ def scan_target(scan_info, url_to_scan):
 
                 vulnerability.add_image_string(img_str)
                 vulnerability.add_attachment(output_dir, 'IIS-Result.png')
-                slack.send_vulnerability(vulnerability)
+                slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
                 redmine.create_new_issue(vulnerability)
                 mongo.add_vulnerability(vulnerability)
                 os.remove(output_dir)

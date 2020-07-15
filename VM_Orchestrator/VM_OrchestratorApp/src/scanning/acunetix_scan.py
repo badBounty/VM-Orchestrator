@@ -10,6 +10,8 @@ import json
 import re
 import copy
 
+MODULE_NAME = 'Acunetix module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-acunetix'
 
 login_json = {
     'email':acunetix_info['USER'],
@@ -58,26 +60,27 @@ def remove_duplicates_if_exists(url_list):
 def handle_target(info):
     if info['acunetix_scan'] and acunetix:
         print('Module Acunetix Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-        slack.send_simple_message("Acunetix scan started against target: %s. %d alive urls found!"
-                                        % (info['domain'], len(info['url_to_scan'])))
+        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         #We can have repeated urls differenced by http o https so we get only one (The https one's)
         full_list = remove_duplicates_if_exists(sorted(info['url_to_scan'],reverse=True))
         for a,b,c,d  in zip(*[iter(full_list)]*4):
             small_list=[a,b,c,d]
             info['url_to_scan'] = small_list
             scan_target(info)
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module Acunetix Scan Finished against %s alive urls from %s' % (str(len(full_list)), info['domain']))
     return
 
 
-def handle_single(scan_information):
-    if scan_information['acunetix_scan'] and acunetix and is_url(scan_information['url_to_scan']):
-        print('Module Acunetix Single Scan Starting against %s' % scan_information['domain'])
-        slack.send_simple_message("Acunetix scan started against %s" % scan_information['url_to_scan'])
-        urls = [scan_information['url_to_scan']]
-        scan_information['url_to_scan'] = urls
-        scan_target(scan_information)
-        print('Module Acunetix Single Scan Finished against %s' % scan_information['url_to_scan'])
+def handle_single(info):
+    if info['acunetix_scan'] and acunetix and is_url(info['url_to_scan']):
+        print('Module Acunetix Single Scan Starting against %s' % info['domain'])
+        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        urls = [info['url_to_scan']]
+        info['url_to_scan'] = urls
+        scan_target(info)
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        print('Module Acunetix Single Scan Finished against %s' % info['url_to_scan'])
     return
 
 def add_vulnerability(scan_info,scan_id,vulns):
@@ -100,7 +103,7 @@ def add_vulnerability(scan_info,scan_id,vulns):
             name['english_name'] = name['english_name'] + res['title']
             description = 'Acunetix scan completed against %s' % info['url_to_scan'] +'\n Affecteds URLS>'
             vulnerability = Vulnerability(name, info, description+affected_urls)
-            slack.send_vulnerability(vulnerability)
+            slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
             redmine.create_new_issue(vulnerability)
             mongo.add_vulnerability(vulnerability)
     return

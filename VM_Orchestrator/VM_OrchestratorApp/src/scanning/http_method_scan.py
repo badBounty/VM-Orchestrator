@@ -4,30 +4,34 @@ from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 
 import requests
 
+MODULE_NAME = 'HTTP method module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-http-methods'
+
 def handle_target(info):
     print('Module HTTP Method Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-    slack.send_simple_message("HTTP method scan started against target: %s. %d alive urls found!"
-                                     % (info['domain'], len(info['url_to_scan'])))
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     print('Module HTTP Method Scan finished against %s' % info['domain'])
     return
 
 
-def handle_single(scan_info):
-    print('Module HTTP Method Scan starting against %s' % scan_info['url_to_scan'])
-    slack.send_simple_message("HTTP method scan started against %s" % scan_info['url_to_scan'])
-    scan_target(scan_info, scan_info['url_to_scan'])
-    print('Module HTTP Method Scan finished against %s' % scan_info['url_to_scan'])
+def handle_single(info):
+    print('Module HTTP Method Scan starting against %s' % info['url_to_scan'])
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    scan_target(info, info['url_to_scan'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    print('Module HTTP Method Scan finished against %s' % info['url_to_scan'])
     return
 
 
 def add_vulnerability(scan_info, message):
     vulnerability = Vulnerability(constants.UNSECURE_METHOD, scan_info, message)
 
-    slack.send_vulnerability(vulnerability)
+    slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 

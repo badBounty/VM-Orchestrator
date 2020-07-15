@@ -14,6 +14,9 @@ import json
 import base64
 from datetime import datetime
 
+MODULE_NAME = 'Burp module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-burp'
+
 #Put
 add_to_scope_url = "http://localhost:8090/burp/target/scope?url=%s"
 #Get
@@ -36,22 +39,23 @@ stop_burp = "http://localhost:8090/burp/stop"
 def handle_target(info):
     if BURP_FOLDER:
         print('Module Burp Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-        slack.send_simple_message("Burp scan started against target: %s. %d alive urls found!"
-                                        % (info['domain'], len(info['url_to_scan'])))
+        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         for url in info['url_to_scan']:
             sub_info = info
             sub_info['url_to_scan'] = url
             scan_target(sub_info)
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module Burp Scan finished against %s' % info['domain'])
     return
 
 
-def handle_single(scan_information):
+def handle_single(info):
     if BURP_FOLDER:
-        print('Module Burp Scan starting against %s' % scan_information['url_to_scan'])
-        slack.send_simple_message("Burp scan started against %s" % scan_information['url_to_scan'])
-        scan_target(scan_information)
-        print('Module Burp Scan finished against %s' % scan_information['url_to_scan'])
+        print('Module Burp Scan starting against %s' % info['url_to_scan'])
+        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        scan_target(info)
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        print('Module Burp Scan finished against %s' % info['url_to_scan'])
     return
 
 
@@ -69,7 +73,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
                 vulnerability = Vulnerability(name, scan_info, description+extra)
                 vulnerability.add_file_string(file_string)
                 vulnerability.add_attachment(file_dir, file_name)
-                slack.send_vulnerability(vulnerability)
+                slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
                 redmine.create_new_issue(vulnerability)
                 mongo.add_vulnerability(vulnerability)
     except KeyError:

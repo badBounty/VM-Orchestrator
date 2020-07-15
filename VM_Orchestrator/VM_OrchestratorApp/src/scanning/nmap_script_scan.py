@@ -14,6 +14,9 @@ from time import sleep
 from PIL import Image
 from io import BytesIO
 
+MODULE_NAME = 'Nmap Script module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-nmap-scripts'
+
 def cleanup(path):
     try:
         os.remove(path + '.xml')
@@ -26,8 +29,7 @@ def cleanup(path):
 
 def handle_target(info):
     print('Module Nmap scripts starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-    slack.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
-                                     % (info['domain'], len(info['url_to_scan'])))
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     scanned_hosts = list()
     for url in info['url_to_scan']:
         sub_info = info
@@ -47,29 +49,31 @@ def handle_target(info):
                     ftp_anon_login(sub_info, host)#FTP ANON
                 default_account(sub_info,host)#Default creds in web console
         scanned_hosts.append(host)
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     print('Module Nmap Scripts finished against %s' % info['domain'])
     return
 
 
-def handle_single(scan_info):
-    print('Module Nmap Scripts starting against %s' % scan_info['url_to_scan'])
-    url = scan_info['url_to_scan']
-    slack.send_simple_message("Nmap scripts started against %s" % url)
+def handle_single(info):
+    print('Module Nmap Scripts starting against %s' % info['url_to_scan'])
+    url = info['url_to_scan']
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     # We receive the url with http/https, we will get only the host so nmap works
     try:
         host = url.split('/')[2]
     except IndexError:
         host = url
-    outdated_software(scan_info, host)
-    web_versions(scan_info, host)
-    if scan_info['invasive_scans']:
+    outdated_software(info, host)
+    web_versions(info, host)
+    if info['invasive_scans']:
         if INT_USERS_LIST and INT_PASS_LIST:
-            ssh_ftp_brute_login(scan_info, host, True)#SHH
+            ssh_ftp_brute_login(info, host, True)#SHH
             sleep(10)
-            ssh_ftp_brute_login(scan_info, host, False)#FTP
-            ftp_anon_login(scan_info, host)#FTP ANON
-        default_account(scan_info,host)#Default creds in web console
-    print('Module Nmap Scripts finished against %s' % scan_info['url_to_scan'])
+            ssh_ftp_brute_login(info, host, False)#FTP
+            ftp_anon_login(info, host)#FTP ANON
+        default_account(info,host)#Default creds in web console
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    print('Module Nmap Scripts finished against %s' % info['url_to_scan'])
     return
 
 
@@ -106,7 +110,7 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
         vulnerability.add_attachment(output_dir, 'nmap-result.png')
         os.remove(output_dir)
 
-    slack.send_vulnerability(vulnerability)
+    slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
     return

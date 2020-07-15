@@ -9,6 +9,8 @@ import json
 import uuid
 from datetime import datetime
 
+MODULE_NAME = 'FFUF module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-ffuf'
 
 def cleanup(path):
     try:
@@ -21,22 +23,23 @@ def cleanup(path):
 def handle_target(info):
     if FFUF_LIST:
         print('Module ffuf starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-        slack.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
-                                        % (info['domain'], len(info['url_to_scan'])))
+        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         for url in info['url_to_scan']:
             sub_info = info
             sub_info['url_to_scan'] = url
             scan_target(sub_info, sub_info['url_to_scan'])
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module ffuf finished from %s' % info['domain'])
     return
 
 
-def handle_single(scan_info):
+def handle_single(info):
     if FFUF_LIST:
-        print('Module ffuf starting against %s' % scan_info['url_to_scan'])
-        slack.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
-        scan_target(scan_info, scan_info['url_to_scan'])
-        print('Module ffuf finished against %s' % scan_info['url_to_scan'])
+        print('Module ffuf starting against %s' % info['url_to_scan'])
+        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        scan_target(info, info['url_to_scan'])
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        print('Module ffuf finished against %s' % info['url_to_scan'])
     return
 
 
@@ -44,7 +47,7 @@ def add_vulnerability(scan_info, affected_resource, description):
     timestamp = datetime.now()
     vulnerability = Vulnerability(constants.ENDPOINT, scan_info, description)
 
-    slack.send_vulnerability(vulnerability)
+    slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 

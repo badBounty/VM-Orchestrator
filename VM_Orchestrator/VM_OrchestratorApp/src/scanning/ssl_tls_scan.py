@@ -10,10 +10,12 @@ from datetime import datetime
 import subprocess
 import os
 
+MODULE_NAME = 'SSL/TLS module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-ssl-tls'
+
 def handle_target(info):
     print('Module SSL/TLS starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-    slack.send_simple_message("SSL/TLS scan started against target: %s. %d alive urls found!"
-                                     % (info['domain'], len(info['url_to_scan'])))
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     valid_ports = ['443']
     for url in info['url_to_scan']:
         sub_info = info
@@ -26,24 +28,26 @@ def handle_target(info):
             final_url = url
         for port in valid_ports:
             scan_target(sub_info, url, final_url+':'+port)
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     print('Module SSL/TLS finished against %s' % info['domain'])
     return
 
 
-def handle_single(scan_info):
+def handle_single(info):
     # Url will come with http or https, we will strip and append ports that could have tls/ssl
-    url = scan_info['url_to_scan']
-    slack.send_simple_message("SSL/TLS scan started against %s" % url)
+    url = info['url_to_scan']
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     valid_ports = ['443']
     split_url = url.split('/')
     try:
         final_url = split_url[2]
     except IndexError:
         final_url = url
-    print('Module SSL/TLS starting against %s' % scan_info['url_to_scan'])
+    print('Module SSL/TLS starting against %s' % info['url_to_scan'])
     for port in valid_ports:
-        scan_target(scan_info, url, final_url+':'+port)
-    print('Module SSL/TLS finished against %s' % scan_info['url_to_scan'])
+        scan_target(info, url, final_url+':'+port)
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    print('Module SSL/TLS finished against %s' % info['url_to_scan'])
     return
 
 
@@ -69,7 +73,7 @@ def cleanup(path):
 def add_vulnerability(scan_info, message):
     vulnerability = Vulnerability(constants.SSL_TLS, scan_info, message)
 
-    slack.send_vulnerability(vulnerability)
+    slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 

@@ -1,12 +1,59 @@
 from VM_Orchestrator.settings import settings
 from VM_OrchestratorApp import INTERNAL_SLACK_WEB_CLIENT, EXTERNAL_SLACK_WEB_CLIENT
 
+
+### NEW Notification area ###
 def send_message_to_channel(message, channel):
     if INTERNAL_SLACK_WEB_CLIENT is not None:
         try:
             INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text=message)
         except Exception as e:
             print("Slack error" + str(e))
+            
+def send_module_start_notification_to_channel(scan_info, module_name, channel):
+    if scan_info['scan_type'] == 'target':
+        message = "%s started against target: %s. %d alive resources found" \
+        % (module_name, scan_info['domain'], len(scan_info['url_to_scan']))
+    else:
+        message = "%s started against %s" % (module_name, scan_info['domain'])
+
+    if INTERNAL_SLACK_WEB_CLIENT is not None:
+        try:
+            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text=message)
+        except Exception as e:
+            print("Slack error" + str(e))
+
+def send_module_end_notification_to_channel(scan_info, module_name, channel):
+    if scan_info['scan_type'] == 'target':
+        message = "%s finished against target: %s. %d alive resources were found" \
+        % (module_name, scan_info['domain'], len(scan_info['url_to_scan']))
+    else:
+        message = "%s finished against %s" % (module_name, scan_info['domain'])
+
+    if INTERNAL_SLACK_WEB_CLIENT is not None:
+        try:
+            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text=message)
+        except Exception as e:
+            print("Slack error" + str(e))
+
+def send_error_to_channel(message, channel):
+    if INTERNAL_SLACK_WEB_CLIENT is not None:
+        try:
+            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text=message)
+        except Exception as e:
+            print("Slack error" + str(e))
+
+def send_vuln_to_channel(vulnerability, channel):
+    if INTERNAL_SLACK_WEB_CLIENT is not None:
+        try:
+            message = 'Found vulnerability \" %s \" at %s from resource %s. \n %s' % \
+            (vulnerability.vulnerability_name, vulnerability.scanned_url, vulnerability.target, vulnerability.custom_description)
+            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text=message)
+        except Exception as e:
+            print("Slack error" + str(e))
+### END ###
+
+
 
 def send_simple_message(message):
     if INTERNAL_SLACK_WEB_CLIENT is not None:

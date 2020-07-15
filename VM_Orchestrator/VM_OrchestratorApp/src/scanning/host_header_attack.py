@@ -9,31 +9,34 @@ from datetime import datetime
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+MODULE_NAME = 'Host header attack module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-hha'
 
 def handle_target(info):
     print('Module Host Header Attack starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-    slack.send_simple_message("Host header attack scan started against target: %s. %d alive urls found!"
-                                     % (info['domain'], len(info['url_to_scan'])))
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     print('Module Host Header Attack finished against %s' % info['domain'])
     return
 
 
-def handle_single(scan_info):
-    print('Module Host Header Attack starting against %s' % scan_info['url_to_scan'])
-    slack.send_simple_message("Host header attack scan started against %s" % scan_info['url_to_scan'])
-    scan_target(scan_info, scan_info['url_to_scan'])
-    print('Module Host Header Attack finished against %s' % scan_info['url_to_scan'])
+def handle_single(info):
+    print('Module Host Header Attack starting against %s' % info['url_to_scan'])
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    scan_target(info, info['url_to_scan'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    print('Module Host Header Attack finished against %s' % info['url_to_scan'])
     return
 
 
 def add_vulnerability_to_mongo(scan_info):
     vulnerability = Vulnerability(constants.HOST_HEADER_ATTACK, scan_info, "Host header attack possible")
 
-    slack.send_vulnerability(vulnerability)
+    slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
     return

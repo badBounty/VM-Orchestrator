@@ -9,6 +9,9 @@ from datetime import datetime
 
 endpoint = 'https://api.wappalyzer.com/lookup/v1/?url='
 
+MODULE_NAME = 'Libraries scan module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-lib-scan'
+
 def get_latest_version(name):
     return mongo.find_last_version_of_librarie(name)
 
@@ -47,7 +50,7 @@ def get_cves_and_last_version(librarie):
 
 def add_libraries_vulnerability(scan_info, message):
     vulnerability = Vulnerability(constants.OUTDATED_3RD_LIBRARIES, scan_info, message)
-    slack.send_vulnerability(vulnerability)
+    slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
@@ -85,20 +88,21 @@ def analyze(scan_info, url_to_scan):
 def handle_target(info):
     if WAPPA_KEY:
         print('Module Libraries Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-        slack.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
-                                        % (info['domain'], len(info['url_to_scan'])))
+        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         for url in info['url_to_scan']:
             sub_info = info
             sub_info['url_to_scan'] = url
             analyze(sub_info, sub_info['url_to_scan'])
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module Libraries Scan finished against %s' % info['domain'])
     return
 
 
-def handle_single(scan_info):
+def handle_single(info):
     if WAPPA_KEY:
-        print('Module Libraries Scan starting against %s' % scan_info['url_to_scan'])
-        slack.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
-        analyze(scan_info, scan_info['url_to_scan'])
-        print('Module Libraries Scan finished against %s' % scan_info['url_to_scan'])
+        print('Module Libraries Scan starting against %s' % info['url_to_scan'])
+        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        analyze(info, info['url_to_scan'])
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        print('Module Libraries Scan finished against %s' % info['url_to_scan'])
     return

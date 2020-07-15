@@ -10,6 +10,9 @@ import json
 import re
 import uuid
 
+MODULE_NAME = 'Nessus module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-nessus'
+
 username = nessus_info['USER']
 password = nessus_info['PASSWORD']
 verify = False
@@ -48,8 +51,7 @@ def handle_target(info):
         targets = len(info['url_to_scan'])
         if targets > 0:
             url_list = info['url_to_scan']
-            slack.send_simple_message("Nessus scan started against target: %s. %d alive urls found!"
-                                            % (info['domain'], len(info['url_to_scan'])))
+            slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
             divider = targets//2
             #Plain list for nessus scan
             urls = ','.join(get_only_url(l) for l in url_list[divider:])
@@ -63,21 +65,24 @@ def handle_target(info):
             sub_info['url_to_scan'] = url_list[:divider]
             sub_info['nessus_target'] = urls
             scan_target(sub_info)
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module Nessus Scan Finished against %s alive urls from %s' % (str(len(targets)), info['domain']))
     return
 
 
-def handle_single(scan_information):
-    if scan_information['nessus_scan'] and nessus and is_not_ip(scan_information['url_to_scan']):
-        print('Module Nessus Single Scan Starting against %s' % scan_information['url_to_scan'])
-        slack.send_simple_message("Nessus scan started against %s" % scan_information['url_to_scan'])
-        url_plain = get_only_url(scan_information['url_to_scan'])
-        scan_information['nessus_target'] = url_plain
-        scan_information['url_to_scan'] = list().append(scan_information['url_to_scan'])
-        scan_target(scan_information)
-        print('Module Nessus Scan Finished against %s' % scan_information['nessus_target'])
+def handle_single(info):
+    if info['nessus_scan'] and nessus and is_not_ip(info['url_to_scan']):
+        print('Module Nessus Single Scan Starting against %s' % info['url_to_scan'])
+        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        url_plain = get_only_url(info['url_to_scan'])
+        info['nessus_target'] = url_plain
+        info['url_to_scan'] = list().append(info['url_to_scan'])
+        scan_target(info)
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        print('Module Nessus Scan Finished against %s' % info['nessus_target'])
     else:
-        print('Scan not started: the url was an IP number or couldn\'t connect to the nessus server')
+        pass
+        #print('Scan not started: the url was an IP number or couldn\'t connect to the nessus server')
     return
 
 def add_vulnerability(scan_info,json_data,header):
@@ -105,7 +110,7 @@ def add_vulnerability(scan_info,json_data,header):
                         scan_info['url_to_scan'] = url
                 description = 'Nessus scan completed against %s' % scan_info['url_to_scan'] +'\n'
                 vulnerability = Vulnerability(name, scan_info, description+extra)
-                slack.send_vulnerability(vulnerability)
+                slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
                 redmine.create_new_issue(vulnerability)
                 mongo.add_vulnerability(vulnerability)
 

@@ -9,6 +9,8 @@ import uuid
 import copy
 from datetime import datetime
 
+MODULE_NAME = 'CORS module'
+SLACK_NOTIFICATION_CHANNEL = '#vm-cors'
 
 def cleanup(path):
     try:
@@ -20,8 +22,7 @@ def cleanup(path):
 
 def handle_target(info):
     print('Module CORS Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-    slack.send_simple_message("CORS scan started against target: %s. %d alive urls found!"
-                                     % (info['domain'], len(info['url_to_scan'])))
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
     # We first put all the urls with http/s into a txt file
@@ -35,13 +36,14 @@ def handle_target(info):
     scan_target(info, FILE_WITH_URLS)
     # Delete all created files
     cleanup(FILE_WITH_URLS)
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     print('Module CORS Scan finished against %s' % info['domain'])
     return
 
 
-def handle_single(scan_info):
-    print('Module CORS Scan starting against %s' % scan_info['url_to_scan'])
-    slack.send_simple_message("CORS scan started against %s" % scan_info['url_to_scan'])
+def handle_single(info):
+    print('Module CORS Scan starting against %s' % info['url_to_scan'])
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
     # Put urls in a single file
@@ -49,14 +51,15 @@ def handle_single(scan_info):
     FILE_WITH_URL = ROOT_DIR + '/tools_output/' + random_filename + '.txt'
     cleanup(FILE_WITH_URL)
     with open(FILE_WITH_URL, 'w') as f:
-        f.write("%s\n" % scan_info['url_to_scan'])
+        f.write("%s\n" % info['url_to_scan'])
 
     # Call scan target
-    scan_target(scan_info, FILE_WITH_URL)
+    scan_target(info, FILE_WITH_URL)
 
     # Delete all created files
     cleanup(FILE_WITH_URL)
-    print('Module CORS Scan finished against %s' % scan_info['url_to_scan'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    print('Module CORS Scan finished against %s' % info['url_to_scan'])
     return
 
 
@@ -64,7 +67,7 @@ def add_vulnerability(scan_info, vuln):
     specific_info = copy.deepcopy(scan_info)
     specific_info['url_to_scan'] = vuln['origin']
     vulnerability = Vulnerability(constants.CORS, specific_info, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
-    slack.send_vulnerability(vulnerability)
+    slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
 
