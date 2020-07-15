@@ -190,12 +190,15 @@ def add_simple_ip_resource(scan_info):
 def add_resource(url_info, scan_info):
     exists = resources.find_one({'domain': url_info['domain'], 'subdomain': url_info['url']})
     timestamp = datetime.now()
+    ip = url_info['ip']
+    if not ip.split('.')[0].isnumeric():
+        ip = None
     if not exists:
         resource ={
                 'domain': url_info['domain'],
                 'subdomain': url_info['url'],
                 'is_alive': url_info['is_alive'],
-                'ip': url_info['ip'],
+                'ip': ip,
                 'additional_info':{
                     'isp': url_info['isp'],
                     'asn': url_info['asn'],
@@ -222,7 +225,7 @@ def add_resource(url_info, scan_info):
          {'$set': 
             {
             'is_alive': url_info['is_alive'],
-            'ip': url_info['ip'],
+            'ip': ip,
             'additional_info':{
                     'isp': url_info['isp'],
                     'asn': url_info['asn'],
