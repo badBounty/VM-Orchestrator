@@ -3,7 +3,7 @@ from VM_OrchestratorApp import INTERNAL_SLACK_WEB_CLIENT, EXTERNAL_SLACK_WEB_CLI
 
 
 ### NEW Notification area ###
-def send_message_to_channel(message, channel):
+def send_notification_to_channel(message, channel):
     if INTERNAL_SLACK_WEB_CLIENT is not None:
         try:
             INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text=message)
