@@ -92,7 +92,7 @@ def get_observation_for_object(vuln_name,language):
 
 def find_last_version_of_librarie(name):
     librarie = libraries_versions.find({'name':name})
-    if librarie:
+    if librarie.count() != 0:
         return librarie[0]['version']
     else:
         return ''
