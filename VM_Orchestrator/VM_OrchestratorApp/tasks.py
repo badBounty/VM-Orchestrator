@@ -245,6 +245,9 @@ def on_demand_scan_finished(results, information):
     # TODO REMOVE Send email with scan results
     vulnerabilities = mongo.get_vulnerabilities_for_email(information)
     df = pd.DataFrame(vulnerabilities)
+    if df.empty:
+        print('No vulns found! Canceling email')
+        return
     from VM_OrchestratorApp.src.utils import email_handler
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'vulnerability_name', 'extra_info',
@@ -276,6 +279,9 @@ def recon_finished(scan_information):
     # TODO REMOVE Send email with scan results
     resources = mongo.get_resources_for_email(scan_information)
     df = pd.DataFrame(resources)
+    if df.empty:
+        print('No resources found! Canceling email')
+        return
     from VM_OrchestratorApp.src.utils import email_handler
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'is_alive', 'ip',

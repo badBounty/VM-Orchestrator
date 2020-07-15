@@ -139,7 +139,9 @@ def add_simple_url_resource(scan_info):
                 'scanned': False,
                 'type': scan_info['type'],
                 'priority': scan_info['priority'],
-                'exposition': scan_info['exposition']
+                'exposition': scan_info['exposition'],
+                'has_urls': False,
+                'responsive_urls': ''
         }
         resources.insert_one(resource)
     else:
@@ -172,7 +174,9 @@ def add_simple_ip_resource(scan_info):
                 'scanned': False,
                 'type': scan_info['type'],
                 'priority': scan_info['priority'],
-                'exposition': scan_info['exposition']
+                'exposition': scan_info['exposition'],
+                'has_urls': False,
+                'responsive_urls': ''
         }
         resources.insert_one(resource)
     else:
