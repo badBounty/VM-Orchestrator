@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_OrchestratorApp.src.utils import slack, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
@@ -46,6 +47,7 @@ def is_not_ip(url):
     return not pat.match(clean)
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     if info['nessus_scan'] and nessus:
         print('Module Nessus Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
@@ -55,13 +57,13 @@ def handle_target(info):
             divider = targets//2
             #Plain list for nessus scan
             urls = ','.join(get_only_url(l) for l in url_list[divider:])
-            sub_info = info
+            sub_info = copy.deepcopy(info)
             sub_info['url_to_scan'] = url_list[divider:]
             sub_info['nessus_target'] = urls
             scan_target(sub_info)
             #Plain list for nessus scan
             urls = ','.join(get_only_url(l) for l in url_list[:divider])
-            sub_info = info
+            sub_info = copy.deepcopy(info)
             sub_info['url_to_scan'] = url_list[:divider]
             sub_info['nessus_target'] = urls
             scan_target(sub_info)
@@ -71,6 +73,7 @@ def handle_target(info):
 
 
 def handle_single(info):
+    info = copy.deepcopy(info)
     if info['nessus_scan'] and nessus and is_not_ip(info['url_to_scan']):
         print('Module Nessus Single Scan Starting against %s' % info['url_to_scan'])
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)

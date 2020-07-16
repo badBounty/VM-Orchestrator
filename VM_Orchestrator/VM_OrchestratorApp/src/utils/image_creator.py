@@ -4,7 +4,6 @@ from PIL import ImageDraw
 from PIL import ImageFont
 from io import BytesIO
 
-
 font_size = 12
 font = ImageFont.truetype("DejaVuSansMono.ttf", font_size) #Font sacada de la terminal del kali
 black = (0,0,0)
@@ -12,7 +11,6 @@ small = (640,480)
 normal = (800,600)
 extraL = (1024,768)
 image_format = "PNG"
-
 
 def create_image_from_file(path_filename):
     global font_size,font,black,image_format

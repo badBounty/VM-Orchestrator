@@ -1,10 +1,10 @@
+# pylint: disable=import-error
 import VM_OrchestratorApp.src.utils.mongo as mongo
 
 import base64
 import os
 import shutil
 import subprocess
-
 
 def start_aquatone(subdomain_list, scan_information):
 
@@ -28,11 +28,10 @@ def start_aquatone(subdomain_list, scan_information):
 
     return
 
-
 def run_aquatone(subdomain, AQUATONE_DIR, OUTPUT_DIR):
 
     command = ['echo', subdomain, '|', AQUATONE_DIR, '-ports', 'large', '-out', OUTPUT_DIR]
-    aquatone_process = subprocess.run(
+    subprocess.run(
        ' '.join(command), shell=True)
 
     # Parsing de resultados
@@ -41,7 +40,6 @@ def run_aquatone(subdomain, AQUATONE_DIR, OUTPUT_DIR):
     cleanup_after_scan(OUTPUT_DIR)
 
     return
-
 
 def parse_results(subdomain, OUTPUT_DIR):
 
@@ -82,40 +80,38 @@ def parse_results(subdomain, OUTPUT_DIR):
 
     return
 
-
 def cleanup_after_scan(OUTPUT_DIR):
     try:
         os.remove(OUTPUT_DIR + '/aquatone_report.html')
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         pass
     try:
         os.remove(OUTPUT_DIR + '/aquatone_session.json')
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         pass
     try:
         os.remove(OUTPUT_DIR + '/aquatone_urls.txt')
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         pass
     try:
         shutil.rmtree(OUTPUT_DIR + '/headers')
-    except OSError as e:
+    except OSError:
         pass
     try:
         shutil.rmtree(OUTPUT_DIR + '/html')
-    except OSError as e:
+    except OSError:
         pass
     try:
         shutil.rmtree(OUTPUT_DIR + '/screenshots')
-    except OSError as e:
+    except OSError:
         pass
 
     return
-
 
 def cleanup(OUTPUT_DIR):
 
     try:
         shutil.rmtree(OUTPUT_DIR)
-    except OSError as e:
+    except OSError:
         pass
     return

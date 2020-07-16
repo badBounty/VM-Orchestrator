@@ -1,10 +1,13 @@
-import requests
-import urllib3
-from datetime import datetime
-
+# pylint: disable=import-error
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
+
+import requests
+import urllib3
+import copy
+import time
+from datetime import datetime
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -12,10 +15,11 @@ MODULE_NAME = 'Css scan module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-css'
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     print('Module CSS Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
     slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
@@ -24,6 +28,7 @@ def handle_target(info):
 
 
 def handle_single(info):
+    info = copy.deepcopy(info)
     print('Module CSS Scan starting against %s' % info['url_to_scan'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     scan_target(info, info['url_to_scan'])
@@ -48,7 +53,9 @@ def add_vulnerability_to_mongo(scan_info, css_url, vuln_type):
 
 def scan_target(scan_info, url_to_scan):
     # We take every .css file from our linkfinder utils
-    css_files_found = utils.get_css_files_linkfinder(url_to_scan)
+    css_files_found = utils.get_css_files(url_to_scan)
+    if css_files_found:
+        slack.send_notification_to_channel('_ Found %s css files at %s _' % (str(len(css_files_found)), url_to_scan), SLACK_NOTIFICATION_CHANNEL)
     for css_file in css_files_found:
         url_split = css_file.split('/')
         host_split = url_to_scan.split('/')

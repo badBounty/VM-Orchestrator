@@ -1,6 +1,7 @@
-import urllib3
-
+# pylint: disable=import-error
 from VM_Orchestrator.settings import settings, redmine_client
+
+import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 

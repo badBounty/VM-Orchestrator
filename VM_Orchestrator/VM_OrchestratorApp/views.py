@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt

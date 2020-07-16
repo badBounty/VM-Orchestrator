@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
@@ -21,6 +22,7 @@ def cleanup(path):
 
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     print('Module CORS Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -42,6 +44,7 @@ def handle_target(info):
 
 
 def handle_single(info):
+    info = copy.deepcopy(info)
     print('Module CORS Scan starting against %s' % info['url_to_scan'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -80,7 +83,7 @@ def scan_target(scan_info, file_name):
     FILE_WITH_JSON_RESULT = ROOT_DIR + '/tools_output/' + random_filename + '.json'
     TOOL_DIR = ROOT_DIR + '/tools/CORScanner/cors_scan.py'
     cleanup(FILE_WITH_JSON_RESULT)
-    cors_process = subprocess.run(
+    subprocess.run(
         ['python3', TOOL_DIR, '-i', file_name, '-o', FILE_WITH_JSON_RESULT], capture_output=True)
     with open(FILE_WITH_JSON_RESULT) as json_file:
         vulns = json.load(json_file)

@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
@@ -6,6 +7,7 @@ import urllib3
 import requests
 import tldextract
 import traceback
+import copy
 from datetime import datetime
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -14,10 +16,11 @@ MODULE_NAME = 'Host header attack module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-hha'
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     print('Module Host Header Attack starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
     slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
@@ -26,6 +29,7 @@ def handle_target(info):
 
 
 def handle_single(info):
+    info = copy.deepcopy(info)
     print('Module Host Header Attack starting against %s' % info['url_to_scan'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     scan_target(info, info['url_to_scan'])
@@ -47,7 +51,7 @@ def scan_target(scan_info, url_to_scan):
     try:
         # Sends the request to test if it's vulnerable to a Host Header Attack
         response = requests.get(url_to_scan, verify=False, headers={'Host': 'test.com'}, timeout=3)
-    except Exception as e:
+    except Exception:
         error_string = traceback.format_exc()
         slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
         return

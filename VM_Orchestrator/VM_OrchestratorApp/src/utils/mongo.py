@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_OrchestratorApp import MONGO_CLIENT
 from VM_Orchestrator.settings import MONGO_INFO
 from VM_OrchestratorApp.src.utils import slack
@@ -8,7 +9,6 @@ resources = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['RESOURCES_COLLECTIO
 observations = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['OBSERVATIONS_COLLECTION']]
 vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['VULNERABILITIES_COLLECTION']]
 libraries_versions = MONGO_CLIENT[MONGO_INFO['DATABASE']]['libraries_versions']
-
 
 def add_vulnerability(vulnerability):
     exists = vulnerabilities.find_one({'domain': vulnerability.target, 'subdomain': vulnerability.scanned_url,
@@ -190,8 +190,10 @@ def add_resource(url_info, scan_info):
     exists = resources.find_one({'domain': url_info['domain'], 'subdomain': url_info['url']})
     timestamp = datetime.now()
     ip = url_info['ip']
-    if not ip.split('.')[0].isnumeric():
-        ip = None
+    if ip is not None:
+        #Rare case in which an IP is actually a string
+        if not ip.split('.')[0].isnumeric():
+            ip = None
     if not exists:
         resource ={
                 'domain': url_info['domain'],
