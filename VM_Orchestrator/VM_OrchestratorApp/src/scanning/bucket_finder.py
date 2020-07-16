@@ -9,6 +9,7 @@ import urllib3
 import subprocess
 import traceback
 import copy
+import time
 from datetime import datetime
 
 MODULE_NAME = 'S3Bucket module'
@@ -59,7 +60,8 @@ def scan_target(scan_information, url_to_scan):
     get_buckets(scan_information, url_to_scan)
     # We now scan javascript files
     javascript_files_found = utils.get_js_files(url_to_scan)
-    slack.send_notification_to_channel('_ Found %s javascript files at %s _' % (str(len(javascript_files_found)), url_to_scan), SLACK_NOTIFICATION_CHANNEL)
+    if javascript_files_found:
+        slack.send_notification_to_channel('_ Found %s javascript files at %s _' % (str(len(javascript_files_found)), url_to_scan), SLACK_NOTIFICATION_CHANNEL)
     for javascript in javascript_files_found:
         get_buckets(scan_information, javascript)
     return
