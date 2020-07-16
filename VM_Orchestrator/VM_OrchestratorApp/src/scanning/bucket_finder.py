@@ -54,7 +54,7 @@ def scan_target(scan_information, url_to_scan):
     # We first search for buckets inside the html code
     get_buckets(scan_information, url_to_scan)
     # We now scan javascript files
-    javascript_files_found = utils.get_js_files_linkfinder(url_to_scan)
+    javascript_files_found = utils.get_js_files(url_to_scan)
     for javascript in javascript_files_found:
         get_buckets(scan_information, javascript)
     return

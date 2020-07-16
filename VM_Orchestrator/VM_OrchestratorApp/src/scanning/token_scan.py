@@ -46,7 +46,7 @@ def add_token_found_vuln(scan_info, message):
 
 def scan_target(scan_info, url_for_scanning):
     # We scan javascript files
-    javascript_files_found = utils.get_js_files_linkfinder(url_for_scanning)
+    javascript_files_found = utils.get_js_files(url_for_scanning)
     for javascript in javascript_files_found:
         scan_for_tokens(scan_info, url_for_scanning, javascript)
     return

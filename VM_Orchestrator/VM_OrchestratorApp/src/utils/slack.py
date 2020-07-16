@@ -6,16 +6,16 @@ from VM_OrchestratorApp import INTERNAL_SLACK_WEB_CLIENT, EXTERNAL_SLACK_WEB_CLI
 def send_notification_to_channel(message, channel):
     if INTERNAL_SLACK_WEB_CLIENT is not None:
         try:
-            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text='_New Notification!_\n'+'_'+message+'_')
+            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text=message)
         except Exception as e:
             print("Slack error" + str(e))
             
 def send_module_start_notification_to_channel(scan_info, module_name, channel):
     if scan_info['scan_type'] == 'target':
-        message = "_%s started against target: %s. %d alive resources found_" \
+        message = "_ %s started against target: %s. %d alive resources found _" \
         % (module_name, scan_info['domain'], len(scan_info['url_to_scan']))
     else:
-        message = "_%s started against %s_" % (module_name, scan_info['domain'])
+        message = "_ %s started against %s _" % (module_name, scan_info['domain'])
 
     if INTERNAL_SLACK_WEB_CLIENT is not None:
         try:
@@ -25,10 +25,10 @@ def send_module_start_notification_to_channel(scan_info, module_name, channel):
 
 def send_module_end_notification_to_channel(scan_info, module_name, channel):
     if scan_info['scan_type'] == 'target':
-        message = "%s finished against target: %s. %d alive resources were found" \
+        message = "_ %s finished against target: %s. %d alive resources were found _" \
         % (module_name, scan_info['domain'], len(scan_info['url_to_scan']))
     else:
-        message = "%s finished against %s" % (module_name, scan_info['domain'])
+        message = "_ %s finished against %s _" % (module_name, scan_info['domain'])
 
     if INTERNAL_SLACK_WEB_CLIENT is not None:
         try:
@@ -39,7 +39,7 @@ def send_module_end_notification_to_channel(scan_info, module_name, channel):
 def send_error_to_channel(message, channel):
     if INTERNAL_SLACK_WEB_CLIENT is not None:
         try:
-            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text='*Error found*\n'+'*'+message+'*')
+            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text='*Error found*\n'+'* '+message+' *')
         except Exception as e:
             print("Slack error" + str(e))
 
