@@ -50,7 +50,7 @@ def add_token_found_vuln(scan_info, message):
 def scan_target(scan_info, url_for_scanning):
     # We scan javascript files
     javascript_files_found = utils.get_js_files(url_for_scanning)
-    slack.send_notification_to_channel('Found %s javascript files at %s' % (str(len(javascript_files_found)), url_for_scanning), SLACK_NOTIFICATION_CHANNEL)
+    slack.send_notification_to_channel('_ Found %s javascript files at %s _' % (str(len(javascript_files_found)), url_for_scanning), SLACK_NOTIFICATION_CHANNEL)
     for javascript in javascript_files_found:
         scan_for_tokens(scan_info, url_for_scanning, javascript)
     return

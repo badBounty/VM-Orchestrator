@@ -53,7 +53,7 @@ def add_vulnerability_to_mongo(scan_info, css_url, vuln_type):
 def scan_target(scan_info, url_to_scan):
     # We take every .css file from our linkfinder utils
     css_files_found = utils.get_css_files(url_to_scan)
-    slack.send_notification_to_channel('Found %s css files at %s' % (str(len(css_files_found)), url_to_scan), SLACK_NOTIFICATION_CHANNEL)
+    slack.send_notification_to_channel('_ Found %s css files at %s _' % (str(len(css_files_found)), url_to_scan), SLACK_NOTIFICATION_CHANNEL)
     for css_file in css_files_found:
         url_split = css_file.split('/')
         host_split = url_to_scan.split('/')
