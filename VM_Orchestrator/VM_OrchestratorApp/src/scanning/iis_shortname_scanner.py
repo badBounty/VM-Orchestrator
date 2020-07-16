@@ -69,4 +69,6 @@ def scan_target(scan_info, url_to_scan):
                 os.remove(output_dir)
     except KeyError:
         pass
+    except Exception:
+        pass
     return
