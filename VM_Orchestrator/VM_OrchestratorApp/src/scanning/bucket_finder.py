@@ -2,6 +2,7 @@ import re
 import requests
 import urllib3
 import subprocess
+import traceback
 from datetime import datetime
 
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
@@ -102,6 +103,7 @@ def get_cprm_buckets(bucket_list, scanned_url, scan_information):
             add_vulnerability_to_mongo(scanned_url, 'cprm', bucket, description, scan_information)
             cprm_allowed_buckets.append(bucket)
         except subprocess.CalledProcessError as e:
+            print('ERROR Called proces error at bucket finder')
             continue
 
 
@@ -113,6 +115,8 @@ def get_buckets(scan_information, url_to_scan):
     except requests.exceptions.ReadTimeout:
         return
     except Exception as e:
+        error_string = traceback.format_exc()
+        slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
         return
 
     # Buckets can come in different ways

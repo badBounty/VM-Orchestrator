@@ -82,7 +82,9 @@ def analyze(scan_info, url_to_scan):
         message = fastPrint(libraries)
         add_libraries_vulnerability(scan_info,  message)
     except Exception as e:
-        print("Libraries scan error" + str(e))
+        error_string = traceback.format_exc()
+        slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
+        print("Libraries scan error " + str(e))
 
 
 def handle_target(info):

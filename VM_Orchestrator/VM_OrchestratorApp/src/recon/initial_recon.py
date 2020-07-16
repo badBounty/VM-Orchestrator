@@ -90,6 +90,7 @@ def gather_data(project_dir, scan_info):
         try:
             is_alive = subprocess.check_output(['dig', url, '+short', '|', 'sed', "'/[a-z]/d'"])
         except subprocess.CalledProcessError:
+            print('ERROR Called proces error at dig gather data')
             continue
         if is_alive.decode():
             is_alive_clause = 'True'
@@ -98,6 +99,7 @@ def gather_data(project_dir, scan_info):
         try:
             has_ip = subprocess.check_output(['dig', url, '+short', '|', 'sed', "'/[a-z]/d'", '|', 'sed', '-n', 'lp'])
         except subprocess.CalledProcessError:
+            print('ERROR Called proces error at dig gather data bis')
             continue
 
         url_info={

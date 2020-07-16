@@ -39,6 +39,8 @@ def scan_target(scan_info, url_to_scan):
     try:
         resp = requests.get(url_to_scan)
     except Exception:
+        error_string = traceback.format_exc()
+        slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
         return
     try:
         if 'IIS' in resp.headers['Server']:

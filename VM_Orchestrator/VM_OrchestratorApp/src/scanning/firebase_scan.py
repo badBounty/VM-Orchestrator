@@ -5,6 +5,7 @@ from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
 import urllib3
 import requests
 import re
+import traceback
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -53,6 +54,8 @@ def scan_target(scan_info, url_to_scan):
     try:
         response = requests.get(url_to_scan, verify=False, timeout=3)
     except Exception as e:
+        error_string = traceback.format_exc()
+        slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
         return
 
     # Firebases come in the form
@@ -74,6 +77,8 @@ def scan_target(scan_info, url_to_scan):
         try:
             firebase_response = requests.get(firebase, verify=False, timeout=3)
         except Exception as e:
+            error_string = traceback.format_exc()
+            slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
             continue
         if firebase_response.status_code == 200:
             add_vulnerability(scan_info, firebase)

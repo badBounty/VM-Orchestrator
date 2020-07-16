@@ -48,10 +48,10 @@ def is_not_ip(url):
 def handle_target(info):
     if info['nessus_scan'] and nessus:
         print('Module Nessus Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
+        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         targets = len(info['url_to_scan'])
         if targets > 0:
             url_list = info['url_to_scan']
-            slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
             divider = targets//2
             #Plain list for nessus scan
             urls = ','.join(get_only_url(l) for l in url_list[divider:])

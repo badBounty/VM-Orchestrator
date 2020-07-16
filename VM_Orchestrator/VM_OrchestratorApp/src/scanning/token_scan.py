@@ -55,6 +55,8 @@ def scan_for_tokens(scan_info, scanned_url, javascript):
     try:
         response = requests.get(javascript, verify=False, timeout=3)
     except Exception:
+        error_string = traceback.format_exc()
+        slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
         return
 
     # We now scan the javascript file for tokens

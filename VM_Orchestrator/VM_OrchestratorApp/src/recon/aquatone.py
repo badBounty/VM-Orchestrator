@@ -52,6 +52,7 @@ def parse_results(subdomain, OUTPUT_DIR):
             lines = fp.read()
             urls = lines.split('\n')
     except FileNotFoundError:
+        print('ERROR: Auatone urls file was not found')
         pass
 
     if urls and urls != ['']:

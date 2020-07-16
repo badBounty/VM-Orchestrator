@@ -10,7 +10,8 @@ import os
 from VM_OrchestratorApp.src.recon import initial_recon, aquatone
 from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
-    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,iis_shortname_scanner, burp_scan, nessus_scan, acunetix_scan
+    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack, \
+    iis_shortname_scanner, burp_scan, nessus_scan, acunetix_scan
 from VM_Orchestrator.settings import settings
 from VM_OrchestratorApp.src.utils import mongo, slack, redmine
 
@@ -257,6 +258,7 @@ def on_demand_scan_finished(results, information):
     try:
         os.remove(ROOT_DIR + '/output.csv')
     except FileNotFoundError:
+        print('ERROR:Output for on demand scan was not found')
         pass
     slack.send_notification_to_channel('On demand scan against %s finished!' % information['domain'], '#vm-ondemand')
     print('On demand scan finished!')
@@ -292,6 +294,7 @@ def recon_finished(scan_information):
     try:
         os.remove(ROOT_DIR + '/output.csv')
     except FileNotFoundError:
+        print('ERROR Output file for resources was not found')
         pass
     slack.send_notification_to_channel('Recon against %s finished' % scan_information['domain'], '#vm-recon-module')
     print('Recon finished!')
