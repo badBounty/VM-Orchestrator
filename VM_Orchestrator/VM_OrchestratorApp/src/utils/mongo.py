@@ -190,8 +190,10 @@ def add_resource(url_info, scan_info):
     exists = resources.find_one({'domain': url_info['domain'], 'subdomain': url_info['url']})
     timestamp = datetime.now()
     ip = url_info['ip']
-    if not ip.split('.')[0].isnumeric():
-        ip = None
+    if ip is not None:
+        #Rare case in which an IP is actually a string
+        if not ip.split('.')[0].isnumeric():
+            ip = None
     if not exists:
         resource ={
                 'domain': url_info['domain'],
