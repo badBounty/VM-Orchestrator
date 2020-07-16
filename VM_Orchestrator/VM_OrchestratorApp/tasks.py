@@ -364,6 +364,8 @@ def project_monitor_task():
     for data in monitor_data:
         scan_info = data
         scan_info['email'] = None
+        scan_info['nessus_scan'] = False
+        scan_info['acunetix_scan'] = False
         slack.send_notification_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
             run_recon(scan_info)
