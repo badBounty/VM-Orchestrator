@@ -1,6 +1,6 @@
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator, redmine
 from VM_OrchestratorApp.src import constants
-from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 from VM_Orchestrator.settings import settings
 
 import subprocess

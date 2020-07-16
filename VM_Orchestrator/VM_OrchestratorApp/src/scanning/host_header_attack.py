@@ -1,10 +1,11 @@
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
-from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 
 import urllib3
 import requests
 import tldextract
+import traceback
 from datetime import datetime
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

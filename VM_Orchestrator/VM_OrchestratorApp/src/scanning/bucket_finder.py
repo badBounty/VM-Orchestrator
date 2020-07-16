@@ -7,7 +7,7 @@ from datetime import datetime
 
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
-from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 
 MODULE_NAME = 'S3Bucket module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-s3buckets'

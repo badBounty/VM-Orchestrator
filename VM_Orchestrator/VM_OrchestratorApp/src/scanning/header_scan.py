@@ -1,11 +1,12 @@
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator, redmine
 from VM_OrchestratorApp.src import constants
-from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 
 import requests
 import os
 import uuid
 import base64
+import traceback
 from PIL import Image
 from io import BytesIO
 from datetime import datetime

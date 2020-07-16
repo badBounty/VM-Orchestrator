@@ -1,10 +1,11 @@
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
-from VM_OrchestratorApp.src.vulnerability.vulnerability import Vulnerability
+from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 
 import os
 import re
 import requests
+import traceback
 import urllib3
 from datetime import datetime
 
