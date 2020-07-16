@@ -1,9 +1,10 @@
+# pylint: disable=import-error
 from VM_Orchestrator.settings import WAPPA_KEY
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 
-import json, requests, itertools, collections, os, traceback
+import json, requests, itertools, collections, os, traceback, copy
 from bs4 import BeautifulSoup
 from datetime import datetime
 
@@ -88,11 +89,12 @@ def analyze(scan_info, url_to_scan):
 
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     if WAPPA_KEY:
         print('Module Libraries Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         for url in info['url_to_scan']:
-            sub_info = info
+            sub_info = copy.deepcopy(info)
             sub_info['url_to_scan'] = url
             analyze(sub_info, sub_info['url_to_scan'])
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
@@ -101,6 +103,7 @@ def handle_target(info):
 
 
 def handle_single(info):
+    info = copy.deepcopy(info)
     if WAPPA_KEY:
         print('Module Libraries Scan starting against %s' % info['url_to_scan'])
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)

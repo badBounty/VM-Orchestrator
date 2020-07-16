@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
@@ -7,6 +8,7 @@ import subprocess
 import os
 import json
 import uuid
+import copy
 from datetime import datetime
 
 MODULE_NAME = 'FFUF module'
@@ -21,11 +23,12 @@ def cleanup(path):
 
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     if FFUF_LIST:
         print('Module ffuf starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         for url in info['url_to_scan']:
-            sub_info = info
+            sub_info = copy.deepcopy(info)
             sub_info['url_to_scan'] = url
             scan_target(sub_info, sub_info['url_to_scan'])
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
@@ -34,6 +37,7 @@ def handle_target(info):
 
 
 def handle_single(info):
+    info = copy.deepcopy(info)
     if FFUF_LIST:
         print('Module ffuf starting against %s' % info['url_to_scan'])
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
@@ -44,7 +48,6 @@ def handle_single(info):
 
 
 def add_vulnerability(scan_info, affected_resource, description):
-    timestamp = datetime.now()
     vulnerability = Vulnerability(constants.ENDPOINT, scan_info, description)
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
@@ -63,7 +66,7 @@ def scan_target(scan_info, url_with_http):
     if url_with_http[-1] != '/':
         url_with_http = url_with_http + '/'
 
-    ffuf_process = subprocess.run(
+    subprocess.run(
         [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-c', '-v', '-mc', '200,403',
          '-o', JSON_RESULT], capture_output=True)
 

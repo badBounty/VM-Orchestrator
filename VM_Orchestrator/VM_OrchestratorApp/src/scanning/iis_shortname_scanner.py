@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, image_creator, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
@@ -7,6 +8,7 @@ import os
 import subprocess
 import base64
 import traceback
+import copy
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
@@ -16,10 +18,11 @@ MODULE_NAME = 'IIS shortname module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-iis'
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     print('Module IIS Shortname starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
     slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
@@ -28,6 +31,7 @@ def handle_target(info):
 
 
 def handle_single(info):
+    info = copy.deepcopy(info)
     print('Module IIS Shortname starting against %s' % info['url_to_scan'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     scan_target(info, info['url_to_scan'])

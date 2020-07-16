@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
@@ -6,6 +7,7 @@ import json
 import xmltodict
 import uuid
 import xml
+import copy
 from datetime import datetime
 import subprocess
 import os
@@ -14,11 +16,12 @@ MODULE_NAME = 'SSL/TLS module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-ssl-tls'
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     print('Module SSL/TLS starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     valid_ports = ['443']
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
 
         split_url = url.split('/')
@@ -34,6 +37,7 @@ def handle_target(info):
 
 
 def handle_single(info):
+    info = copy.deepcopy(info)
     # Url will come with http or https, we will strip and append ports that could have tls/ssl
     url = info['url_to_scan']
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)

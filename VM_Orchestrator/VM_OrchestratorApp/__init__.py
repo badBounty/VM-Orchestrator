@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_Orchestrator.settings import MONGO_INFO, settings
 
 import pymongo

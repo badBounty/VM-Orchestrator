@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
@@ -7,6 +8,7 @@ import re
 import requests
 import traceback
 import urllib3
+import copy
 from datetime import datetime
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -15,10 +17,11 @@ MODULE_NAME = 'Token finder module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-token'
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     print('Module Token Finder starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
     slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
@@ -27,6 +30,7 @@ def handle_target(info):
 
 
 def handle_single(info):
+    info = copy.deepcopy(info)
     print('Module Token Finder starting against %s' % info['url_to_scan'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     scan_target(info, info['url_to_scan'])
@@ -36,7 +40,6 @@ def handle_single(info):
 
 
 def add_token_found_vuln(scan_info, message):
-    timestamp = datetime.now()
     vulnerability = Vulnerability(constants.TOKEN_SENSITIVE_INFO, scan_info, message)
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
@@ -47,6 +50,7 @@ def add_token_found_vuln(scan_info, message):
 def scan_target(scan_info, url_for_scanning):
     # We scan javascript files
     javascript_files_found = utils.get_js_files(url_for_scanning)
+    slack.send_notification_to_channel('Found %s javascript files at %s' % (str(len(javascript_files_found)), url_for_scanning), SLACK_NOTIFICATION_CHANNEL)
     for javascript in javascript_files_found:
         scan_for_tokens(scan_info, url_for_scanning, javascript)
     return

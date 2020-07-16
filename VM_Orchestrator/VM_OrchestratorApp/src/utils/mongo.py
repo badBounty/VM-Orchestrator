@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_OrchestratorApp import MONGO_CLIENT
 from VM_Orchestrator.settings import MONGO_INFO
 from VM_OrchestratorApp.src.utils import slack
@@ -8,7 +9,6 @@ resources = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['RESOURCES_COLLECTIO
 observations = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['OBSERVATIONS_COLLECTION']]
 vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['VULNERABILITIES_COLLECTION']]
 libraries_versions = MONGO_CLIENT[MONGO_INFO['DATABASE']]['libraries_versions']
-
 
 def add_vulnerability(vulnerability):
     exists = vulnerabilities.find_one({'domain': vulnerability.target, 'subdomain': vulnerability.scanned_url,

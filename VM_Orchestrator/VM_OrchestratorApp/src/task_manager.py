@@ -1,10 +1,11 @@
+# pylint: disable=import-error
 import VM_OrchestratorApp.tasks as tasks
 from VM_OrchestratorApp.src.utils import slack, mongo
 import VM_OrchestratorApp.tasks as tasks
 
 from celery import chain, chord
-import copy
 
+import copy
 import pandas as pd
 from VM_Orchestrator.settings import settings
 

@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 import VM_OrchestratorApp.src.utils.mongo as mongo
 
 import subprocess
@@ -28,7 +29,7 @@ def run_recon(scan_info):
     print('Amass starting')
     f = open(PROJECT_DIR + '/amass_out.txt',"w+")
     f.close()
-    amass_process = subprocess.run(
+    subprocess.run(
        [amass_dir, 'enum', '-active', '-d', scan_info['domain'], '-o', PROJECT_DIR + '/amass_out.txt', '-timeout', '10'])
     if path.exists(PROJECT_DIR + '/amass_out.txt'):
         print('Amass finished correctly')
@@ -37,7 +38,7 @@ def run_recon(scan_info):
 
     # Subfinder
     print('Subfinder starting')
-    subfinder_process = subprocess.run([subfinder_dir, '-d', scan_info['domain'], '-o', PROJECT_DIR + '/subfinder_out.txt'])
+    subprocess.run([subfinder_dir, '-d', scan_info['domain'], '-o', PROJECT_DIR + '/subfinder_out.txt'])
     if path.exists(PROJECT_DIR + '/subfinder_out.txt'):
         print('Subfinder finished correctly')
     else:
@@ -45,7 +46,7 @@ def run_recon(scan_info):
 
     # sublist3r
     print('Sublist3r starting')
-    sublist3r_process = subprocess.run(
+    subprocess.run(
        ['python3', sublist3r_dir, '-d', scan_info['domain'], '-o', PROJECT_DIR + '/sublist3r_out.txt'])
     if path.exists(PROJECT_DIR + '/sublist3r_out.txt'):
         print('Sublist3r finished correctly')
@@ -82,7 +83,6 @@ def parse_results(project_dir, scan_info):
 def gather_data(project_dir, scan_info):
     # Take final text file and run through API that checks information
     # Here we call the add_to_db
-    timestamp = datetime.now()
     lines = open(project_dir + '/all.txt', 'r').readlines()
 
     for url in lines:
@@ -130,7 +130,6 @@ def gather_data(project_dir, scan_info):
 
 
 def gather_additional_info(url_info, scan_info):
-    timestamp = datetime.now()
     response = requests.get('http://ip-api.com/json/' + url_info['ip'], verify=False)
     response_json = response.content.decode().replace('as', 'asn')
     try:

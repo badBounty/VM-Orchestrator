@@ -1,13 +1,15 @@
+# pylint: disable=import-error
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
+from VM_OrchestratorApp.src import constants
+from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
+
 import re
 import requests
 import urllib3
 import subprocess
 import traceback
+import copy
 from datetime import datetime
-
-from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
-from VM_OrchestratorApp.src import constants
-from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 
 MODULE_NAME = 'S3Bucket module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-s3buckets'
@@ -21,10 +23,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     print('Module S3 Bucket Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         scan_target(sub_info, sub_info['url_to_scan'])
     slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
@@ -33,6 +36,7 @@ def handle_target(info):
 
 
 def handle_single(info):
+    info = copy.deepcopy(info)
     print('Module S3 Bucket Scan starting against %s' % info['url_to_scan'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     scan_target(info, info['url_to_scan'])
@@ -55,6 +59,7 @@ def scan_target(scan_information, url_to_scan):
     get_buckets(scan_information, url_to_scan)
     # We now scan javascript files
     javascript_files_found = utils.get_js_files(url_to_scan)
+    slack.send_notification_to_channel('Found %s javascript files at %s' % (str(len(javascript_files_found)), url_to_scan), SLACK_NOTIFICATION_CHANNEL)
     for javascript in javascript_files_found:
         get_buckets(scan_information, javascript)
     return
@@ -77,7 +82,7 @@ def get_ls_buckets(bucket_list, scanned_url, scan_information):
         if any(x.isupper() for x in bucket):
             continue
         try:
-            output = subprocess.check_output('aws s3 ls s3://' + bucket, shell=True, stderr=subprocess.STDOUT)
+            subprocess.check_output('aws s3 ls s3://' + bucket, shell=True, stderr=subprocess.STDOUT)
             description = 'Bucket %s allows content listing.' \
                           % (bucket)
             add_vulnerability_to_mongo(scanned_url, 'ls', bucket, description, scan_information)
@@ -96,13 +101,13 @@ def get_cprm_buckets(bucket_list, scanned_url, scan_information):
     cprm_allowed_buckets = []
     for bucket in bucket_list:
         try:
-            output = subprocess.check_output('aws s3 cp test.txt s3://' + bucket, shell=True, stderr=subprocess.DEVNULL)
+            subprocess.check_output('aws s3 cp test.txt s3://' + bucket, shell=True, stderr=subprocess.DEVNULL)
             subprocess.check_output('aws s3 rm s3://' + bucket + '/test.txt', shell=True)
             description = 'Bucket %s allows copy and remove operations.' \
                           % (bucket)
             add_vulnerability_to_mongo(scanned_url, 'cprm', bucket, description, scan_information)
             cprm_allowed_buckets.append(bucket)
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             print('ERROR Called proces error at bucket finder')
             continue
 
@@ -114,7 +119,7 @@ def get_buckets(scan_information, url_to_scan):
         return
     except requests.exceptions.ReadTimeout:
         return
-    except Exception as e:
+    except Exception:
         error_string = traceback.format_exc()
         slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
         return

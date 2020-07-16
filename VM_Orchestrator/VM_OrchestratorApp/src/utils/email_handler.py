@@ -1,8 +1,10 @@
+# pylint: disable=import-error
+from VM_OrchestratorApp import settings
+
 from django.core.mail import EmailMessage
 from datetime import datetime
 import json
 import os
-from VM_OrchestratorApp import settings
 
 def send_email(file_dir, email_to, message, title):
 	if not settings['EMAIL']['HOST_USER']:

@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from VM_OrchestratorApp.src.utils import slack, mongo, redmine
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
@@ -58,29 +59,32 @@ def remove_duplicates_if_exists(url_list):
 
 
 def handle_target(info):
-    if info['acunetix_scan'] and acunetix:
-        print('Module Acunetix Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
-        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    info_copy = copy.deepcopy(info)
+    if info_copy['acunetix_scan'] and acunetix:
+        print('Module Acunetix Scan starting against %s alive urls from %s' % (str(len(info_copy['url_to_scan'])), info_copy['domain']))
+        slack.send_module_start_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         #We can have repeated urls differenced by http o https so we get only one (The https one's)
-        full_list = remove_duplicates_if_exists(sorted(info['url_to_scan'],reverse=True))
+        full_list = remove_duplicates_if_exists(sorted(info_copy['url_to_scan'],reverse=True))
         for a,b,c,d  in zip(*[iter(full_list)]*4):
             small_list=[a,b,c,d]
-            info['url_to_scan'] = small_list
-            scan_target(info)
-        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        print('Module Acunetix Scan Finished against %s alive urls from %s' % (str(len(full_list)), info['domain']))
+            info_for_scan = copy.deepcopy(info_copy)
+            info_for_scan['url_to_scan'] = small_list
+            scan_target(info_for_scan)
+        slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        print('Module Acunetix Scan Finished against %s alive urls from %s' % (str(len(full_list)), info_copy['domain']))
     return
 
 
 def handle_single(info):
-    if info['acunetix_scan'] and acunetix and is_url(info['url_to_scan']):
-        print('Module Acunetix Single Scan Starting against %s' % info['domain'])
-        slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        urls = [info['url_to_scan']]
-        info['url_to_scan'] = urls
-        scan_target(info)
-        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        print('Module Acunetix Single Scan Finished against %s' % info['url_to_scan'])
+    info_copy = copy.deepcopy(info)
+    if info_copy['acunetix_scan'] and acunetix and is_url(info_copy['url_to_scan']):
+        print('Module Acunetix Single Scan Starting against %s' % info_copy['domain'])
+        slack.send_module_start_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        urls = [info_copy['url_to_scan']]
+        info_copy['url_to_scan'] = urls
+        scan_target(info_copy)
+        slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        print('Module Acunetix Single Scan Finished against %s' % info_copy['url_to_scan'])
     return
 
 def add_vulnerability(scan_info,scan_id,vulns):

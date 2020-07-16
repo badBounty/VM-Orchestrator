@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 from celery import shared_task, chain, chord
 from celery.task import periodic_task
 from celery.schedules import crontab
