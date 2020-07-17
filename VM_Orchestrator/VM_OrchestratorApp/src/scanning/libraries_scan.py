@@ -76,12 +76,14 @@ def analyze(scan_info, url_to_scan):
     headers = {'x-api-key': WAPPA_KEY}
     try:
         response = requests.get(target, headers=headers)
-        if type(response.json()) == list():
+        if response.json():
             libraries = response.json()[0]['applications']
             for lib in libraries:
                 lib['cves'], lib['last_version'] = get_cves_and_last_version(lib)
             message = fastPrint(libraries)
             add_libraries_vulnerability(scan_info,  message)
+    except KeyError:
+        return
     except Exception as e:
         error_string = traceback.format_exc()
         slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
