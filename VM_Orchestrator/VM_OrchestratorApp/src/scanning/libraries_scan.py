@@ -76,7 +76,7 @@ def analyze(scan_info, url_to_scan):
     headers = {'x-api-key': WAPPA_KEY}
     try:
         response = requests.get(target, headers=headers)
-        if response.json():
+        if type(response.json()) == list():
             libraries = response.json()[0]['applications']
             for lib in libraries:
                 lib['cves'], lib['last_version'] = get_cves_and_last_version(lib)

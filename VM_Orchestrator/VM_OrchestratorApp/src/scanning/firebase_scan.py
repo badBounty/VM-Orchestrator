@@ -59,6 +59,8 @@ def scan_target(scan_info, url_to_scan):
         response = requests.get(url_to_scan, verify=False, timeout=3)
     except requests.exceptions.ReadTimeout:
         pass
+    except requests.exceptions.SSLError:
+        pass
     except Exception:
         error_string = traceback.format_exc()
         slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
