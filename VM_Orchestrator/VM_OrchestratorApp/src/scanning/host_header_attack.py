@@ -51,6 +51,8 @@ def scan_target(scan_info, url_to_scan):
     try:
         # Sends the request to test if it's vulnerable to a Host Header Attack
         response = requests.get(url_to_scan, verify=False, headers={'Host': 'test.com'}, timeout=3)
+    except requests.exceptions.ReadTimeout:
+        return
     except Exception:
         error_string = traceback.format_exc()
         slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)

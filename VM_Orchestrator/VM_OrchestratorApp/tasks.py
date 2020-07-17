@@ -261,7 +261,7 @@ def on_demand_scan_finished(results, information):
     except FileNotFoundError:
         print('ERROR:Output for on demand scan was not found')
         pass
-    slack.send_notification_to_channel('On demand scan against %s finished!' % information['domain'], '#vm-ondemand')
+    slack.send_notification_to_channel('_ On demand scan against %s finished! _' % information['domain'], '#vm-ondemand')
     print('On demand scan finished!')
     return
 
@@ -297,7 +297,7 @@ def recon_finished(scan_information):
     except FileNotFoundError:
         print('ERROR Output file for resources was not found')
         pass
-    slack.send_notification_to_channel('Recon against %s finished' % scan_information['domain'], '#vm-recon-module')
+    slack.send_notification_to_channel('_ Recon against %s finished _' % scan_information['domain'], '#vm-recon-module')
     print('Recon finished!')
     return
 
