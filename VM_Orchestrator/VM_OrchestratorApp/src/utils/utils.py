@@ -38,7 +38,10 @@ regex_str = r"""
 def get_js_files(url):
     js_files = list()
     regex = re.compile(regex_str, re.VERBOSE)
-    response = requests.get(url, verify = False, timeout = 3)
+    try:
+        response = requests.get(url, verify = False, timeout = 3)
+    except requests.exceptions.ReadTimeout:
+        return []
     all_matches = [(m.group(1), m.start(0), m.end(0)) for m in re.finditer(regex, response.text)]
     for match in all_matches:
         url = match[0]
@@ -54,7 +57,10 @@ def get_js_files(url):
 def get_css_files(url):
     css_files = list()
     regex = re.compile(regex_str, re.VERBOSE)
-    response = requests.get(url, verify = False, timeout = 3)
+    try:
+        response = requests.get(url, verify = False, timeout = 3)
+    except requests.exceptions.ReadTimeout:
+        return []
     all_matches = [(m.group(1), m.start(0), m.end(0)) for m in re.finditer(regex, response.text)]
     for match in all_matches:
         url = match[0]

@@ -68,7 +68,7 @@ def handle_target(info):
             sub_info['nessus_target'] = urls
             scan_target(sub_info)
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        print('Module Nessus Scan Finished against %s alive urls from %s' % (str(len(targets)), info['domain']))
+        print('Module Nessus Scan Finished against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
     return
 
 
