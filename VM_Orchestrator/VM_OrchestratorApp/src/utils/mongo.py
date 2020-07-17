@@ -317,7 +317,8 @@ def update_elasticsearch():
             'resource_priority': resource['priority'],
             'resource_exposition': resource['exposition'],
             'resource_has_urls': resource['has_urls'],
-            'resource_responsive_urls': resource['responsive_urls']
+            'resource_responsive_urls': resource['responsive_urls'],
+            'resource_nmap_information': resource['nmap_information']
             })
 
     ### VULNS ###
