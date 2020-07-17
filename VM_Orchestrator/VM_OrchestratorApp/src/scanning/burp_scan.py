@@ -124,7 +124,7 @@ def scan_target(scan_info):
     download_response = requests.get(download_report % scan_info['url_to_scan'], headers=header)
 
     open(OUTPUT_DIR, 'wb').write(download_response.content)
-    #add_vulnerability(scan_info, download_response.content,OUTPUT_DIR, 'burp_result.xml')
+    add_vulnerability(scan_info, download_response.content,OUTPUT_DIR, 'burp_result.xml')
     
     burp_process.kill()
     os.system("kill -9 "+pid)

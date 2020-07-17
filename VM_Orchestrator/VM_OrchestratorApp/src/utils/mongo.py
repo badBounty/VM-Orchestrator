@@ -140,7 +140,8 @@ def add_simple_url_resource(scan_info):
                 'priority': scan_info['priority'],
                 'exposition': scan_info['exposition'],
                 'has_urls': False,
-                'responsive_urls': ''
+                'responsive_urls': '',
+                'nmap_information': None
         }
         resources.insert_one(resource)
     else:
@@ -175,7 +176,8 @@ def add_simple_ip_resource(scan_info):
                 'priority': scan_info['priority'],
                 'exposition': scan_info['exposition'],
                 'has_urls': False,
-                'responsive_urls': ''
+                'responsive_urls': '',
+                'nmap_information': None
         }
         resources.insert_one(resource)
     else:
@@ -216,7 +218,8 @@ def add_resource(url_info, scan_info):
                 'priority': scan_info['priority'],
                 'exposition': scan_info['exposition'],
                 'has_urls': False,
-                'responsive_urls': ''
+                'responsive_urls': '',
+                'nmap_information': None
         }
         if not scan_info['is_first_run']:
             slack.send_new_resource_found("New resource found! %s" % url_info['url'])
@@ -365,6 +368,19 @@ def update_elasticsearch():
     for vuln in vulnerabilities_list:
         res = es.index(index='test',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
 
+
+def add_nmap_information_to_subdomain(scan_information, nmap_json):
+    resource = resources.find({'domain': scan_information['domain'], 'subdomain': scan_information['subdomain']})
+    if not resource:
+        print('ERROR adding nmap information to resource, resource not found')
+        return
+    resources.update_one({'_id': resource.get('_id')},
+         {'$set': 
+            {
+                'nmap_information': nmap_json
+            }})
+    return
+    
 
 # TODO Temporary function for result revision
 def get_vulnerabilities_for_email(scan_information):
