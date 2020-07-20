@@ -371,7 +371,7 @@ def update_elasticsearch():
 
 
 def add_nmap_information_to_subdomain(scan_information, nmap_json):
-    resource = resources.find({'domain': scan_information['domain'], 'subdomain': scan_information['subdomain']})
+    resource = resources.find({'domain': scan_information['domain'], 'subdomain': scan_information['url_to_scan']})
     if not resource:
         print('ERROR adding nmap information to resource, resource not found')
         return

@@ -55,6 +55,8 @@ def scan_target(scan_info, url_to_scan):
         return
     except requests.exceptions.ConnectionError:
         return
+    except requests.exceptions.TooManyRedirects:
+        return
     except Exception:
         error_string = traceback.format_exc()
         slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
