@@ -359,15 +359,16 @@ def update_elasticsearch():
             })
 
     # Import Elasticsearch package 
-    from elasticsearch import Elasticsearch 
+    from VM_OrchestratorApp import ELASTIC_CLIENT
+    if ELASTIC_CLIENT is None:
+        return 
     # Connect to the elastic cluster
-    es=Elasticsearch([{'host':'localhost','port':9200}])
     print('Adding resources to elasticsearch')
     for resource in resources_list:
-        res = es.index(index='test',doc_type='_doc',id=resource['resource_id'],body=resource)
+        res = ELASTIC_CLIENT.index(index='test',doc_type='_doc',id=resource['resource_id'],body=resource)
     print('Adding vulnerabilities to elasticsearch')
     for vuln in vulnerabilities_list:
-        res = es.index(index='test',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
+        res = ELASTIC_CLIENT.index(index='test',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
 
 
 def add_nmap_information_to_subdomain(scan_information, nmap_json):
