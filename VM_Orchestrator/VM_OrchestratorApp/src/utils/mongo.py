@@ -108,7 +108,8 @@ def get_data_for_monitor():
             'type': data['type'],
             'priority': data['priority'],
             'exposition': data['exposition'],
-            'domain': data['domain']
+            'domain': data['domain'],
+            'url_to_scan': data['subdomain']
         })
     information = [dict(t) for t in {tuple(d.items()) for d in information}]
 
@@ -116,12 +117,12 @@ def get_data_for_monitor():
 
 # ------------------- RECON -------------------
 def add_simple_url_resource(scan_info):
-    exists = resources.find_one({'domain': scan_info['domain'].split('/')[2], 'subdomain': scan_info['url_to_scan']})
+    exists = resources.find_one({'domain': scan_info['domain'], 'subdomain': scan_info['url_to_scan']})
     timestamp = datetime.now()
     if not exists:
         resource ={
-                'domain': scan_info['domain'].split('/')[2],
-                'subdomain': scan_info['domain'],
+                'domain': scan_info['domain'],
+                'subdomain': scan_info['url_to_scan'],
                 'is_alive': True,
                 'ip': None,
                 'additional_info':{

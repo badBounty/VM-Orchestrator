@@ -175,6 +175,7 @@ def run_web_scanners(scan_information):
     else:
         web_information['scan_type'] = 'single'
         web_information['url_to_scan'] = web_information['domain']
+        web_information['domain'] = web_information['domain'].split('/')[2]
         mongo.add_simple_url_resource(web_information)
 
     # Chain is defined
