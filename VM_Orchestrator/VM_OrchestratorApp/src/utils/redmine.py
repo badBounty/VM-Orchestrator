@@ -30,18 +30,18 @@ def create_new_issue(vulnerability):
     issue = redmine_client.issue.new()
     issue.project_id = settings['REDMINE']['project_name']
     issue.subject = vulnerability.vulnerability_name
-    issue.tracker_id = 0
+    issue.tracker_id = 4
     issue.description = vulnerability.custom_description
     issue.status_id = vulnerability.status
     issue.priority_id = vulnerability.resolve_priority()
-    issue.assigned_to_id = 29
-    issue.watcher_user_ids = [17]
-    # [2]: Resource
-    # [4]: Sub_resource
-    # [5]: Date
-    issue.custom_fields= [{'id': 2, 'value': vulnerability.target},
-     {'id': 4, 'value': vulnerability.scanned_url},
-    {'id':5, 'value': str(vulnerability.time.strftime("%Y-%m-%d"))}]
+    issue.assigned_to_id = 5
+    issue.watcher_user_ids = [5]
+    # [1]: Resource
+    # [2]: Sub_resource
+    # [3]: Date
+    issue.custom_fields= [{'id': 1, 'value': vulnerability.target},
+     {'id': 2, 'value': vulnerability.scanned_url},
+    {'id':3, 'value': str(vulnerability.time.strftime("%Y-%m-%d"))}]
     if vulnerability.attachment_path is not None:
         issue.uploads = [{'path': vulnerability.attachment_path,
                           'filename': vulnerability.attachment_name}]
