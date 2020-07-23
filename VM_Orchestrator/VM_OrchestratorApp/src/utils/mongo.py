@@ -297,6 +297,9 @@ def update_elasticsearch():
     resources_list = list()
     for resource in new_resources:
         #Nmap information will be uploaded by port
+        if resource['nmap_information'] is None:
+            #Empty list if it has no information
+            resource['nmap_information'] = list()
         for info in resource['nmap_information']:
             resources_list.append({
                 'resource_id': str(resource['_id']),
