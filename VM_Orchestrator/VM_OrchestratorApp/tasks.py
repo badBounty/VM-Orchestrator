@@ -375,6 +375,8 @@ def project_monitor_task():
         elif scan_info['type'] == 'ip':
             run_ip_scans(scan_info)
         elif scan_info['type'] == 'url':
+            #TODO This will be fixed with the name rework
+            scan_info['domain'] = scan_info['url_to_scan']
             run_web_scanners(scan_info)
             run_ip_scans(scan_info)
     

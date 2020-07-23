@@ -296,31 +296,36 @@ def update_elasticsearch():
     new_resources = resources.find()
     resources_list = list()
     for resource in new_resources:
-        resources_list.append({
-            'resource_id': str(resource['_id']),
-            'resource_domain': resource['domain'],
-            'resource_subdomain': resource['subdomain'],
-            'resource_is_alive': bool(resource['is_alive']),
-            'resource_ip': resource['ip'],
-            'resource_additional_info':{
-                'resource_isp': resource['additional_info']['isp'],
-                'resource_asn': resource['additional_info']['asn'],
-                'resource_country': resource['additional_info']['country'],
-                'resource_region': resource['additional_info']['region'],
-                'resource_city': resource['additional_info']['city'],
-                'resource_org': resource['additional_info']['org'],
-                'resource_geoloc': resource['additional_info']['geoloc']
-                },
-            'resource_first_seen': resource['first_seen'],
-            'resource_last_seen': resource['last_seen'],
-            'resource_scanned': bool(resource['scanned']),
-            'resource_type': resource['type'],
-            'resource_priority': resource['priority'],
-            'resource_exposition': resource['exposition'],
-            'resource_has_urls': resource['has_urls'],
-            'resource_responsive_urls': resource['responsive_urls'],
-            'resource_nmap_information': resource['nmap_information']
-            })
+        #Nmap information will be uploaded by port
+        if resource['nmap_information'] is None:
+            #Empty list if it has no information
+            resource['nmap_information'] = list()
+        for info in resource['nmap_information']:
+            resources_list.append({
+                'resource_id': str(resource['_id']),
+                'resource_domain': resource['domain'],
+                'resource_subdomain': resource['subdomain'],
+                'resource_is_alive': bool(resource['is_alive']),
+                'resource_ip': resource['ip'],
+                'resource_additional_info':{
+                    'resource_isp': resource['additional_info']['isp'],
+                    'resource_asn': resource['additional_info']['asn'],
+                    'resource_country': resource['additional_info']['country'],
+                    'resource_region': resource['additional_info']['region'],
+                    'resource_city': resource['additional_info']['city'],
+                    'resource_org': resource['additional_info']['org'],
+                    'resource_geoloc': resource['additional_info']['geoloc']
+                    },
+                'resource_first_seen': resource['first_seen'],
+                'resource_last_seen': resource['last_seen'],
+                'resource_scanned': bool(resource['scanned']),
+                'resource_type': resource['type'],
+                'resource_priority': resource['priority'],
+                'resource_exposition': resource['exposition'],
+                'resource_has_urls': resource['has_urls'],
+                'resource_responsive_urls': resource['responsive_urls'],
+                'resource_nmap_information': info
+                })
 
     ### VULNS ###
     new_vulnerabilities = vulnerabilities.find()
@@ -373,7 +378,7 @@ def update_elasticsearch():
 
 
 def add_nmap_information_to_subdomain(scan_information, nmap_json):
-    resource = resources.find({'domain': scan_information['domain'], 'subdomain': scan_information['url_to_scan']})
+    resource = resources.find_one({'domain': scan_information['domain'], 'subdomain': scan_information['url_to_scan']})
     if not resource:
         print('ERROR adding nmap information to resource, resource not found')
         return
