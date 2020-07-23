@@ -122,7 +122,7 @@ def add_simple_url_resource(scan_info):
     if not exists:
         resource ={
                 'domain': scan_info['domain'],
-                'subdomain': scan_info['url_to_scanFupdate'],
+                'subdomain': scan_info['url_to_scan'],
                 'is_alive': True,
                 'ip': None,
                 'additional_info':{
@@ -297,7 +297,7 @@ def update_elasticsearch():
     resources_list = list()
     for resource in new_resources:
         #Nmap information will be uploaded by port
-        for info in resource['resource_nmap_information']:
+        for info in resource['nmap_information']:
             resources_list.append({
                 'resource_id': str(resource['_id']),
                 'resource_domain': resource['domain'],
