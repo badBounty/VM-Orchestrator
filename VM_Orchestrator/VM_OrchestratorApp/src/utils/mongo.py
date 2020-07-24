@@ -314,7 +314,7 @@ def update_elasticsearch():
                     '@extrainfo': "",
                     '@method': "",
                     '@conf': ""
-                })
+                }})
         for info in resource['nmap_information']:
             resources_list.append({
                 'resource_id': str(resource['_id']),
