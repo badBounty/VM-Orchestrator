@@ -68,7 +68,6 @@ def scan_target(scan_information, url_to_scan):
 
 def add_vulnerability_to_mongo(scanned_url, finding_name, bucket_name, description , scan_info):
     vuln_name = constants.BUCKET
-
     vulnerability = Vulnerability(vuln_name, scan_info, description)
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)
@@ -123,7 +122,8 @@ def get_buckets(scan_information, url_to_scan):
         return
     except Exception:
         error_string = traceback.format_exc()
-        slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
+        final_error = 'On {0}, was Found: {1}'.format(url_to_scan,error_string)
+        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
         return
 
     # Buckets can come in different ways

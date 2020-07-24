@@ -66,13 +66,6 @@ def handle_target(info):
         slack.send_module_start_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         #We can have repeated urls differenced by http o https so we get only one (The https one's)
         full_list = remove_duplicates_if_exists(sorted(info_copy['url_to_scan'],reverse=True))
-        """
-        for a,b,c,d  in zip(*[iter(full_list)]*4):
-            small_list=[a,b,c,d]
-            info_for_scan = copy.deepcopy(info_copy)
-            info_for_scan['url_to_scan'] = small_list
-            scan_target(info_for_scan)
-        """
         info_for_scan = copy.deepcopy(info_copy)
         info_for_scan['url_to_scan'] = full_list
         scan_target(info_for_scan)

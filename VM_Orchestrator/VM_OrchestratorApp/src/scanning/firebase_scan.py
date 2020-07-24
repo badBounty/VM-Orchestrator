@@ -63,7 +63,8 @@ def scan_target(scan_info, url_to_scan):
         return
     except Exception:
         error_string = traceback.format_exc()
-        slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
+        final_error = 'On {0}, was Found: {1}'.format(url_to_scan,error_string)
+        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
         return
 
     # Firebases come in the form
@@ -86,7 +87,8 @@ def scan_target(scan_info, url_to_scan):
             firebase_response = requests.get(firebase, verify=False, timeout=3)
         except Exception:
             error_string = traceback.format_exc()
-            slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
+            final_error = 'On {0}, was Found: {1}'.format(url_to_scan,error_string)
+            slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
             continue
         if firebase_response.status_code == 200:
             add_vulnerability(scan_info, firebase)

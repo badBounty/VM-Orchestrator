@@ -85,7 +85,6 @@ def handle_single(info):
         print('Module Nessus Scan Finished against %s' % info['nessus_target'])
     else:
         pass
-        #print('Scan not started: the url was an IP number or couldn\'t connect to the nessus server')
     return
 
 def add_vulnerability(scan_info,json_data,header):
