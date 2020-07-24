@@ -137,37 +137,3 @@ UNNECESSARY_SERVICES = {
     'spanish_name': 'Servicios innecesarios disponibles en internet',
     'status': 7
 }
-
-"""# HEADERS #
-INVALID_VALUE_ON_HEADER_DESCRIPTION = 'Header/s found with invalid value at %s'
-HEADER_NOT_FOUND_DESCRIPTION = 'Certain security header/s were not found at %s'
-X_FRAME_OPTIONS_NOT_PRESENT_DESCRIPTION = 'Clickjacking X-Frame-Options header missing at %s'
-X_FRAME_OPTIONS_INVALID_DESCRIPTION = 'Clickjacking attack possible at %s'
-HSTS_DESCRIPTION = 'HTTP Strict Transport Security not enforced at %s'
-HOST_HEADER_ATTACK_DESCRIPTION = 'Host header attack possible at %s'
-# METHODS #
-UNSECURE_METHOD_DESCRIPTION = 'Extended HTTP methods enabled at %s. %s'
-# SSL_TLS #
-SSL_TLS_DESCRIPTION = 'Weak transport layer security (TLS) configuration at %s'
-# OUTDATED 3RD PARTY LIBRARIES #
-OUTDATED_3RD_LIBRARIES_DESCRIPTION = 'Outdated 3rd party libraries in use at %s, some extra info %s \n'
-# CORS #
-CORS_DESCRIPTION = 'CORS vulnerability found at %s. CORS type %s with origin %s'
-# ENDPOINT #
-ENDPOINT_DESCRIPTION = 'Vulnerable endpoints were found at %s. \n Extra info: \n %s'
-# BUCKETS #
-BUCKET_DESCRIPTION = 'Bucket %s found at %s'
-# SENSITIVE INFO #
-SENSITIVE_INFO_DESCRIPTION = 'Found at %s \n %s'
-# CSS #
-CSS_DESCRIPTION = 'Found at %s. %s'
-# FIREBASE #
-FIREBASE_DESCRIPTION = 'Firebase %s found open at %s'
-# IIS SHORTNAME #
-IIS_DESCRIPTION = 'IIS Microsoft files and directories enumeration found at %s'
-# NMAP #
-OUTDATED_SOFTWARE_NMAP_DESCRIPTION = 'Outdated software nmap script'
-HTTP_PASSWD_NMAP_DESCRIPTION = 'Http passwd nmap script'
-WEB_VERSIONS_NMAP_DESCRIPTION = 'Web versions nmap script'
-# BURP #
-BURP_SCAN_DESCRIPTION = 'Burp scan ran against %s'"""
