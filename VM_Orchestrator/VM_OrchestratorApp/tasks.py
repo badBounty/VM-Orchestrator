@@ -224,7 +224,7 @@ def run_ip_scans(scan_information):
             mongo.add_simple_ip_resource(ip_information)
         else:
             #We can scan an url for IP things, we just use the hostname, resource will be added before
-            ip_information['url_to_scan'] = ip_information['domain'].split('/')[2]
+            ip_information['url_to_scan'] = ip_information['domain']
 
     # We will flag the resource as scanned here, mainly because all alive resources will reach this point
     execution_chord = chord(

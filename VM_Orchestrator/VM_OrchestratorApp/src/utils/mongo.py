@@ -393,7 +393,11 @@ def update_elasticsearch():
 
 
 def add_nmap_information_to_subdomain(scan_information, nmap_json):
-    resource = resources.find_one({'domain': scan_information['domain'], 'subdomain': scan_information['url_to_scan']})
+    try:
+        domain = scan_information.split('/')[2]
+    except IndexError:
+        domain = scan_information['domain']
+    resource = resources.find_one({'domain': domain, 'subdomain': scan_information['url_to_scan']})
     if not resource:
         print('ERROR adding nmap information to resource, resource not found')
         return
@@ -410,7 +414,11 @@ def get_vulnerabilities_for_email(scan_information):
     # In information we are going to have the scan type, if scan_type != domain, url_to_scan == domain
     return_list = list()
     if scan_information['type'] != 'domain':
-        found_vulns = vulnerabilities.find({'domain': scan_information['domain'], 'subdomain': scan_information['url_to_scan']})
+        try:
+            subdomain = scan_information['domain'].split('/')[2]
+        except IndexError:
+            subdomain = scan_information['domain']
+        found_vulns = vulnerabilities.find({'domain': scan_information['domain'], 'subdomain': subdomain})
     else:
         found_vulns = vulnerabilities.find({'domain': scan_information['domain']})
 
