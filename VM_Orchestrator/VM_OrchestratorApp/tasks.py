@@ -246,7 +246,6 @@ def on_demand_scan_finished(results, information):
         print('On demand scan finished!')
         return
     # TODO REMOVE Send email with scan results
-    mongo.update_elasticsearch()
     vulnerabilities = mongo.get_vulnerabilities_for_email(information)
     df = pd.DataFrame(vulnerabilities)
     if df.empty:
@@ -391,7 +390,7 @@ def check_redmine_for_updates():
         mongo.update_issue_if_needed(issue)
     return
 
-@periodic_task(run_every=crontab(minute='*/15'),
+@periodic_task(run_every=crontab(minute='0', hour='*/1'),
 queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
