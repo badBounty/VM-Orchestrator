@@ -246,6 +246,7 @@ def on_demand_scan_finished(results, information):
         print('On demand scan finished!')
         return
     # TODO REMOVE Send email with scan results
+    mongo.update_elasticsearch()
     vulnerabilities = mongo.get_vulnerabilities_for_email(information)
     df = pd.DataFrame(vulnerabilities)
     if df.empty:
