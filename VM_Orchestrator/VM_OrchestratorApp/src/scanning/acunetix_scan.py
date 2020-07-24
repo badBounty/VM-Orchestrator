@@ -13,7 +13,6 @@ import copy
 
 MODULE_NAME = 'Acunetix module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-acunetix'
-
 login_json = {
     'email':acunetix_info['USER'],
     'password':acunetix_info['PASSWORD_HASH'],
@@ -25,14 +24,16 @@ headers = {
     'X-Cookie':''
 }
 verify = False
+#Changes according to the acunetix license key
+max_scans_possible = acunetix_info['MAX_SCANS_POSSIBLE']
 profile_id = acunetix_info['SCAN_PROFILE']
 ui_session_id = acunetix_info['UI_SESSION_ID']
 basic_url = acunetix_info['URL']
 #LOGIN - POST
 login_url = '/api/v1/me/login'
-#CREATE TARGET - POST 
-create_target_url = '/api/v1/targets'
-#LAUNCH / START SCAN - POST
+#TARGET - IF POST -> CREATE
+target_url = '/api/v1/targets'
+#LAUNCH / START SCAN - POST -- IF GET -> Obtains the scans running
 launch_scan_url = '/api/v1/scans'
 
 def is_url(url):
@@ -65,11 +66,16 @@ def handle_target(info):
         slack.send_module_start_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         #We can have repeated urls differenced by http o https so we get only one (The https one's)
         full_list = remove_duplicates_if_exists(sorted(info_copy['url_to_scan'],reverse=True))
+        """
         for a,b,c,d  in zip(*[iter(full_list)]*4):
             small_list=[a,b,c,d]
             info_for_scan = copy.deepcopy(info_copy)
             info_for_scan['url_to_scan'] = small_list
             scan_target(info_for_scan)
+        """
+        info_for_scan = copy.deepcopy(info_copy)
+        info_for_scan['url_to_scan'] = full_list
+        scan_target(info_for_scan)
         slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module Acunetix Scan Finished against %s alive urls from %s' % (str(len(full_list)), info_copy['domain']))
     return
@@ -119,7 +125,7 @@ def start_acu_scan(scan_info,headers,session):
                         'description':'Created by orchestrator'
             }
         #Creating target to scan
-        r = session.post(basic_url+create_target_url,json=target_json,verify=verify,headers=headers)
+        r = session.post(basic_url+target_url,json=target_json,verify=verify,headers=headers)
         target_id = json.loads(r.text)['target_id']
         scan_json = {'target_id':target_id,
                 'profile_id':profile_id,
@@ -181,19 +187,42 @@ def check_acu_status_and_create_vuln(scan_info,id_list,headers,session):
                         final_vulns.append(vul)
                 add_vulnerability(scan_info,scan_id, final_vulns)
                 #Deleting target after scan is performed
-                session.delete(basic_url+create_target_url+'/'+target_id,verify=verify,headers=headers)
+                session.delete(basic_url+target_url+'/'+target_id,verify=verify,headers=headers)
         time.sleep(180)
         if len(id_list) == 0:
             all_finished = True
     return 
 
+def check_if_scan_is_possible(headers,session):
+    #Get already runned runnings scans
+    r = session.get(basic_url+launch_scan_url,verify=verify,headers=headers)
+    json_data = json.loads(r.text)
+    scans_running = len(json_data['scans'])
+    if scans_running < max_scans_possible:
+        #We can launch a scan
+        return True,max_scans_possible if scans_running == 0 else (max_scans_possible-scans_running)
+    else:
+        return False,0
+
 def scan_target(scan_info):
+    wait_until_its_free = True
     session = requests.Session()
     #Login against acunetix
     r = session.post(basic_url+login_url,json=login_json,verify=verify)
     #Get login values
     headers['X-Auth'] = r.headers['X-Auth']
     headers['X-Cookie'] = r.headers['Set-Cookie']
-    id_list = start_acu_scan(scan_info,headers,session)
-    check_acu_status_and_create_vuln(scan_info, id_list,headers,session)
+    while wait_until_its_free:
+        is_possible,scans_number = check_if_scan_is_possible(headers,session)
+        if is_possible:
+            for i in range(0,len(scan_info['url_to_scan']),scans_number):
+                url_to_scan = scan_info['url_to_scan'][i:i+scans_number]
+                info_for_scan = copy.deepcopy(scan_info)
+                info_for_scan['url_to_scan'] = url_to_scan
+                id_list = start_acu_scan(scan_info,headers,session)                
+                check_acu_status_and_create_vuln(scan_info, id_list,headers,session)
+            wait_until_its_free = False
+        else:
+            #Acunetix is busy send notifications via slack - redmine ??
+            pass
     return
