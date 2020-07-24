@@ -246,6 +246,7 @@ def on_demand_scan_finished(results, information):
         print('On demand scan finished!')
         return
     # TODO REMOVE Send email with scan results
+    mongo.update_elasticsearch()
     vulnerabilities = mongo.get_vulnerabilities_for_email(information)
     df = pd.DataFrame(vulnerabilities)
     if df.empty:
@@ -349,8 +350,8 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=4, minute=0),
-queue='slow_queue', options={'queue': 'slow_queue'})
+#@periodic_task(run_every=crontab(hour=4, minute=0),
+#queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
     # We first check if the project has started, we return if not
