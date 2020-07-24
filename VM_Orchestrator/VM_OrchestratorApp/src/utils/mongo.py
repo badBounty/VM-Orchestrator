@@ -297,9 +297,24 @@ def update_elasticsearch():
     resources_list = list()
     for resource in new_resources:
         #Nmap information will be uploaded by port
-        if resource['nmap_information'] is None:
+        if not resource['nmap_information']:
             #Empty list if it has no information
             resource['nmap_information'] = list()
+            resource['nmap_information'].append({
+                '@protocol': "",
+                '@portid': "",
+                'state':{
+                    '@state': "",
+                    '@reason': "",
+                    '@reason_ttl': ""
+                },
+                'service':{
+                    '@name': "",
+                    '@product': "",
+                    '@extrainfo': "",
+                    '@method': "",
+                    '@conf': ""
+                })
         for info in resource['nmap_information']:
             resources_list.append({
                 'resource_id': str(resource['_id']),
@@ -395,7 +410,7 @@ def get_vulnerabilities_for_email(scan_information):
     # In information we are going to have the scan type, if scan_type != domain, url_to_scan == domain
     return_list = list()
     if scan_information['type'] != 'domain':
-        found_vulns = vulnerabilities.find({'domain': scan_information['domain'], 'subdomain': scan_information['domain']})
+        found_vulns = vulnerabilities.find({'domain': scan_information['domain'], 'subdomain': scan_information['url_to_scan']})
     else:
         found_vulns = vulnerabilities.find({'domain': scan_information['domain']})
 
