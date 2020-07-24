@@ -386,10 +386,10 @@ def update_elasticsearch():
     # Connect to the elastic cluster
     print('Adding resources to elasticsearch')
     for resource in resources_list:
-        res = ELASTIC_CLIENT.index(index='test',doc_type='_doc',id=resource['resource_id'],body=resource)
+        res = ELASTIC_CLIENT.index(index='resources',doc_type='_doc',id=resource['resource_id'],body=resource)
     print('Adding vulnerabilities to elasticsearch')
     for vuln in vulnerabilities_list:
-        res = ELASTIC_CLIENT.index(index='test',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
+        res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
 
 
 def add_nmap_information_to_subdomain(scan_information, nmap_json):
