@@ -266,8 +266,6 @@ def add_urls_to_subdomain(subdomain, has_urls, url_list):
 
 
 def add_images_to_subdomain(subdomain, http_image, https_image):
-    ##########33
-    return
     subdomain = resources.find_one({'subdomain': subdomain})
     resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
         'http_image': http_image,
