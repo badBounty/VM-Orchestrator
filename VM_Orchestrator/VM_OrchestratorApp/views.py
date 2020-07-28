@@ -62,6 +62,7 @@ def index(request):
 def on_demand_scan(request):
     if request.method == 'POST':
         received_json_data=json.loads(request.body)
-        print(received_json_data)
+        if received_json_data['domain'] == "":
+            return JsonResponse({'ERROR': 'Please provide a domain for tracking'})
         manager.on_demand_scan(received_json_data)
     return JsonResponse({'data':'Hi'})

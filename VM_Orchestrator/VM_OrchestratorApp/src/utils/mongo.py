@@ -404,7 +404,7 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
 # TODO Temporary function for result revision
 def get_vulnerabilities_for_email(scan_information):
     return_list = list()
-    found_vulns = vulnerabilities.find({'domain': scan_information['domain'], 'resource': scan_information['target']})
+    found_vulns = vulnerabilities.find({'domain': scan_information['domain']})
     for vuln in found_vulns:
             return_list.append(vuln)
 
