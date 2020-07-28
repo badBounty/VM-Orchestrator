@@ -360,7 +360,7 @@ def update_elasticsearch():
         vulnerabilities_list.append({
                 'vulnerability_id': str(vuln['_id']),
                 'vulnerability_domain': vuln['domain'],
-                'vulnerability_subdomain': vuln['subdomain'],
+                'vulnerability_subdomain': vuln['resource'],
                 'vulnerability_vulnerability_name': vuln['vulnerability_name'],
                 'vulnerability_observation': observation_data,
                 'vulnerability_extra_info': vuln['extra_info'],
