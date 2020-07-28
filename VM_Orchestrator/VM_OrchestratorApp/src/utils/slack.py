@@ -1,6 +1,6 @@
 # pylint: disable=import-error
 from VM_Orchestrator.settings import settings
-from VM_OrchestratorApp import INTERNAL_SLACK_WEB_CLIENT, EXTERNAL_SLACK_WEB_CLIENT
+from VM_OrchestratorApp import INTERNAL_SLACK_WEB_CLIENT
 
 def send_notification_to_channel(message, channel):
     if INTERNAL_SLACK_WEB_CLIENT is not None:
@@ -51,14 +51,10 @@ def send_vuln_to_channel(vulnerability, channel):
         except Exception as e:
             print("Slack error" + str(e))
 
-def send_new_resource_found(msg):
+def send_new_resource_found(msg, channel):
+    from VM_OrchestratorApp.src.recon.initial_recon import 
     if INTERNAL_SLACK_WEB_CLIENT is not None:
         try:
-            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['INTERNAL_SLACK_CHANNEL'], text=str(msg))
-        except Exception as e:
-            print("Slack error" + str(e))
-    if EXTERNAL_SLACK_WEB_CLIENT is not None:
-        try:
-            EXTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=settings['SLACK']['EXTERNAL_SLACK_CHANNEL'], text=str(msg))
+            INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text=str(msg))
         except Exception as e:
             print("Slack error" + str(e))

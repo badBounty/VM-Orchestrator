@@ -236,7 +236,7 @@ def add_resource(url_info, scan_info):
                 'nmap_information': None
         }
         if not scan_info['is_first_run']:
-            slack.send_new_resource_found("New resource found! %s" % url_info['url'])
+            slack.send_new_resource_found("New resource found! %s" % url_info['url'], '#vm-recon-module')
         resources.insert_one(resource)
     else:
         resources.update_one({'_id': exists.get('_id')},
