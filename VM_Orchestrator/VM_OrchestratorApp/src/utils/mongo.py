@@ -203,7 +203,7 @@ def add_simple_ip_resource(scan_info):
 
 
 def add_resource(url_info, scan_info):
-    exists = resources.find_one({'domain': url_info['domain'], 'subdomain': url_info['url']})
+    exists = resources.find_one({'domain': url_info['domain'], 'subdomain': url_info['subdomain']})
     timestamp = datetime.now()
     ip = url_info['ip']
     if ip is not None:
@@ -213,7 +213,7 @@ def add_resource(url_info, scan_info):
     if not exists:
         resource ={
                 'domain': url_info['domain'],
-                'subdomain': url_info['url'],
+                'subdomain': url_info['subdomain'],
                 'is_alive': url_info['is_alive'],
                 'ip': ip,
                 'additional_info':{

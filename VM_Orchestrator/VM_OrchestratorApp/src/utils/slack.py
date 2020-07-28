@@ -52,7 +52,6 @@ def send_vuln_to_channel(vulnerability, channel):
             print("Slack error" + str(e))
 
 def send_new_resource_found(msg, channel):
-    from VM_OrchestratorApp.src.recon.initial_recon import 
     if INTERNAL_SLACK_WEB_CLIENT is not None:
         try:
             INTERNAL_SLACK_WEB_CLIENT.chat_postMessage(channel=channel, text=str(msg))
