@@ -23,7 +23,7 @@ def cleanup(path):
 
 def handle_target(info):
     info = copy.deepcopy(info)
-    print('Module CORS Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
+    print('Module CORS Scan starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -31,7 +31,7 @@ def handle_target(info):
     random_filename = uuid.uuid4().hex
     FILE_WITH_URLS = ROOT_DIR + '/tools_output/' + random_filename + '.txt'
     with open(FILE_WITH_URLS, 'w') as f:
-        for item in info['url_to_scan']:
+        for item in info['target']:
             f.write("%s\n" % item)
 
     # Call scan target with the file
@@ -45,7 +45,7 @@ def handle_target(info):
 
 def handle_single(info):
     info = copy.deepcopy(info)
-    print('Module CORS Scan starting against %s' % info['url_to_scan'])
+    print('Module CORS Scan starting against %s' % info['target'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -54,7 +54,7 @@ def handle_single(info):
     FILE_WITH_URL = ROOT_DIR + '/tools_output/' + random_filename + '.txt'
     cleanup(FILE_WITH_URL)
     with open(FILE_WITH_URL, 'w') as f:
-        f.write("%s\n" % info['url_to_scan'])
+        f.write("%s\n" % info['target'])
 
     # Call scan target
     scan_target(info, FILE_WITH_URL)
@@ -62,13 +62,13 @@ def handle_single(info):
     # Delete all created files
     cleanup(FILE_WITH_URL)
     slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-    print('Module CORS Scan finished against %s' % info['url_to_scan'])
+    print('Module CORS Scan finished against %s' % info['target'])
     return
 
 
 def add_vulnerability(scan_info, vuln):
     specific_info = copy.deepcopy(scan_info)
-    specific_info['url_to_scan'] = vuln['origin']
+    specific_info['target'] = vuln['origin']
     vulnerability = Vulnerability(constants.CORS, specific_info, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)

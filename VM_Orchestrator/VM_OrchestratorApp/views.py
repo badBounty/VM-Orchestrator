@@ -21,6 +21,43 @@ import VM_OrchestratorApp.tasks as tasks
 def index(request):
     return render(request, 'base.html')
 
+'''
+{
+    "domain": "example.com",
+    "resource": "https://example.com/",
+    "invasive_scans": false,
+    "nessus_scan": false,
+    "acunetix_scan": false,
+    "type": "url",
+    "priority": 1,
+    "exposition": 0,
+    "email": "mananderson@deloitte.com"
+}
+{
+    "domain": "example.com",
+    "resource": "127.0.0.1",
+    "invasive_scans": false,
+    "nessus_scan": false,
+    "acunetix_scan": false,
+    "type": "ip",
+    "priority": 1,
+    "exposition": 0,
+    "email": "mananderson@deloitte.com"
+}
+{
+    "domain": "example.com",
+    "resource": "",
+    "invasive_scans": false,
+    "nessus_scan": false,
+    "acunetix_scan": false,
+    "type": "domain",
+    "priority": 1,
+    "exposition": 0,
+    "email": "mananderson@deloitte.com"
+}
+'''
+
+
 @csrf_exempt
 def on_demand_scan(request):
     if request.method == 'POST':

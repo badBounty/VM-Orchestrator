@@ -30,12 +30,12 @@ def cleanup(path):
 
 def handle_target(info):
     info = copy.deepcopy(info)
-    print('Module Nmap baseline starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
+    print('Module Nmap baseline starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     scanned_hosts = list()
-    for url in info['url_to_scan']:
+    for url in info['target']:
         sub_info = copy.deepcopy(info)
-        sub_info['url_to_scan'] = url
+        sub_info['target'] = url
         try:
             host = url.split('/')[2]
         except IndexError:
@@ -50,17 +50,15 @@ def handle_target(info):
 
 def handle_single(info):
     info = copy.deepcopy(info)
-    print('Module Nmap baseline starting against %s' % info['url_to_scan'])
-    url = info['url_to_scan']
+    print('Module Nmap baseline starting against %s' % info['target'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     # We receive the url with http/https, we will get only the host so nmap works
-    try:
-        host = url.split('/')[2]
-    except IndexError:
-        host = url
+    host = info['target']
+    if info['type'] == 'url':
+        host = host.split('/')[2]
     basic_scan(info, host)
     slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-    print('Module Nmap baseline finished against %s' % info['url_to_scan'])
+    print('Module Nmap baseline finished against %s' % info['target'])
     return
 
 def add_vuln_to_mongo(scan_info, scan_type, description, img_str):

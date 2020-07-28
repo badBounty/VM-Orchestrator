@@ -104,7 +104,7 @@ def gather_data(project_dir, scan_info):
 
         url_info={
                 'domain': scan_info['domain'],
-                'url': url,
+                'subdomain': url,
                 'is_alive': is_alive_clause,
                 'ip': None,
                 'isp': None,

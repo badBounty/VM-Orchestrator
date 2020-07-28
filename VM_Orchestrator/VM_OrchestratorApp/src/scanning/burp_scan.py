@@ -40,11 +40,11 @@ stop_burp = "http://localhost:8090/burp/stop"
 def handle_target(info):
     info = copy.deepcopy(info)
     if BURP_FOLDER:
-        print('Module Burp Scan starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
+        print('Module Burp Scan starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        for url in info['url_to_scan']:
+        for url in info['target']:
             sub_info = copy.deepcopy(info)
-            sub_info['url_to_scan'] = url
+            sub_info['target'] = url
             scan_target(sub_info)
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module Burp Scan finished against %s' % info['domain'])
@@ -54,11 +54,11 @@ def handle_target(info):
 def handle_single(info):
     info = copy.deepcopy(info)
     if BURP_FOLDER:
-        print('Module Burp Scan starting against %s' % info['url_to_scan'])
+        print('Module Burp Scan starting against %s' % info['target'])
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         scan_target(info)
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        print('Module Burp Scan finished against %s' % info['url_to_scan'])
+        print('Module Burp Scan finished against %s' % info['target'])
     return
 
 
@@ -66,7 +66,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     my_dict = xmltodict.parse(file_string)
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
-    description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
+    description = 'Burp scan completed against %s' % scan_info['target'] +'\n'
     try:
         for issue in json_data['issues']['issue']:
             if issue['name'] not in BURP_BLACKLIST:
@@ -100,18 +100,18 @@ def scan_target(scan_info):
             pid = burp_process.stdout.readline().decode('utf-8').split()[3]
             header = {'accept': '*/*'}
             
-            subprocess.run(['curl', '-k', '-x', 'http://127.0.0.1:8080', '-L', scan_info['url_to_scan']],
+            subprocess.run(['curl', '-k', '-x', 'http://127.0.0.1:8080', '-L', scan_info['target']],
                         capture_output=True)
 
             # Arrancamos agregando el url al scope
-            add_to_scope_response = requests.put(add_to_scope_url % scan_info['url_to_scan'], headers=header)
+            add_to_scope_response = requests.put(add_to_scope_url % scan_info['target'], headers=header)
             if add_to_scope_response.status_code != 200:
                 return
-            query_scope_response = requests.get(query_in_scope_url % scan_info['url_to_scan'], headers=header)
+            query_scope_response = requests.get(query_in_scope_url % scan_info['target'], headers=header)
             if not query_scope_response.json()['inScope']:
                 return
 
-            spider_response = requests.post(spider_url % scan_info['url_to_scan'], headers=header)
+            spider_response = requests.post(spider_url % scan_info['target'], headers=header)
             if spider_response.status_code != 200:
                 return
             spider_status_response = requests.get(spider_status_url, headers=header)
@@ -119,7 +119,7 @@ def scan_target(scan_info):
                 spider_status_response = requests.get(spider_status_url, headers=header)
                 time.sleep(1)
 
-            passive_scan_response = requests.post(passive_scan_url % scan_info['url_to_scan'], headers=header)
+            passive_scan_response = requests.post(passive_scan_url % scan_info['target'], headers=header)
             if passive_scan_response.status_code != 200:
                 return
             scanner_status_response = requests.get(scan_status_url, headers=header)
@@ -131,7 +131,7 @@ def scan_target(scan_info):
             random_filename = uuid.uuid4().hex
             OUTPUT_DIR = ROOT_DIR + '/tools_output/' + random_filename + '.xml'
 
-            download_response = requests.get(download_report % scan_info['url_to_scan'], headers=header)
+            download_response = requests.get(download_report % scan_info['target'], headers=header)
 
             open(OUTPUT_DIR, 'wb').write(download_response.content)
             add_vulnerability(scan_info, download_response.content,OUTPUT_DIR, 'burp_result.xml')

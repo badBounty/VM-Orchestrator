@@ -166,16 +166,16 @@ def run_web_scanners(scan_information):
 
     if web_information['type'] == 'domain':
         web_information['scan_type'] = 'target'
+        web_information['target'] = web_information['domain']
         subdomains_http = mongo.get_responsive_http_resources(web_information['domain'])
         only_urls = list()
         for subdomain in subdomains_http:
-            only_urls.append(subdomain['url_with_http'])
-        web_information['url_to_scan'] = only_urls
+            only_urls.append(subdomain['url'])
+        web_information['target'] = only_urls
     # Single url case
     else:
         web_information['scan_type'] = 'single'
-        web_information['url_to_scan'] = web_information['domain']
-        web_information['domain'] = web_information['domain'].split('/')[2]
+        web_information['target'] = web_information['resource']
         mongo.add_simple_url_resource(web_information)
 
     # Chain is defined
@@ -212,15 +212,16 @@ def run_ip_scans(scan_information):
     
     if ip_information['type'] == 'domain':
         ip_information['scan_type'] = 'target'
+        ip_information['target'] = ip_information['domain']
         subdomains_plain = mongo.get_alive_subdomains_from_target(ip_information['domain'])
         only_subdomains = list()
         for subdomain in subdomains_plain:
             only_subdomains.append(subdomain['subdomain'])
-        ip_information['url_to_scan'] = only_subdomains
+        ip_information['target'] = only_subdomains
     else:
         ip_information['scan_type'] = 'single'
         if ip_information['type'] == 'ip':
-            ip_information['url_to_scan'] = ip_information['domain']
+            ip_information['target'] = ip_information['resource']
             mongo.add_simple_ip_resource(ip_information)
         else:
             #We can scan an url for IP things, we just use the hostname, resource will be added before
@@ -253,7 +254,7 @@ def on_demand_scan_finished(results, information):
         return
     from VM_OrchestratorApp.src.utils import email_handler
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'vulnerability_name', 'extra_info',
+    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'resource', 'vulnerability_name', 'extra_info',
     'date_found', 'last_seen', 'language', 'state'])
     email_handler.send_email(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
     "Orchestrator: Vulnerabilities found!")
@@ -262,7 +263,7 @@ def on_demand_scan_finished(results, information):
     except FileNotFoundError:
         print('ERROR:Output for on demand scan was not found')
         pass
-    slack.send_notification_to_channel('_ On demand scan against %s finished! _' % information['domain'], '#vm-ondemand')
+    slack.send_notification_to_channel('_ On demand scan against %s finished! _' % information['resource'], '#vm-ondemand')
     print('On demand scan finished!')
     return
 
@@ -289,7 +290,7 @@ def recon_finished(scan_information):
         return
     from VM_OrchestratorApp.src.utils import email_handler
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'is_alive', 'ip',
+    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'is_alive',
     'has_urls', 'responsive_urls', 'first_seen', 'last_seen', 'scanned', 'type', 'priority', 'exposition'])
     email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
     "Orchestrator: Resources found!")
@@ -333,7 +334,8 @@ def project_start_task():
         scan_info['type'] = data['Type']
         scan_info['priority'] = data['Priority']
         scan_info['exposition'] = data['Exposition']
-        scan_info['domain'] = data['Resource']
+        scan_info['domain'] = data['Domain']
+        scan_info['resource'] = data['Resource']
 
         if scan_info['type'] == 'domain':
             run_recon(scan_info)

@@ -11,7 +11,7 @@ vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['VULNERABILITI
 libraries_versions = MONGO_CLIENT[MONGO_INFO['DATABASE']]['libraries_versions']
 
 def add_vulnerability(vulnerability):
-    exists = vulnerabilities.find_one({'domain': vulnerability.target, 'subdomain': vulnerability.scanned_url,
+    exists = vulnerabilities.find_one({'domain': vulnerability.domain, 'resource': vulnerability.target,
                                           'vulnerability_name': vulnerability.vulnerability_name,
                                           'language': vulnerability.language})
     if exists:
@@ -23,8 +23,8 @@ def add_vulnerability(vulnerability):
         }})
     else:
         resource = {
-            'domain': vulnerability.target,
-            'subdomain': vulnerability.scanned_url,
+            'domain': vulnerability.domain,
+            'resource': vulnerability.target,
             'vulnerability_name': vulnerability.vulnerability_name,
             'observation': vulnerability.get_json_observation(),
             'extra_info': vulnerability.custom_description,
@@ -40,10 +40,10 @@ def add_vulnerability(vulnerability):
 
 
 # For flagging resources as "scanned"
-def add_scanned_resources(urls):
-    if urls['type'] == 'domain':
-        for url in urls['url_to_scan']:
-            resource = resources.find_one({'domain': urls['domain'], 'subdomain': url, 'scanned': False, 'type': urls['type']})
+def add_scanned_resources(scan_information_received):
+    if scan_information_received['type'] == 'domain':
+        for url in scan_information_received['url_to_scan']:
+            resource = resources.find_one({'domain': scan_information_received['domain'], 'subdomain': url, 'scanned': False, 'type': scan_information_received['type']})
             if resource is not None:
                 resources.update_one({'_id': resource.get('_id')},
                 {'$set': 
@@ -51,7 +51,12 @@ def add_scanned_resources(urls):
                     'scanned': True
                     }})
     else:
-        resource = resources.find_one({'domain': urls['domain'], 'subdomain': urls['url_to_scan'], 'scanned': False, 'type': urls['type']})
+        if scan_information_received['type'] == 'url':
+            #Url case, we search for url from mongo
+            resource = resources.find_one({'domain': scan_information_received['domain'], 'url': scan_information_received['target'], 'scanned': False, 'type': scan_information_received['type']})
+        else:
+            #IP case, we will search for ip here instead of url
+            resource = resources.find_one({'domain': scan_information_received['domain'], 'ip': scan_information_received['target'], 'scanned': False, 'type': scan_information_received['type']})
         if resource is not None:
             resources.update_one({'_id': resource.get('_id')},
             {'$set': 
@@ -73,13 +78,13 @@ def get_responsive_http_resources(target):
     subdomains = resources.find({'domain': target, 'has_urls': 'True', 'scanned': False})
     subdomain_list = list()
     for subdomain in subdomains:
-        for url_with_http in subdomain['responsive_urls'].split(';'):
+        for url_with_http in subdomain['url'].split(';'):
             if url_with_http:
                 current_subdomain = {
                     'domain': subdomain['domain'],
                     'ip': subdomain['ip'],
                     'subdomain': subdomain['subdomain'],
-                    'url_with_http': url_with_http
+                    'url': subdomain['url']
                 }
                 subdomain_list.append(current_subdomain)
     return subdomain_list
@@ -101,6 +106,12 @@ def get_data_for_monitor():
     all_data = resources.find({})
     information = list()
     for data in all_data:
+        if data['type'] == 'url':
+            resource = data['url']
+        elif data['type'] == 'ip':
+            resource = data['ip']
+        else:
+            resource = data['domain']
         information.append({
             'is_first_run': False,
             'invasive_scans': False,
@@ -109,7 +120,7 @@ def get_data_for_monitor():
             'priority': data['priority'],
             'exposition': data['exposition'],
             'domain': data['domain'],
-            'url_to_scan': data['subdomain']
+            'resource': resource
         })
     information = [dict(t) for t in {tuple(d.items()) for d in information}]
 
@@ -117,14 +128,15 @@ def get_data_for_monitor():
 
 # ------------------- RECON -------------------
 def add_simple_url_resource(scan_info):
-    exists = resources.find_one({'domain': scan_info['domain'], 'subdomain': scan_info['url_to_scan']})
+    exists = resources.find_one({'domain': scan_info['domain'], 'url': scan_info['resource']})
     timestamp = datetime.now()
     if not exists:
         resource ={
                 'domain': scan_info['domain'],
-                'subdomain': scan_info['url_to_scan'],
-                'is_alive': True,
+                'subdomain': None,
+                'url': scan_info['resource'],
                 'ip': None,
+                'is_alive': True,
                 'additional_info':{
                     'isp': None,
                     'asn': None,
@@ -153,14 +165,15 @@ def add_simple_url_resource(scan_info):
             }})
 
 def add_simple_ip_resource(scan_info):
-    exists = resources.find_one({'domain': scan_info['domain'], 'subdomain': scan_info['url_to_scan']})
+    exists = resources.find_one({'domain': scan_info['domain'], 'ip': scan_info['resource']})
     timestamp = datetime.now()
     if not exists:
         resource ={
                 'domain': scan_info['domain'],
-                'subdomain': scan_info['domain'],
+                'subdomain': None,
+                'url': None,
+                'ip': scan_info['resource'],
                 'is_alive': True,
-                'ip': scan_info['domain'],
                 'additional_info':{
                     'isp': None,
                     'asn': None,
@@ -260,7 +273,7 @@ def add_urls_to_subdomain(subdomain, has_urls, url_list):
     subdomain = resources.find_one({'subdomain': subdomain})
     resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
         'has_urls': str(has_urls),
-        'responsive_urls': url_list}})
+        'url': url_list}})
 
     return
 
@@ -298,8 +311,8 @@ def update_elasticsearch():
             'resource_id': str(resource['_id']),
             'resource_domain': resource['domain'],
             'resource_subdomain': resource['subdomain'],
-            'resource_is_alive': bool(resource['is_alive']),
             'resource_ip': resource['ip'],
+            'resource_is_alive': bool(resource['is_alive']),
             'resource_additional_info':{
                 'resource_isp': resource['additional_info']['isp'],
                 'resource_asn': resource['additional_info']['asn'],
@@ -316,7 +329,7 @@ def update_elasticsearch():
             'resource_priority': resource['priority'],
             'resource_exposition': resource['exposition'],
             'resource_has_urls': resource['has_urls'],
-            'resource_responsive_urls': resource['responsive_urls'],
+            'resource_responsive_urls': resource['url'],
             'resource_nmap_information': resource['nmap_information']
         })
 
@@ -371,11 +384,10 @@ def update_elasticsearch():
 
 
 def add_nmap_information_to_subdomain(scan_information, nmap_json):
-    try:
-        domain = scan_information.split('/')[2]
-    except IndexError:
-        domain = scan_information['domain']
-    resource = resources.find_one({'domain': domain, 'subdomain': scan_information['url_to_scan']})
+    if scan_information['type'] == 'ip':
+        resource = resources.find_one({'domain': scan_information['domain'], 'ip': scan_information['target']})
+    else:
+        resource = resources.find_one({'domain': scan_information['domain'], 'subdomain': scan_information['target']})
     if not resource:
         print('ERROR adding nmap information to resource, resource not found')
         return
@@ -391,15 +403,7 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
 def get_vulnerabilities_for_email(scan_information):
     # In information we are going to have the scan type, if scan_type != domain, url_to_scan == domain
     return_list = list()
-    if scan_information['type'] != 'domain':
-        try:
-            subdomain = scan_information['domain'].split('/')[2]
-        except IndexError:
-            subdomain = scan_information['domain']
-        found_vulns = vulnerabilities.find({'domain': scan_information['domain'], 'subdomain': subdomain})
-    else:
-        found_vulns = vulnerabilities.find({'domain': scan_information['domain']})
-
+    found_vulns = vulnerabilities.find({'domain': scan_information['domain'], 'resource': scan_information['target']})
     for vuln in found_vulns:
             return_list.append(vuln)
 

@@ -25,12 +25,12 @@ def cleanup(path):
 def handle_target(info):
     info = copy.deepcopy(info)
     if FFUF_LIST:
-        print('Module ffuf starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
+        print('Module ffuf starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        for url in info['url_to_scan']:
+        for url in info['target']:
             sub_info = copy.deepcopy(info)
-            sub_info['url_to_scan'] = url
-            scan_target(sub_info, sub_info['url_to_scan'])
+            sub_info['target'] = url
+            scan_target(sub_info, sub_info['target'])
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module ffuf finished from %s' % info['domain'])
     return
@@ -39,11 +39,11 @@ def handle_target(info):
 def handle_single(info):
     info = copy.deepcopy(info)
     if FFUF_LIST:
-        print('Module ffuf starting against %s' % info['url_to_scan'])
+        print('Module ffuf starting against %s' % info['target'])
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        scan_target(info, info['url_to_scan'])
+        scan_target(info, info['target'])
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        print('Module ffuf finished against %s' % info['url_to_scan'])
+        print('Module ffuf finished against %s' % info['target'])
     return
 
 

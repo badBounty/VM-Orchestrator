@@ -17,12 +17,12 @@ SLACK_NOTIFICATION_CHANNEL = '#vm-ssl-tls'
 
 def handle_target(info):
     info = copy.deepcopy(info)
-    print('Module SSL/TLS starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
+    print('Module SSL/TLS starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     valid_ports = ['443']
-    for url in info['url_to_scan']:
+    for url in info['target']:
         sub_info = copy.deepcopy(info)
-        sub_info['url_to_scan'] = url
+        sub_info['target'] = url
 
         split_url = url.split('/')
         try:
@@ -39,7 +39,7 @@ def handle_target(info):
 def handle_single(info):
     info = copy.deepcopy(info)
     # Url will come with http or https, we will strip and append ports that could have tls/ssl
-    url = info['url_to_scan']
+    url = info['target']
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     valid_ports = ['443']
     split_url = url.split('/')
@@ -47,11 +47,11 @@ def handle_single(info):
         final_url = split_url[2]
     except IndexError:
         final_url = url
-    print('Module SSL/TLS starting against %s' % info['url_to_scan'])
+    print('Module SSL/TLS starting against %s' % info['target'])
     for port in valid_ports:
         scan_target(info, url, final_url+':'+port)
     slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-    print('Module SSL/TLS finished against %s' % info['url_to_scan'])
+    print('Module SSL/TLS finished against %s' % info['target'])
     return
 
 

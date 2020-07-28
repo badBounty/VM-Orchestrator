@@ -39,8 +39,8 @@ def create_new_issue(vulnerability):
     # [1]: Resource
     # [2]: Sub_resource
     # [3]: Date
-    issue.custom_fields= [{'id': 1, 'value': vulnerability.target},
-     {'id': 2, 'value': vulnerability.scanned_url},
+    issue.custom_fields= [{'id': 1, 'value': vulnerability.domain},
+     {'id': 2, 'value': vulnerability.target},
     {'id':3, 'value': str(vulnerability.time.strftime("%Y-%m-%d"))}]
     if vulnerability.attachment_path is not None:
         issue.uploads = [{'path': vulnerability.attachment_path,

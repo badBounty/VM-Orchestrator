@@ -62,12 +62,12 @@ def remove_duplicates_if_exists(url_list):
 def handle_target(info):
     info_copy = copy.deepcopy(info)
     if info_copy['acunetix_scan'] and acunetix:
-        print('Module Acunetix Scan starting against %s alive urls from %s' % (str(len(info_copy['url_to_scan'])), info_copy['domain']))
+        print('Module Acunetix Scan starting against %s alive urls from %s' % (str(len(info_copy['target'])), info_copy['domain']))
         slack.send_module_start_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         #We can have repeated urls differenced by http o https so we get only one (The https one's)
-        full_list = remove_duplicates_if_exists(sorted(info_copy['url_to_scan'],reverse=True))
+        full_list = remove_duplicates_if_exists(sorted(info_copy['target'],reverse=True))
         info_for_scan = copy.deepcopy(info_copy)
-        info_for_scan['url_to_scan'] = full_list
+        info_for_scan['target'] = full_list
         scan_target(info_for_scan)
         slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module Acunetix Scan Finished against %s alive urls from %s' % (str(len(full_list)), info_copy['domain']))
@@ -76,14 +76,14 @@ def handle_target(info):
 
 def handle_single(info):
     info_copy = copy.deepcopy(info)
-    if info_copy['acunetix_scan'] and acunetix and is_url(info_copy['url_to_scan']):
-        print('Module Acunetix Single Scan Starting against %s' % info_copy['domain'])
+    if info_copy['acunetix_scan'] and acunetix and is_url(info_copy['target']):
+        print('Module Acunetix Single Scan Starting against %s' % info_copy['target'])
         slack.send_module_start_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        urls = [info_copy['url_to_scan']]
-        info_copy['url_to_scan'] = urls
+        urls = [info_copy['target']]
+        info_copy['target'] = urls
         scan_target(info_copy)
         slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        print('Module Acunetix Single Scan Finished against %s' % info_copy['url_to_scan'])
+        print('Module Acunetix Single Scan Finished against %s' % info_copy['target'])
     return
 
 def add_vulnerability(scan_info,scan_id,vulns):
@@ -113,7 +113,7 @@ def add_vulnerability(scan_info,scan_id,vulns):
 
 def start_acu_scan(scan_info,headers,session):
     id_list = list()
-    for url in scan_info['url_to_scan']:        
+    for url in scan_info['target']:        
         target_json = {'address':url,
                         'description':'Created by orchestrator'
             }
@@ -208,10 +208,10 @@ def scan_target(scan_info):
     while wait_until_its_free:
         is_possible,scans_number = check_if_scan_is_possible(headers,session)
         if is_possible:
-            for i in range(0,len(scan_info['url_to_scan']),scans_number):
-                url_to_scan = scan_info['url_to_scan'][i:i+scans_number]
+            for i in range(0,len(scan_info['target']),scans_number):
+                url_to_scan = scan_info['target'][i:i+scans_number]
                 info_for_scan = copy.deepcopy(scan_info)
-                info_for_scan['url_to_scan'] = url_to_scan
+                info_for_scan['target'] = url_to_scan
                 id_list = start_acu_scan(scan_info,headers,session)                
                 check_acu_status_and_create_vuln(scan_info, id_list,headers,session)
             wait_until_its_free = False

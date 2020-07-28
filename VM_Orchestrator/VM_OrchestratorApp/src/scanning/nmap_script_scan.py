@@ -30,12 +30,12 @@ def cleanup(path):
 
 def handle_target(info):
     info = copy.deepcopy(info)
-    print('Module Nmap scripts starting against %s alive urls from %s' % (str(len(info['url_to_scan'])), info['domain']))
+    print('Module Nmap scripts starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     scanned_hosts = list()
-    for url in info['url_to_scan']:
+    for url in info['target']:
         sub_info = copy.deepcopy(info)
-        sub_info['url_to_scan'] = url
+        sub_info['target'] = url
         try:
             host = url.split('/')[2]
         except IndexError:
@@ -58,14 +58,12 @@ def handle_target(info):
 
 def handle_single(info):
     info = copy.deepcopy(info)
-    print('Module Nmap Scripts starting against %s' % info['url_to_scan'])
-    url = info['url_to_scan']
+    print('Module Nmap Scripts starting against %s' % info['target'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     # We receive the url with http/https, we will get only the host so nmap works
-    try:
-        host = url.split('/')[2]
-    except IndexError:
-        host = url
+    host = info['target']
+    if info['type'] == 'url':
+        host = host.split('/')[2]
     outdated_software(info, host)
     web_versions(info, host)
     if info['invasive_scans']:
@@ -76,7 +74,7 @@ def handle_single(info):
             ftp_anon_login(info, host)#FTP ANON
         default_account(info,host)#Default creds in web console
     slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-    print('Module Nmap Scripts finished against %s' % info['url_to_scan'])
+    print('Module Nmap Scripts finished against %s' % info['target'])
     return
 
 
