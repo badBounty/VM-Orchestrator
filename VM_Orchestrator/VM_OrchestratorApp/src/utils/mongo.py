@@ -393,7 +393,7 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
     if not resource:
         print('ERROR adding nmap information to resource, resource not found')
         return
-    resource.update_one({'_id': resource.get('_id')},
+    resources.update_one({'_id': resource.get('_id')},
          {'$set': 
             {
                 'nmap_information': nmap_json
