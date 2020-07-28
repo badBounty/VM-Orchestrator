@@ -153,7 +153,6 @@ def add_simple_url_resource(scan_info):
                 'priority': scan_info['priority'],
                 'exposition': scan_info['exposition'],
                 'has_urls': False,
-                'responsive_urls': '',
                 'nmap_information': None
         }
         resources.insert_one(resource)
@@ -190,7 +189,6 @@ def add_simple_ip_resource(scan_info):
                 'priority': scan_info['priority'],
                 'exposition': scan_info['exposition'],
                 'has_urls': False,
-                'responsive_urls': '',
                 'nmap_information': None
         }
         resources.insert_one(resource)
@@ -214,8 +212,9 @@ def add_resource(url_info, scan_info):
         resource ={
                 'domain': url_info['domain'],
                 'subdomain': url_info['subdomain'],
-                'is_alive': url_info['is_alive'],
+                'url': '',
                 'ip': ip,
+                'is_alive': url_info['is_alive'],
                 'additional_info':{
                     'isp': url_info['isp'],
                     'asn': url_info['asn'],
@@ -232,7 +231,6 @@ def add_resource(url_info, scan_info):
                 'priority': scan_info['priority'],
                 'exposition': scan_info['exposition'],
                 'has_urls': False,
-                'responsive_urls': '',
                 'nmap_information': None
         }
         if not scan_info['is_first_run']:
