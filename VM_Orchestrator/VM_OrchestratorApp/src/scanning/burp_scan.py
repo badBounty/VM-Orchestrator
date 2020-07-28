@@ -39,7 +39,7 @@ stop_burp = "http://localhost:8090/burp/stop"
 
 def handle_target(info):
     info = copy.deepcopy(info)
-    if BURP_FOLDER:
+    if BURP_FOLDER and info['burp_scan']:
         print('Module Burp Scan starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         for url in info['target']:
@@ -53,7 +53,7 @@ def handle_target(info):
 
 def handle_single(info):
     info = copy.deepcopy(info)
-    if BURP_FOLDER:
+    if BURP_FOLDER and info['burp_scan']:
         print('Module Burp Scan starting against %s' % info['target'])
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         scan_target(info)
