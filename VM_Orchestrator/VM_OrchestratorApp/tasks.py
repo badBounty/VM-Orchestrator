@@ -291,7 +291,7 @@ def recon_finished(scan_information):
     from VM_OrchestratorApp.src.utils import email_handler
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'is_alive',
-    'has_urls', 'responsive_urls', 'first_seen', 'last_seen', 'scanned', 'type', 'priority', 'exposition'])
+    'has_urls', 'first_seen', 'last_seen', 'scanned', 'type', 'priority', 'exposition'])
     email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
     "Orchestrator: Resources found!")
     try:
