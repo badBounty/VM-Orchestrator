@@ -225,7 +225,7 @@ def run_ip_scans(scan_information):
             mongo.add_simple_ip_resource(ip_information)
         else:
             #We can scan an url for IP things, we just use the hostname, resource will be added before
-            ip_information['url_to_scan'] = ip_information['domain']
+            ip_information['target'] = ip_information['resource']
 
     # We will flag the resource as scanned here, mainly because all alive resources will reach this point
     execution_chord = chord(
@@ -367,8 +367,8 @@ def project_monitor_task():
     for data in monitor_data:
         scan_info = data
         scan_info['email'] = None
-        scan_info['nessus_scan'] = False
-        scan_info['acunetix_scan'] = False
+        scan_info['nessus_scan'] = True
+        scan_info['acunetix_scan'] = True
         slack.send_notification_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
             run_recon(scan_info)
@@ -377,8 +377,6 @@ def project_monitor_task():
         elif scan_info['type'] == 'ip':
             run_ip_scans(scan_info)
         elif scan_info['type'] == 'url':
-            #TODO This will be fixed with the name rework
-            scan_info['domain'] = scan_info['url_to_scan']
             run_web_scanners(scan_info)
             run_ip_scans(scan_info)
     

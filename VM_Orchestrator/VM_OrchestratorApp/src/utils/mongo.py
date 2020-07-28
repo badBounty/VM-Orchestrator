@@ -42,7 +42,7 @@ def add_vulnerability(vulnerability):
 # For flagging resources as "scanned"
 def add_scanned_resources(scan_information_received):
     if scan_information_received['type'] == 'domain':
-        for url in scan_information_received['url_to_scan']:
+        for url in scan_information_received['target']:
             resource = resources.find_one({'domain': scan_information_received['domain'], 'subdomain': url, 'scanned': False, 'type': scan_information_received['type']})
             if resource is not None:
                 resources.update_one({'_id': resource.get('_id')},
@@ -386,6 +386,8 @@ def update_elasticsearch():
 def add_nmap_information_to_subdomain(scan_information, nmap_json):
     if scan_information['type'] == 'ip':
         resource = resources.find_one({'domain': scan_information['domain'], 'ip': scan_information['target']})
+    elif scan_information['type'] == 'url':
+        resource = resources.find_one({'domain': scan_information['domain'], 'url': scan_information['target']})
     else:
         resource = resources.find_one({'domain': scan_information['domain'], 'subdomain': scan_information['target']})
     if not resource:
@@ -401,7 +403,6 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
 
 # TODO Temporary function for result revision
 def get_vulnerabilities_for_email(scan_information):
-    # In information we are going to have the scan type, if scan_type != domain, url_to_scan == domain
     return_list = list()
     found_vulns = vulnerabilities.find({'domain': scan_information['domain'], 'resource': scan_information['target']})
     for vuln in found_vulns:

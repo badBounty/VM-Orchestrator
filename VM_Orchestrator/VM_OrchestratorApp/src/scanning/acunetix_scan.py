@@ -88,7 +88,7 @@ def handle_single(info):
 
 def add_vulnerability(scan_info,scan_id,vulns):
     info = copy.deepcopy(scan_info)
-    info['url_to_scan'] = scan_id[1]
+    info['target'] = scan_id[1]
     default_dict = defaultdict(list)
     default_dict_extra = defaultdict(list)
     for vul in vulns:
@@ -104,7 +104,7 @@ def add_vulnerability(scan_info,scan_id,vulns):
             affected_urls = ('\n'.join(res['resourceAf'])+'\n'+''.join(res['request_info']))
             name = copy.deepcopy(constants.ACUNETIX_SCAN)
             name['english_name'] = name['english_name'] + res['title']
-            description = 'Acunetix scan completed against %s' % info['url_to_scan'] +'\n Affecteds URLS>'
+            description = 'Acunetix scan completed against %s' % info['target'] +'\n Affecteds URLS>'
             vulnerability = Vulnerability(name, info, description+affected_urls)
             slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
             redmine.create_new_issue(vulnerability)

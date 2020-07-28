@@ -12,7 +12,7 @@ def send_notification_to_channel(message, channel):
 def send_module_start_notification_to_channel(scan_info, module_name, channel):
     if scan_info['scan_type'] == 'target':
         message = "_ %s started against target: %s. %d alive resources found _" \
-        % (module_name, scan_info['domain'], len(scan_info['url_to_scan']))
+        % (module_name, scan_info['domain'], len(scan_info['target']))
     else:
         message = "_ %s started against %s _" % (module_name, scan_info['domain'])
 
