@@ -267,6 +267,23 @@ def get_alive_subdomains_from_target(target):
         subdomain_list.append(current_subdomain)
     return subdomain_list
 
+def get_nmap_web_interfaces(scan_info):
+    resource = resources.find_one({'domain': scan_info['domain'], 'ip': scan_info['resource'], 'type': scan_info['type']})
+    to_send = list()
+    if type(resource['nmap_information']) != list:
+        if resource['nmap_information']['@portid'] == 80:
+            to_send.append('http://'+scan_info['resource'])
+        if resource['nmap_information']['@portid'] == 443:
+            to_send.append('https://'+scan_info['resource'])
+        return to_send
+    else:
+        for information in resource['nmap_information']:
+            if information['@portid'] == 80:
+                to_send.append('http://'+scan_info['resource'])
+            if information['@portid'] == 443:
+                to_send.append('https://'+scan_info['resource'])
+    return to_send
+
 def add_urls_to_subdomain(subdomain, has_urls, url_list):
     subdomain = resources.find_one({'subdomain': subdomain})
     resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
@@ -275,12 +292,28 @@ def add_urls_to_subdomain(subdomain, has_urls, url_list):
 
     return
 
-
 def add_images_to_subdomain(subdomain, http_image, https_image):
     subdomain = resources.find_one({'subdomain': subdomain})
     resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
         'http_image': http_image,
         'https_image': https_image}})
+    return
+
+def add_nmap_information_to_subdomain(scan_information, nmap_json):
+    if scan_information['type'] == 'ip':
+        resource = resources.find_one({'domain': scan_information['domain'], 'ip': scan_information['target']})
+    elif scan_information['type'] == 'url':
+        resource = resources.find_one({'domain': scan_information['domain'], 'url': scan_information['target']})
+    else:
+        resource = resources.find_one({'domain': scan_information['domain'], 'subdomain': scan_information['target']})
+    if not resource:
+        print('ERROR adding nmap information to resource, resource not found')
+        return
+    resources.update_one({'_id': resource.get('_id')},
+         {'$set': 
+            {
+                'nmap_information': nmap_json
+            }})
     return
 
 def update_issue_if_needed(redmine_issue):
@@ -300,6 +333,7 @@ def update_issue_if_needed(redmine_issue):
             'state': 'rejected' 
         }})
     return
+
 
 def update_elasticsearch():
     new_resources = resources.find()
@@ -381,22 +415,6 @@ def update_elasticsearch():
         res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
 
 
-def add_nmap_information_to_subdomain(scan_information, nmap_json):
-    if scan_information['type'] == 'ip':
-        resource = resources.find_one({'domain': scan_information['domain'], 'ip': scan_information['target']})
-    elif scan_information['type'] == 'url':
-        resource = resources.find_one({'domain': scan_information['domain'], 'url': scan_information['target']})
-    else:
-        resource = resources.find_one({'domain': scan_information['domain'], 'subdomain': scan_information['target']})
-    if not resource:
-        print('ERROR adding nmap information to resource, resource not found')
-        return
-    resources.update_one({'_id': resource.get('_id')},
-         {'$set': 
-            {
-                'nmap_information': nmap_json
-            }})
-    return
     
 
 # TODO Temporary function for result revision

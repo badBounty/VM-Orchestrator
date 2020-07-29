@@ -149,6 +149,19 @@ def acunetix_scan_task(scan_information):
     elif scan_information['scan_type'] == 'target':
         acunetix_scan.handle_target(scan_information)
 
+@shared_task
+def web_scan_from_nmap_results(scan_information):
+    if scan_information['scan_type'] == 'single' and scan_information['type'] == 'ip':
+        resources = mongo.get_nmap_web_interfaces(scan_information)
+        for resource in resources:
+            new_scan_info = copy.deepcopy(scan_information)
+            new_scan_info['type'] = 'url'
+            new_scan_info['resource'] = resource
+            print('FOUND WEB ON IP, STARTING WEB SCANS!!!!!!!!!!!!!!!!!!!!')
+            run_web_scanners(new_scan_info)
+            pass
+
+
 # ------ PREDEFINED TASKS ------ #
 @shared_task
 def run_recon(scan_information):
@@ -235,7 +248,7 @@ def run_ip_scans(scan_information):
             nessus_scan_task.s(ip_information).set(queue='slow_queue'),
             add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
-        body=ip_security_scan_finished.s().set(queue='fast_queue'),
+        body=ip_security_scan_finished.s(ip_information).set(queue='fast_queue'),
         immutable=True)
     execution_chord.apply_async(queue='fast_queue', interval=60)
     return
@@ -273,7 +286,8 @@ def web_security_scan_finished(results):
     return
 
 @shared_task
-def ip_security_scan_finished(results):
+def ip_security_scan_finished(results, info):
+    web_scan_from_nmap_results(info)
     print('IP security scan finished!')
     return
 
