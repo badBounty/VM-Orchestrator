@@ -269,6 +269,7 @@ def get_alive_subdomains_from_target(target):
 
 def get_nmap_web_interfaces(scan_info):
     resource = resources.find_one({'domain': scan_info['domain'], 'ip': scan_info['resource'], 'type': scan_info['type']})
+    print(resource)
     to_send = list()
     if type(resource['nmap_information']) != list:
         if resource['nmap_information']['@portid'] == 80:

@@ -155,7 +155,6 @@ def web_scan_from_nmap_results(scan_information):
         resources = mongo.get_nmap_web_interfaces(scan_information)
         print(resources)
         for resource in resources:
-            print(resource)
             new_scan_info = copy.deepcopy(scan_information)
             new_scan_info['type'] = 'url'
             new_scan_info['resource'] = resource
