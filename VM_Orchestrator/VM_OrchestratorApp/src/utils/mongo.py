@@ -272,16 +272,16 @@ def get_nmap_web_interfaces(scan_info):
     print(resource)
     to_send = list()
     if type(resource['nmap_information']) != list:
-        if resource['nmap_information']['@portid'] == 80:
+        if resource['nmap_information']['@portid'] == '80':
             to_send.append('http://'+scan_info['resource'])
-        if resource['nmap_information']['@portid'] == 443:
+        if resource['nmap_information']['@portid'] == '443':
             to_send.append('https://'+scan_info['resource'])
         return to_send
     else:
         for information in resource['nmap_information']:
-            if information['@portid'] == 80:
+            if information['@portid'] == '80':
                 to_send.append('http://'+scan_info['resource'])
-            if information['@portid'] == 443:
+            if information['@portid'] == '443':
                 to_send.append('https://'+scan_info['resource'])
     return to_send
 
