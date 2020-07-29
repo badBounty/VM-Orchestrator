@@ -153,12 +153,10 @@ def acunetix_scan_task(scan_information):
 def web_scan_from_nmap_results(scan_information):
     if scan_information['scan_type'] == 'single' and scan_information['type'] == 'ip':
         resources = mongo.get_nmap_web_interfaces(scan_information)
-        print(resources)
         for resource in resources:
             new_scan_info = copy.deepcopy(scan_information)
             new_scan_info['type'] = 'url'
             new_scan_info['resource'] = resource
-            print('FOUND WEB ON IP, STARTING WEB SCANS!!!!!!!!!!!!!!!!!!!!')
             run_web_scanners(new_scan_info)
             pass
 
