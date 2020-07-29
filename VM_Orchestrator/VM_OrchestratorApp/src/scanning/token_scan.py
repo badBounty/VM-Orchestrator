@@ -57,17 +57,34 @@ def scan_target(scan_info, url_for_scanning):
         scan_for_tokens(scan_info, url_for_scanning, javascript)
     return
 
-
-def scan_for_tokens(scan_info, scanned_url, javascript):
+def get_response(url):
     try:
-        response = requests.get(javascript, verify=False, timeout=3)
+        response = requests.get(url, verify=False, timeout=3)
+    except requests.exceptions.SSLError:
+        slack.send_error_to_channel('Url %s raised SSL Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ConnectionError:
+        slack.send_error_to_channel('Url %s raised Connection Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ReadTimeout:
+        slack.send_error_to_channel('Url %s raised Read Timeout' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.TooManyRedirects:
+        slack.send_error_to_channel('Url %s raised Too Many Redirects' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
     except Exception:
         error_string = traceback.format_exc()
-        slack.send_error_to_channel(error_string, SLACK_NOTIFICATION_CHANNEL)
+        final_error = 'On {0}, was Found: {1}'.format(url,error_string)
+        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    return response
+
+def scan_for_tokens(scan_info, scanned_url, javascript):
+    response = get_response(javascript)
+    if response is None:
         return
 
     # We now scan the javascript file for tokens
-
     tokens_found = list()
 
     # Generic tokens

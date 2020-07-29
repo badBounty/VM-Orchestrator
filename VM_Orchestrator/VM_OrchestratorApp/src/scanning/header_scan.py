@@ -55,6 +55,27 @@ def check_header_value(header_to_scan, value_received):
 
     return True
 
+def get_response(url):
+    try:
+        response = requests.get(url, verify=False, timeout=3)
+    except requests.exceptions.SSLError:
+        slack.send_error_to_channel('Url %s raised SSL Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ConnectionError:
+        slack.send_error_to_channel('Url %s raised Connection Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ReadTimeout:
+        slack.send_error_to_channel('Url %s raised Read Timeout' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.TooManyRedirects:
+        slack.send_error_to_channel('Url %s raised Too Many Redirects' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except Exception:
+        error_string = traceback.format_exc()
+        final_error = 'On {0}, was Found: {1}'.format(url,error_string)
+        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    return response
 
 def add_header_value_vulnerability(scan_info, img_string, description):
     vulnerability = Vulnerability(constants.INVALID_VALUE_ON_HEADER, scan_info, description)
@@ -93,20 +114,14 @@ def add_header_missing_vulnerability(scan_info, img_string, description):
 
 
 def scan_target(scan_info, url_to_scan):
-    try:
-        response = requests.get(url_to_scan)
-        message = 'Response Headers From: ' + url_to_scan+'\n'
-        for h in response.headers:
-            message += h + " : " + response.headers[h]+'\n'
-        img_b64 = image_creator.create_image_from_string(message)
-    except requests.exceptions.SSLError:
+    response = get_response(url_to_scan)
+    if response is None:
         return
-    except requests.exceptions.ConnectionError:
-        return
-    except Exception:
-        error_string = traceback.format_exc()
-        final_error = 'On {0}, was Found: {1}'.format(url_to_scan,error_string)
-        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+    response = requests.get(url_to_scan)
+    message = 'Response Headers From: ' + url_to_scan+'\n'
+    for h in response.headers:
+        message += h + " : " + response.headers[h]+'\n'
+    img_b64 = image_creator.create_image_from_string(message)
 
     important_headers = ['Content-Security-Policy', 'X-XSS-Protection', 'x-frame-options', 'X-Content-Type-options',
                          'Strict-Transport-Security', 'Access-Control-Allow-Origin']

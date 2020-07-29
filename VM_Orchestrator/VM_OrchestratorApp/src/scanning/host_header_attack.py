@@ -46,21 +46,31 @@ def add_vulnerability_to_mongo(scan_info):
     mongo.add_vulnerability(vulnerability)
     return
 
-
-def scan_target(scan_info, url_to_scan):
+def get_response(url):
     try:
-        # Sends the request to test if it's vulnerable to a Host Header Attack
-        response = requests.get(url_to_scan, verify=False, headers={'Host': 'test.com'}, timeout=3)
-    except requests.exceptions.ReadTimeout:
-        return
+        response = requests.get(url, verify=False, timeout=3, headers={'Host': 'test.com'})
+    except requests.exceptions.SSLError:
+        slack.send_error_to_channel('Url %s raised SSL Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
     except requests.exceptions.ConnectionError:
-        return
+        slack.send_error_to_channel('Url %s raised Connection Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ReadTimeout:
+        slack.send_error_to_channel('Url %s raised Read Timeout' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
     except requests.exceptions.TooManyRedirects:
-        return
+        slack.send_error_to_channel('Url %s raised Too Many Redirects' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
     except Exception:
         error_string = traceback.format_exc()
-        final_error = 'On {0}, was Found: {1}'.format(url_to_scan,error_string)
+        final_error = 'On {0}, was Found: {1}'.format(url,error_string)
         slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    return response
+
+def scan_target(scan_info, url_to_scan):
+    response = get_response(url_to_scan)
+    if response is None:
         return
 
     host_header_attack = 0

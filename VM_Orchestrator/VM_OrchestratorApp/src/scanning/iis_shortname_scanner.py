@@ -39,16 +39,31 @@ def handle_single(info):
     print('Module IIS Shortname finished against %s' % info['target'])
     return
 
-
-def scan_target(scan_info, url_to_scan):
+def get_response(url):
     try:
-        resp = requests.get(url_to_scan)
+        response = requests.get(url, verify=False, timeout=3)
     except requests.exceptions.SSLError:
-        return
+        slack.send_error_to_channel('Url %s raised SSL Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ConnectionError:
+        slack.send_error_to_channel('Url %s raised Connection Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ReadTimeout:
+        slack.send_error_to_channel('Url %s raised Read Timeout' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.TooManyRedirects:
+        slack.send_error_to_channel('Url %s raised Too Many Redirects' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
     except Exception:
         error_string = traceback.format_exc()
-        final_error = 'On {0}, was Found: {1}'.format(url_to_scan,error_string)
+        final_error = 'On {0}, was Found: {1}'.format(url,error_string)
         slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    return response
+
+def scan_target(scan_info, url_to_scan):
+    resp = get_response(url_to_scan)
+    if resp is None:
         return
     try:
         if 'IIS' in resp.headers['Server']:

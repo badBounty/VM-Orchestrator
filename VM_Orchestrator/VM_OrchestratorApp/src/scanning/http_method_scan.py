@@ -5,6 +5,7 @@ from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 
 import requests
 import copy
+import traceback
 
 MODULE_NAME = 'HTTP method module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-http-methods'
@@ -31,6 +32,67 @@ def handle_single(info):
     print('Module HTTP Method Scan finished against %s' % info['target'])
     return
 
+def put_response(url):
+    try:
+        response = requests.put(url, verify=False, timeout=3, data={'key': 'value'})
+    except requests.exceptions.SSLError:
+        slack.send_error_to_channel('Url %s raised SSL Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ConnectionError:
+        slack.send_error_to_channel('Url %s raised Connection Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ReadTimeout:
+        slack.send_error_to_channel('Url %s raised Read Timeout' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.TooManyRedirects:
+        slack.send_error_to_channel('Url %s raised Too Many Redirects' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except Exception:
+        error_string = traceback.format_exc()
+        final_error = 'On {0}, was Found: {1}'.format(url,error_string)
+        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    return response
+
+def options_response(url):
+    try:
+        response = requests.options(url, verify=False, timeout=3, data={'key': 'value'})
+    except requests.exceptions.SSLError:
+        slack.send_error_to_channel('Url %s raised SSL Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ConnectionError:
+        slack.send_error_to_channel('Url %s raised Connection Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ReadTimeout:
+        slack.send_error_to_channel('Url %s raised Read Timeout' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.TooManyRedirects:
+        slack.send_error_to_channel('Url %s raised Too Many Redirects' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except Exception:
+        error_string = traceback.format_exc()
+        final_error = 'On {0}, was Found: {1}'.format(url,error_string)
+        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    return response
+
+def delete_response(url):
+    try:
+        response = requests.delete(url, verify=False, timeout=3, data={'key': 'value'})
+    except requests.exceptions.SSLError:
+        slack.send_error_to_channel('Url %s raised SSL Error' % url, SLACK_NOTIFICATION_CHANNEL)
+    except requests.exceptions.ConnectionError:
+        slack.send_error_to_channel('Url %s raised Connection Error' % url, SLACK_NOTIFICATION_CHANNEL)
+    except requests.exceptions.ReadTimeout:
+        slack.send_error_to_channel('Url %s raised Read Timeout' % url, SLACK_NOTIFICATION_CHANNEL)
+    except requests.exceptions.TooManyRedirects:
+        slack.send_error_to_channel('Url %s raised Too Many Redirects' % url, SLACK_NOTIFICATION_CHANNEL)
+    except Exception:
+        error_string = traceback.format_exc()
+        final_error = 'On {0}, was Found: {1}'.format(url,error_string)
+        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    return response
 
 def add_vulnerability(scan_info, message):
     vulnerability = Vulnerability(constants.UNSECURE_METHOD, scan_info, message)
@@ -42,35 +104,17 @@ def add_vulnerability(scan_info, message):
 
 def scan_target(scan_info, url_to_scan):
     responses = list()
-    try:
-        put_response = requests.put(url_to_scan, data={'key': 'value'})
-        responses.append({'method': 'PUT', 'response': put_response})
-    except requests.exceptions.SSLError:
-        return
-    except requests.exceptions.ConnectionError:
-        return
-    except requests.exceptions.TooManyRedirects:
-        return
-    
-    try:
-        delete_response = requests.delete(url_to_scan)
-        responses.append({'method': 'DELETE', 'response': delete_response})
-    except requests.exceptions.SSLError:
-        return
-    except requests.exceptions.ConnectionError:
-        return
-    except requests.exceptions.TooManyRedirects:
-        return
+    response_put = put_response(url_to_scan)
+    if response_put is not None:
+        responses.append({'method': 'PUT', 'response': response_put})
 
-    try:
-        options_response = requests.options(url_to_scan)
-        responses.append({'method': 'OPTIONS', 'response': options_response})
-    except requests.exceptions.SSLError:
-        return
-    except requests.exceptions.ConnectionError:
-        return
-    except requests.exceptions.TooManyRedirects:
-        return
+    response_delete = delete_response(url_to_scan)
+    if response_delete is not None:
+        responses.append({'method': 'DELETE', 'response': response_delete})  
+
+    response_options = options_response(url_to_scan)
+    if response_options is not None:
+        responses.append({'method': 'OPTIONS', 'response': response_options})
 
     extensive_methods = False
     message = "Found extended HTTP Methods:" + '\n'

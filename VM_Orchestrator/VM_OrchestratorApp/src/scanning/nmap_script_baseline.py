@@ -124,7 +124,7 @@ def basic_scan(scan_info, url_to_scan):
     try:
         mongo.add_nmap_information_to_subdomain(scan_info, json_data['nmaprun']['host']['ports']['port'])
     except KeyError:
-        print(json_data)
+        pass
     check_ports_and_report(scan_info,plaintext_ports,'plaintext_services',json_data,img_str)
     check_ports_and_report(scan_info,remote_ports,'unnecessary_services',json_data,img_str)
     cleanup(output_dir)

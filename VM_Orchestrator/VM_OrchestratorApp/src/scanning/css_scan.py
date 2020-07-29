@@ -7,6 +7,7 @@ import requests
 import urllib3
 import copy
 import time
+import traceback
 from datetime import datetime
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -36,6 +37,27 @@ def handle_single(info):
     print('Module CSS Scan finished against %s' % info['target'])
     return
 
+def get_response(url):
+    try:
+        response = requests.get(url, verify=False, timeout=3)
+    except requests.exceptions.SSLError:
+        slack.send_error_to_channel('Url %s raised SSL Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ConnectionError:
+        slack.send_error_to_channel('Url %s raised Connection Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ReadTimeout:
+        slack.send_error_to_channel('Url %s raised Read Timeout' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.TooManyRedirects:
+        slack.send_error_to_channel('Url %s raised Too Many Redirects' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except Exception:
+        error_string = traceback.format_exc()
+        final_error = 'On {0}, was Found: {1}'.format(url,error_string)
+        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    return response
 
 def add_vulnerability_to_mongo(scan_info, css_url, vuln_type):
     if vuln_type == 'Access':
@@ -62,11 +84,13 @@ def scan_target(scan_info, url_to_scan):
 
         if css_file[-1] == '\\' or css_file[-1] == '/':
             css_file = css_file[:-1]
-        try:
-            response = requests.get(css_file, verify=False)
-        except Exception:
+        
+        response = get_response(url_to_scan)
+        if response is None:
             if url_split[2] != host_split[2]:
                 add_vulnerability_to_mongo(scan_info, css_file, 'Access')
+                return
+            return
 
         if response.status_code != 200:
             if url_split[2] != host_split[2]:

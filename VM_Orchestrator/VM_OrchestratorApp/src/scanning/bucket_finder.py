@@ -45,6 +45,27 @@ def handle_single(info):
     print('Module S3 Bucket Scan finished against %s' % info['target'])
     return
 
+def get_response(url):
+    try:
+        response = requests.get(url, verify=False, timeout=3)
+    except requests.exceptions.SSLError:
+        slack.send_error_to_channel('Url %s raised SSL Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ConnectionError:
+        slack.send_error_to_channel('Url %s raised Connection Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.ReadTimeout:
+        slack.send_error_to_channel('Url %s raised Read Timeout' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except requests.exceptions.TooManyRedirects:
+        slack.send_error_to_channel('Url %s raised Too Many Redirects' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    except Exception:
+        error_string = traceback.format_exc()
+        final_error = 'On {0}, was Found: {1}'.format(url,error_string)
+        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+        return None
+    return response
 
 def filter_invalids(some_list):
     res = []
@@ -114,16 +135,8 @@ def get_cprm_buckets(bucket_list, scanned_url, scan_information):
 
 
 def get_buckets(scan_information, url_to_scan):
-    try:
-        response = requests.get(url_to_scan, verify=False, timeout=3)
-    except requests.exceptions.ConnectionError:
-        return
-    except requests.exceptions.ReadTimeout:
-        return
-    except Exception:
-        error_string = traceback.format_exc()
-        final_error = 'On {0}, was Found: {1}'.format(url_to_scan,error_string)
-        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+    response = get_response(url_to_scan)
+    if response is None:
         return
 
     # Buckets can come in different ways
