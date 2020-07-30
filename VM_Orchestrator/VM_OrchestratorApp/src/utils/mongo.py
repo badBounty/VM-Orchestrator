@@ -273,6 +273,17 @@ def get_alive_subdomains_from_target(target):
         subdomain_list.append(current_subdomain)
     return subdomain_list
 
+def get_alive_subdomains_for_resolve(target):
+    subdomains = resources.find({'domain': target, 'is_alive': 'True', 'scanned': False})
+    subdomain_list = list()
+    for subdomain in subdomains:
+        current_subdomain = {
+            'domain': subdomain['domain'],
+            'subdomain': subdomain['subdomain']
+        }
+        subdomain_list.append(current_subdomain)
+    return subdomain_list
+
 def get_nmap_web_interfaces(scan_info):
     resource = resources.find_one({'domain': scan_info['domain'], 'ip': scan_info['resource'], 'type': scan_info['type']})
     to_send = list()
