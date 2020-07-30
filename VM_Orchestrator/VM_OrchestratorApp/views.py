@@ -43,7 +43,7 @@ def get_resources_from_target(request):
         manager.get_resources_from_target(json_data)
         message = 'Resources from target %s will be sent to %s shortly' % (json_data['domain'], json_data['email'])
         return JsonResponse({'INFO': message})
-    return JsonResponse({'ERROR': 'Post is required'}
+    return JsonResponse({'ERROR': 'Post is required'})
 
 
 ### ON DEMAND SCAN APPROVED REQUESTS ###
@@ -86,6 +86,7 @@ subjected to web and ip scans if they are alive
     "email": "example@example.com"
 }
 '''
+
 @csrf_exempt
 def on_demand_scan(request):
     if request.method == 'POST':
