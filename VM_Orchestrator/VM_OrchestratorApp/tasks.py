@@ -253,6 +253,25 @@ def run_ip_scans(scan_information):
     execution_chord.apply_async(queue='fast_queue', interval=60)
     return
 
+# Similar to how monitor works
+@shared_task
+def start_scan_on_approved_resources():
+    resources = mongo.get_data_for_approved_scan()
+    for resource in resources:
+        scan_info = resource
+        scan_info['email'] = None
+        scan_info['nessus_scan'] = True
+        scan_info['acunetix_scan'] = True
+        if scan_info['type'] == 'domain':
+            run_web_scanners(scan_info)
+            run_ip_scans(scan_info)
+        elif scan_info['type'] == 'ip':
+            run_ip_scans(scan_info)
+        elif scan_info['type'] == 'url':
+            run_web_scanners(scan_info)
+            run_ip_scans(scan_info)
+
+
 # ------ END ALERTS ------ #
 @shared_task
 def on_demand_scan_finished(results, information):
@@ -310,7 +329,7 @@ def send_email_with_resources_for_verification(scan_information):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'isp', 'asn',
      'country', 'region', 'city', 'org', 'geoloc', 'first_seen', 'last_seen', 'is_alive', 'has_urls', 'approved',
-     'reported', 'scan_type'])
+     'scan_type'])
     email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
     "Orchestrator: Resources found!")
     try:

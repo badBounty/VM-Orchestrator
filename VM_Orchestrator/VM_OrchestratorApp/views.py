@@ -45,6 +45,14 @@ def get_resources_from_target(request):
         return JsonResponse({'INFO': message})
     return JsonResponse({'ERROR': 'Post is required'})
 
+@csrf_exempt
+def start_scan_on_approved(request):
+    if request.method == 'POST':
+        json_data = json.loads(request.body)
+        print(json_data)
+        return JsonResponse({'INFO': 'ACCEPTED'})
+    #manager.start_scan_on_approved()
+    return
 
 ### ON DEMAND SCAN APPROVED REQUESTS ###
 '''

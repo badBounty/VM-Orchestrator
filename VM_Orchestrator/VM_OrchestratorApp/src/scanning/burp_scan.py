@@ -97,7 +97,7 @@ def scan_target(scan_info):
             burp_fold = ''
         proc1.kill()
         proc2.kill()
-        if burp_config['bash_folder'] != burp_fold:
+        if settings['BURP']['bash_folder'] != burp_fold:
             burp_process = subprocess.Popen(BURP_FOLDER, stdout=subprocess.PIPE)
             time.sleep(120)
             #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN

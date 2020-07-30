@@ -28,6 +28,14 @@ def recon_against_target(information):
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
+def start_scan_on_approved():
+    slack.send_notification_to_channel('_ Starting scan against approved resources _', '#vm-ondemand')
+    execution_chain = chain(
+        tasks.start_scan_on_approved_resources.si().set(queue='fast_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
+    return
+
 def on_demand_scan(information):
 
     information['is_first_run'] = True
