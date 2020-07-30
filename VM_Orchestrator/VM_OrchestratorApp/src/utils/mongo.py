@@ -469,8 +469,6 @@ def get_resources_for_email(scan_information):
             'scan_type': resource['type']
         }
         return_list.append(res)
-    
-    for resource in found_resources:
         resources.update_one({'_id': resource.get('_id')},
                 {'$set': 
                     {
