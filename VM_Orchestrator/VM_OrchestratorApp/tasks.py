@@ -310,7 +310,7 @@ def send_email_with_resources_for_verification(scan_information):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'isp', 'asn',
      'country', 'region', 'city', 'org', 'geoloc', 'first_seen', 'last_seen', 'is_alive', 'has_urls', 'approved',
-     'scan_type'])
+     'reported', 'scan_type'])
     email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
     "Orchestrator: Resources found!")
     try:

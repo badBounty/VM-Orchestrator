@@ -446,7 +446,7 @@ def get_vulnerabilities_for_email(scan_information):
 # TODO Temporary function for result revision
 def get_resources_for_email(scan_information):
     return_list = list()
-    found_resources = resources.find({'domain': scan_information['domain'], 'reported': False})
+    found_resources = resources.find({'domain': scan_information['domain']})
     for resource in found_resources:
         res = {
             'domain': resource['domain'],
@@ -465,6 +465,7 @@ def get_resources_for_email(scan_information):
             'is_alive': resource['is_alive'],
             'has_urls': resource['has_urls'],
             'approved': resource['approved'],
+            'reported': resource['reported']
             'scan_type': resource['type'],
         }
         return_list.append(resource)
