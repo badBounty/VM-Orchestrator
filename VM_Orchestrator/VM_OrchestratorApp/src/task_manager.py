@@ -12,6 +12,8 @@ from VM_Orchestrator.settings import settings
 def recon_against_target(information):
     information['is_first_run'] = True
     information['language'] = 'eng'
+    information['priority'] = None
+    information['exposition'] = None
 
     slack.send_notification_to_channel('_ Starting recon only scan against %s _' % information['domain'], '#vm-ondemand')
     tasks.run_recon().apply_async(args=[information],queue='slow_queue')

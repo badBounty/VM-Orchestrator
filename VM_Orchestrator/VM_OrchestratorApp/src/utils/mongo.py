@@ -235,7 +235,7 @@ def add_resource(url_info, scan_info):
                 'priority': scan_info['priority'],
                 'exposition': scan_info['exposition'],
                 'has_urls': False,
-                'nmap_information': None
+                'nmap_information': None,
                 'approved': False,
                 'reported': False
         }
