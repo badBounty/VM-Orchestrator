@@ -16,7 +16,10 @@ def recon_against_target(information):
     information['exposition'] = None
 
     slack.send_notification_to_channel('_ Starting recon only scan against %s _' % information['domain'], '#vm-ondemand')
-    tasks.run_recon().apply_async(args=[information],queue='slow_queue')
+    execution_chain = chain(
+        tasks.run_recon.si(information).set(queue='slow_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
 
 def on_demand_scan(information):
 
