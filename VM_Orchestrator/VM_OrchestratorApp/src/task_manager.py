@@ -14,6 +14,7 @@ def recon_against_target(information):
     information['language'] = 'eng'
     information['priority'] = None
     information['exposition'] = None
+    information['type'] = 'domain'
 
     slack.send_notification_to_channel('_ Starting recon only scan against %s _' % information['domain'], '#vm-ondemand')
     execution_chain = chain(
