@@ -9,6 +9,12 @@ import copy
 import pandas as pd
 from VM_Orchestrator.settings import settings
 
+def get_resources_from_target(information):
+    execution_chain = chain(
+        tasks.send_email_with_resources_for_verification.si(information).set(queue='slow_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
+
 def recon_against_target(information):
     information['is_first_run'] = True
     information['language'] = 'eng'

@@ -36,6 +36,15 @@ def run_recon_against_target(request):
         return JsonResponse({'INFO': message})
     return JsonResponse({'ERROR': 'Post is required'})
 
+@csrf_exempt
+def get_resources_from_target(request):
+    if request.method == 'POST':
+        json_data = json.loads(request.body)
+        manager.get_resources_from_target(json_data)
+        message = 'Resources from target %s will be sent to %s shortly' % (json_data['domain'], json_data['email'])
+        return JsonResponse({'INFO': message})
+    return JsonResponse({'ERROR': 'Post is required'}
+
 
 ### ON DEMAND SCAN APPROVED REQUESTS ###
 '''
