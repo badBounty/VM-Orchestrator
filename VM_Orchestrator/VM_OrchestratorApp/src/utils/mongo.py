@@ -465,8 +465,8 @@ def get_resources_for_email(scan_information):
             'is_alive': resource['is_alive'],
             'has_urls': resource['has_urls'],
             'approved': resource['approved'],
-            'reported': resource['reported']
-            'scan_type': resource['type'],
+            'reported': resource['reported'],
+            'scan_type': resource['type']
         }
         return_list.append(resource)
     
