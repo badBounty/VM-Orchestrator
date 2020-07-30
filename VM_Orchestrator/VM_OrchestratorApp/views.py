@@ -23,6 +23,24 @@ def index(request):
 
 '''
 {
+    "domain": example.com,
+    "email": "example@example.com"
+}
+'''
+@csrf_exempt
+def run_recon_against_target(request):
+    if request.method == 'POST':
+        json_data = json.loads(request.body)
+        manager.recon_against_target(json_data)
+        message = 'Recon started against %s' % json_data['domain']
+        return JsonResponse({'INFO': message})
+    return JsonResponse({'ERROR': 'Post is required'})
+
+
+### ON DEMAND SCAN APPROVED REQUESTS ###
+'''
+Will run web and ip scans against https://example.com
+{
     "domain": "example.com",
     "resource": "https://example.com/",
     "invasive_scans": false,
@@ -31,8 +49,9 @@ def index(request):
     "type": "url",
     "priority": 1,
     "exposition": 0,
-    "email": "mananderson@deloitte.com"
+    "email": "example@example.com"
 }
+Will run ip scans against 127.0.0.1, if port 80 or 443 is open, web scans will be run
 {
     "domain": "example.com",
     "resource": "127.0.0.1",
@@ -42,8 +61,10 @@ def index(request):
     "type": "ip",
     "priority": 1,
     "exposition": 0,
-    "email": "mananderson@deloitte.com"
+    "email": "example@example.com"
 }
+Will run recon agains domain example.com, each of the subdomains found will be
+subjected to web and ip scans if they are alive
 {
     "domain": "example.com",
     "resource": "",
@@ -53,11 +74,9 @@ def index(request):
     "type": "domain",
     "priority": 1,
     "exposition": 0,
-    "email": "mananderson@deloitte.com"
+    "email": "example@example.com"
 }
 '''
-
-
 @csrf_exempt
 def on_demand_scan(request):
     if request.method == 'POST':

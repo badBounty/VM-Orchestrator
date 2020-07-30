@@ -9,9 +9,16 @@ import copy
 import pandas as pd
 from VM_Orchestrator.settings import settings
 
+def recon_against_target(information):
+    information['is_first_run'] = True
+    information['language'] = 'eng'
+
+    slack.send_notification_to_channel('_ Starting recon only scan against %s _' % information['domain'], '#vm-ondemand')
+    tasks.run_recon().apply_async(args=[information],queue='slow_queue')
+
 def on_demand_scan(information):
 
-    information['is_first_run'] = False
+    information['is_first_run'] = True
     information['language'] = 'eng'
 
     # The "Information" argument on chord body is temporary

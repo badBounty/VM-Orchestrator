@@ -303,8 +303,8 @@ def recon_finished(scan_information):
         return
     from VM_OrchestratorApp.src.utils import email_handler
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'is_alive',
-    'has_urls', 'first_seen', 'last_seen', 'scanned', 'type', 'priority', 'exposition'])
+    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'first_seen',
+     'last_seen', 'scanned', 'type', 'is_alive', 'has_urls', 'approved', 'reported'])
     email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
     "Orchestrator: Resources found!")
     try:
@@ -395,8 +395,8 @@ def project_monitor_task():
     
     return
 
-#@periodic_task(run_every=crontab(hour=0, minute=0),
-#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=0, minute=0),
+queue='slow_queue', options={'queue': 'slow_queue'})
 def check_redmine_for_updates():
     issues = redmine.get_issues_from_project()
     for issue in issues:
