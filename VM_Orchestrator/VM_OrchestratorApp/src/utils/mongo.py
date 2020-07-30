@@ -448,6 +448,25 @@ def get_resources_for_email(scan_information):
     return_list = list()
     found_resources = resources.find({'domain': scan_information['domain'], 'reported': False})
     for resource in found_resources:
+        res = {
+            'domain': resource['domain'],
+            'subdomain': resource['subdomain'],
+            'url': resource['url'],
+            'ip': resource['ip'],
+            'isp': resource['additional_info']['isp'],
+            'asn': resource['additional_info']['asn'],
+            'country': resource['additional_info']['country'],
+            'region': resource['additional_info']['region'],
+            'city': resource['additional_info']['city'],
+            'org': resource['additional_info']['org'],
+            'geoloc': resource['additional_info']['geoloc'],
+            'first_seen': resource['first_seen'],
+            'last_seen': resource['last_seen'],
+            'is_alive': resource['is_alive'],
+            'has_urls': resource['has_urls'],
+            'approved': resource['approved'],
+            'scan_type': resource['type'],
+        }
         return_list.append(resource)
     
     for resource in found_resources:

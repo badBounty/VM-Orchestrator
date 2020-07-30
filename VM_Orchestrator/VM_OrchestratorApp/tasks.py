@@ -167,6 +167,7 @@ def run_recon(scan_information):
     slack.send_notification_to_channel('Starting recon against %s' % scan_information['domain'], '#vm-recon-module')
     subdomain_recon_task(scan_information)
     resolver_recon_task(scan_information)
+    send_email_with_resources_for_verification(scan_information)
     recon_finished(scan_information)
     return
 
@@ -292,9 +293,13 @@ def ip_security_scan_finished(results, info):
 
 @shared_task
 def recon_finished(scan_information):
-    if scan_information['email'] is None:
-        print('Recon finished!')
-        return
+    slack.send_notification_to_channel('_ Recon against %s finished _' % scan_information['domain'], '#vm-recon-module')
+    print('Recon finished!')
+    return
+
+# ------ EMAIL NOTIFICATIONS ------
+@shared_task
+def send_email_with_resources_for_verification(scan_information):
     # TODO REMOVE Send email with scan results
     resources = mongo.get_resources_for_email(scan_information)
     df = pd.DataFrame(resources)
@@ -303,8 +308,9 @@ def recon_finished(scan_information):
         return
     from VM_OrchestratorApp.src.utils import email_handler
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'first_seen',
-     'last_seen', 'scanned', 'type', 'is_alive', 'has_urls', 'approved', 'reported'])
+    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'isp', 'asn',
+     'country', 'region', 'city', 'org', 'geoloc', 'first_seen', 'last_seen', 'is_alive', 'has_urls', 'approved',
+     'scan_type'])
     email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
     "Orchestrator: Resources found!")
     try:
@@ -312,8 +318,6 @@ def recon_finished(scan_information):
     except FileNotFoundError:
         print('ERROR Output file for resources was not found')
         pass
-    slack.send_notification_to_channel('_ Recon against %s finished _' % scan_information['domain'], '#vm-recon-module')
-    print('Recon finished!')
     return
 
 # ------ MONITOR TOOLS ------ #
