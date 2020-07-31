@@ -51,7 +51,14 @@ def start_scan_on_approved(request):
         json_data = json.loads(request.body)
         manager.start_scan_on_approved(json_data)
         return JsonResponse({'INFO': 'ACCEPTED'})
-    return
+    return JsonResponse({'ERROR': 'Post is required'})
+
+@csrf_exempt
+def force_update_elasticsearch(request):
+    if request.method == 'POST':
+        manager.force_update_elasticsearch()
+        return JsonResponse({'INFO': 'Updating elasticsearch'})
+    return JsonResponse({'ERROR': 'Post is required'})
 
 ### ON DEMAND SCAN APPROVED REQUESTS ###
 '''

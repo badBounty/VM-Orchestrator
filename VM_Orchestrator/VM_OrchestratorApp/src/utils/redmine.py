@@ -42,10 +42,12 @@ def create_new_issue(vulnerability):
     # [2]: Sub_resource
     # [8]: Date Found
     # [9]: Last seen
+    # [10]: CVSS score
     issue.custom_fields= [{'id': 1, 'value': vulnerability.domain},
      {'id': 2, 'value': vulnerability.target},
     {'id':8, 'value': str(vulnerability.time.strftime("%Y-%m-%d"))},
-    {'id':9, 'value': str(vulnerability.time.strftime("%Y-%m-%d"))}]
+    {'id':9, 'value': str(vulnerability.time.strftime("%Y-%m-%d"))},
+    {'id':10, 'value': vulnerability.cvss}]
     if vulnerability.attachment_path is not None:
         issue.uploads = [{'path': vulnerability.attachment_path,
                           'filename': vulnerability.attachment_name}]

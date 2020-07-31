@@ -33,7 +33,8 @@ def add_vulnerability(vulnerability):
             'date_found': vulnerability.time,
             'last_seen': vulnerability.time,
             'language': vulnerability.language,
-            'state': 'open'
+            'cvss_score': vulnerability.cvss,
+            'state': 'new'
         }
         vulnerabilities.insert_one(resource)
     return
@@ -160,7 +161,10 @@ def approve_resources(info):
         resources.update_one({'_id': exists.get('_id')},
          {'$set': 
             {
-            'approved': resource['approved']
+            'approved': resource['approved'],
+            'priority': resource['priority'],
+            'exposition': resource['exposition'],
+            'asset_value': resource['asset_value']
             }})
 
 # ------------------- RECON -------------------
@@ -189,6 +193,7 @@ def add_simple_url_resource(scan_info):
                 'type': scan_info['type'],
                 'priority': scan_info['priority'],
                 'exposition': scan_info['exposition'],
+                'asset_value': None,
                 'has_urls': False,
                 'nmap_information': None,
                 'approved': False,
@@ -227,6 +232,7 @@ def add_simple_ip_resource(scan_info):
                 'type': scan_info['type'],
                 'priority': scan_info['priority'],
                 'exposition': scan_info['exposition'],
+                'asset_value': None,
                 'has_urls': False,
                 'nmap_information': None,
                 'approved': False,
@@ -271,6 +277,7 @@ def add_resource(url_info, scan_info):
                 'type': scan_info['type'],
                 'priority': None,
                 'exposition': None,
+                'asset_value': None,
                 'has_urls': False,
                 'nmap_information': None,
                 'approved': False,
@@ -371,20 +378,26 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
     return
 
 def update_issue_if_needed(redmine_issue):
-    target = redmine_issue.custom_fields.get(2).value
+    target = redmine_issue.custom_fields.get(1).value
     vuln_name = redmine_issue.subject
-    scanned_url = redmine_issue.custom_fields.get(4).value
+    scanned_url = redmine_issue.custom_fields.get(2).value
+    cvss_score = redmine_issue.custom_fields.get(10).value
+    status = redmine_issue.status.name
 
     vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
     'domain': target, 'subdomain': scanned_url})
-    status = redmine_issue.status.name
-    if status == 'QA - Confirmada':
-        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'state': 'confirmed' 
+
+    vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'cvss_score': cvss_score 
         }})
-    elif status == 'Falso positivo - Rechazada':
+
+    if status == 'Remediada':
         vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'state': 'rejected' 
+            'state': 'resolved' 
+        }})
+    elif status == 'Cerrada':
+        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'closed' 
         }})
     return
 
@@ -414,6 +427,7 @@ def update_elasticsearch():
             'resource_type': resource['type'],
             'resource_priority': resource['priority'],
             'resource_exposition': resource['exposition'],
+            'resource_asset_value': resource['asset_value'],
             'resource_has_urls': resource['has_urls'],
             'resource_responsive_urls': resource['url'],
             'resource_nmap_information': resource['nmap_information']
@@ -453,6 +467,7 @@ def update_elasticsearch():
                 'vulnerability_date_found': vuln['date_found'],
                 'vulnerability_last_seen': vuln['last_seen'],
                 'vulnerability_language': vuln['language'],
+                'vulnerability_cvss_score': vuln['cvss_score'],
                 'vulnerability_state': vuln['state']
             })
 
@@ -504,7 +519,8 @@ def get_resources_for_email(scan_information):
             'approved': resource['approved'],
             'scan_type': resource['type'],
             'priority': resource['priority'],
-            'exposition': resource['exposition']
+            'exposition': resource['exposition'],
+            'asset_value': resource['asset_value']
         }
         return_list.append(res)
     

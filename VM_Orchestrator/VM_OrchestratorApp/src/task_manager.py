@@ -36,6 +36,13 @@ def start_scan_on_approved(information):
     execution_chain.apply_async(queue='fast_queue', interval=300)
     return
 
+def force_update_elasticsearch():
+    slack.send_notification_to_channel('_ Forcing update on elasticsearch... _', '#vm-ondemand')
+    execution_chain = chain(
+        tasks.update_elasticsearch.si().set(queue='fast_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
+
 def on_demand_scan(information):
 
     information['is_first_run'] = True
