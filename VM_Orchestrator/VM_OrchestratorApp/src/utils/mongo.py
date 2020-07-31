@@ -269,8 +269,8 @@ def add_resource(url_info, scan_info):
                 'last_seen': timestamp,
                 'scanned': False,
                 'type': scan_info['type'],
-                'priority': scan_info['priority'],
-                'exposition': scan_info['exposition'],
+                'priority': None,
+                'exposition': None,
                 'has_urls': False,
                 'nmap_information': None,
                 'approved': False,
@@ -502,7 +502,9 @@ def get_resources_for_email(scan_information):
             'is_alive': resource['is_alive'],
             'has_urls': resource['has_urls'],
             'approved': resource['approved'],
-            'scan_type': resource['type']
+            'scan_type': resource['type'],
+            'priority': resource['priority'],
+            'exposition': resource['exposition']
         }
         return_list.append(res)
     
