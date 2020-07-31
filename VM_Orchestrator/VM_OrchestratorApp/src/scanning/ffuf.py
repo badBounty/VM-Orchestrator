@@ -32,7 +32,7 @@ def handle_target(info):
             sub_info['target'] = url
             scan_target(sub_info, sub_info['target'])
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        print('Module ffuf finished from %s' % info['domain'])
+        print('Module ffuf finished against domain %s' % info['domain'])
     return
 
 

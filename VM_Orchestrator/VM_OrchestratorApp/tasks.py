@@ -262,8 +262,9 @@ def start_scan_on_approved_resources(information):
     for resource in resources:
         scan_info = resource
         scan_info['email'] = None
-        scan_info['nessus_scan'] = True
-        scan_info['acunetix_scan'] = True
+        scan_info['nessus_scan'] = False
+        scan_info['acunetix_scan'] = False
+        scan_info['burp_scan'] = False
         if scan_info['type'] == 'domain':
             run_web_scanners(scan_info)
             run_ip_scans(scan_info)

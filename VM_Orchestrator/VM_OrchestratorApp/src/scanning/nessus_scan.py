@@ -10,6 +10,7 @@ import copy
 import json
 import re
 import uuid
+import traceback
 
 MODULE_NAME = 'Nessus module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-nessus'
@@ -138,7 +139,14 @@ def scan_target(scan_info):
     # Creating the scan and getting the id for the launching
     r = requests.post(create_url,data=json.dumps(json_scan,separators=(',', ':')),verify=verify,headers=header)
     # Getting the scan id for launch the scan
-    scan_id = str(json.loads(r.text)['scan']['id'])
+    try:
+        scan_id = str(json.loads(r.text)['scan']['id'])
+    except KeyError as e:
+        error_string = traceback.format_exc()
+        final_error = 'On {0}, was Found: {1}'.format('Nessus scan',error_string)
+        slack.send_error_to_channel(final_error, SLACK_NOTIFICATION_CHANNEL)
+        print("Nessus scan error " + str(e))
+        return
     #Launch the scan
     launch_url = nessus_info['URL']+'/scans/'+scan_id+'/launch'
     r = requests.post(launch_url,verify=verify,headers=header)
