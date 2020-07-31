@@ -48,6 +48,7 @@ def get_resources_from_target(request):
 @csrf_exempt
 def start_scan_on_approved(request):
     if request.method == 'POST':
+        print(request.body)
         json_data = json.loads(request.body)
         print(json_data)
         return JsonResponse({'INFO': 'ACCEPTED'})
