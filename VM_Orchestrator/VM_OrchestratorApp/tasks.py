@@ -390,8 +390,8 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-#@periodic_task(run_every=crontab(hour=4, minute=0),
-#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=4, minute=0),
+queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
     # We first check if the project has started, we return if not
@@ -406,18 +406,19 @@ def project_monitor_task():
     for data in monitor_data:
         scan_info = data
         scan_info['email'] = None
-        scan_info['nessus_scan'] = True
-        scan_info['acunetix_scan'] = True
+        scan_info['nessus_scan'] = False
+        scan_info['acunetix_scan'] = False
+        scan_info['burp_scan'] = False
         slack.send_notification_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
             run_recon(scan_info)
-            run_web_scanners(scan_info)
-            run_ip_scans(scan_info)
-        elif scan_info['type'] == 'ip':
-            run_ip_scans(scan_info)
-        elif scan_info['type'] == 'url':
-            run_web_scanners(scan_info)
-            run_ip_scans(scan_info)
+            #run_web_scanners(scan_info)
+            #run_ip_scans(scan_info)
+        #elif scan_info['type'] == 'ip':
+        #    run_ip_scans(scan_info)
+        #elif scan_info['type'] == 'url':
+        #    run_web_scanners(scan_info)
+        #    run_ip_scans(scan_info)
     
     return
 
