@@ -81,12 +81,16 @@ def delete_response(url):
         response = requests.delete(url, verify=False, timeout=3, data={'key': 'value'})
     except requests.exceptions.SSLError:
         slack.send_error_to_channel('Url %s raised SSL Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
     except requests.exceptions.ConnectionError:
         slack.send_error_to_channel('Url %s raised Connection Error' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
     except requests.exceptions.ReadTimeout:
         slack.send_error_to_channel('Url %s raised Read Timeout' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
     except requests.exceptions.TooManyRedirects:
         slack.send_error_to_channel('Url %s raised Too Many Redirects' % url, SLACK_NOTIFICATION_CHANNEL)
+        return None
     except Exception:
         error_string = traceback.format_exc()
         final_error = 'On {0}, was Found: {1}'.format(url,error_string)
