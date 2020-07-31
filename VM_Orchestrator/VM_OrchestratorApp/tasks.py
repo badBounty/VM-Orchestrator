@@ -255,8 +255,10 @@ def run_ip_scans(scan_information):
 
 # Similar to how monitor works
 @shared_task
-def start_scan_on_approved_resources():
+def start_scan_on_approved_resources(information):
+    mongo.approve_resources(information)
     resources = mongo.get_data_for_approved_scan()
+    print(resources)
     for resource in resources:
         scan_info = resource
         scan_info['email'] = None
