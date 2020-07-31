@@ -30,7 +30,7 @@ def run_recon(scan_info):
     f = open(PROJECT_DIR + '/amass_out.txt',"w+")
     f.close()
     subprocess.run(
-       [amass_dir, 'enum', '-active', '-d', scan_info['domain'], '-o', PROJECT_DIR + '/amass_out.txt', '-timeout', '10'])
+       [amass_dir, 'enum', '-active', '-d', scan_info['domain'], '-o', PROJECT_DIR + '/amass_out.txt', '-timeout', '20'])
     if path.exists(PROJECT_DIR + '/amass_out.txt'):
         print('Amass finished correctly')
     else:
