@@ -197,20 +197,20 @@ def run_web_scanners(scan_information):
         [
             # Fast_scans
             header_scan_task.s(web_information).set(queue='fast_queue'),
-            #http_method_scan_task.s(web_information).set(queue='fast_queue'),
-            #libraries_scan_task.s(web_information).set(queue='fast_queue'),
-            #ffuf_task.s(web_information).set(queue='fast_queue'),
-            #iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
-            #bucket_finder_task.s(web_information).set(queue='fast_queue'),
-            #token_scan_task.s(web_information).set(queue='fast_queue'),
-            #css_scan_task.s(web_information).set(queue='fast_queue'),
-            #firebase_scan_task.s(web_information).set(queue='fast_queue'),
-            #host_header_attack_scan.s(web_information).set(queue='fast_queue'),
+            http_method_scan_task.s(web_information).set(queue='fast_queue'),
+            libraries_scan_task.s(web_information).set(queue='fast_queue'),
+            ffuf_task.s(web_information).set(queue='fast_queue'),
+            iis_shortname_scan_task.s(web_information).set(queue='fast_queue'),
+            bucket_finder_task.s(web_information).set(queue='fast_queue'),
+            token_scan_task.s(web_information).set(queue='fast_queue'),
+            css_scan_task.s(web_information).set(queue='fast_queue'),
+            firebase_scan_task.s(web_information).set(queue='fast_queue'),
+            host_header_attack_scan.s(web_information).set(queue='fast_queue'),
             # Slow_scans
-            #cors_scan_task.s(web_information).set(queue='slow_queue'),
+            cors_scan_task.s(web_information).set(queue='slow_queue'),
             ssl_tls_scan_task.s(web_information).set(queue='slow_queue'),
-            #acunetix_scan_task.s(web_information).set(queue='acunetix_queue'),
-            #burp_scan_task.s(web_information).set(queue='burp_queue')
+            acunetix_scan_task.s(web_information).set(queue='acunetix_queue'),
+            burp_scan_task.s(web_information).set(queue='burp_queue')
         ],
         body=web_security_scan_finished.s().set(queue='fast_queue'),
         immutable=True)
@@ -243,9 +243,9 @@ def run_ip_scans(scan_information):
     # We will flag the resource as scanned here, mainly because all alive resources will reach this point
     execution_chord = chord(
         [
-            #nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
-            #nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
-            #nessus_scan_task.s(ip_information).set(queue='slow_queue'),
+            nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
+            nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
+            nessus_scan_task.s(ip_information).set(queue='slow_queue'),
             add_scanned_resources.s(ip_information).set(queue='fast_queue')
         ],
         body=ip_security_scan_finished.s(ip_information).set(queue='fast_queue'),
@@ -301,7 +301,6 @@ def start_scan_on_approved_resources(information):
 @shared_task
 def on_demand_scan_finished(results, information):
     if information['email'] is None:
-        print('On demand scan finished!')
         return
     # TODO REMOVE Send email with scan results
     vulnerabilities = mongo.get_vulnerabilities_for_email(information)
@@ -321,7 +320,6 @@ def on_demand_scan_finished(results, information):
         print('ERROR:Output for on demand scan was not found')
         pass
     slack.send_notification_to_channel('_ On demand scan against %s finished! _' % information['resource'], '#vm-ondemand')
-    print('On demand scan finished!')
     return
 
 @shared_task
