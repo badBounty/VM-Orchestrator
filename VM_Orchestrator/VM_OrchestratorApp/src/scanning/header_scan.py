@@ -117,7 +117,6 @@ def scan_target(scan_info, url_to_scan):
     response = get_response(url_to_scan)
     if response is None:
         return
-    response = requests.get(url_to_scan)
     message = 'Response Headers From: ' + url_to_scan+'\n'
     for h in response.headers:
         message += h + " : " + response.headers[h]+'\n'

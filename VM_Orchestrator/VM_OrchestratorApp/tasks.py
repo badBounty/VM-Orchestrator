@@ -267,13 +267,34 @@ def start_scan_on_approved_resources(information):
         scan_info['burp_scan'] = False
         scan_info['invasive_scans'] = False
         if scan_info['type'] == 'domain':
-            run_web_scanners(scan_info)
-            run_ip_scans(scan_info)
+            execution_chord= chord(
+                    [
+                        run_web_scanners.si(scan_info).set(queue='fast_queue'),
+                        run_ip_scans.si(scan_info).set(queue='slow_queue')
+                    ],
+                    body=on_demand_scan_finished.s(scan_info).set(queue='fast_queue'),
+                    immutable = True
+                )
+            execution_chord.apply_async(queue='fast_queue', interval=300)
         elif scan_info['type'] == 'ip':
-            run_ip_scans(scan_info)
+            execution_chord = chord(
+                    [
+                        run_ip_scans.si(scan_info).set(queue='slow_queue')
+                    ],
+                    body=on_demand_scan_finished.s(scan_info).set(queue='fast_queue'),
+                    immutable = True
+                )
+            execution_chord.apply_async(queue='fast_queue', interval=300)
         elif scan_info['type'] == 'url':
-            run_web_scanners(scan_info)
-            run_ip_scans(scan_info)
+            execution_chord = chord(
+                    [
+                        run_web_scanners.si(scan_info).set(queue='fast_queue'),
+                        run_ip_scans.si(scan_info).set(queue='slow_queue')
+                    ],
+                    body=on_demand_scan_finished.s(scan_info).set(queue='fast_queue'),
+                    immutable = True
+                )
+            execution_chord.apply_async(queue='fast_queue', interval=300)
 
 
 # ------ END ALERTS ------ #

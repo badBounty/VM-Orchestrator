@@ -14,8 +14,8 @@ def issue_already_exists(vulnerability):
     issues = redmine_client.issue.filter(project_id=settings['REDMINE']['project_name'])
     for issue in issues:
         if(vulnerability.vulnerability_name == issue.subject and
-            vulnerability.target == issue.custom_fields.get(1).value and
-            vulnerability.scanned_url == issue.custom_fields.get(2).value):
+            vulnerability.domain == issue.custom_fields.get(1).value and
+            vulnerability.target == issue.custom_fields.get(2).value):
             # This means the issue already exists in redmine. We will update the description and last seen
             redmine_client.issue.update(issue.id, description=vulnerability.custom_description,
             custom_fields=[{'id': 1, 'value': vulnerability.domain},
