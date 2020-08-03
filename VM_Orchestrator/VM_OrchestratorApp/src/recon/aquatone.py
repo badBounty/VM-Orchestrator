@@ -53,7 +53,7 @@ def parse_results(subdomain, OUTPUT_DIR):
         print('ERROR: Auatone urls file was not found')
         pass
 
-    urls_to_add = list
+    urls_to_add = list()
     if urls and urls != ['']:
         for url in urls:
             urls_to_add.append({'url': url})
