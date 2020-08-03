@@ -116,7 +116,8 @@ def get_data_for_approved_scan():
             'domain': data['domain'],
             'resource': resource
         })
-    information = [dict(t) for t in {tuple(d.items()) for d in information}]
+    #information = [dict(t) for t in {tuple(d.items()) for d in information}]
+    information = list(dict.fromkeys(information))
 
     return information
 
