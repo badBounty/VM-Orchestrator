@@ -55,7 +55,8 @@ def parse_results(subdomain, OUTPUT_DIR):
 
     urls_to_add = list
     if urls and urls != ['']:
-        urls_to_add = urls
+        for url in urls:
+            urls_to_add.append({'url': url})
         has_urls = 'True'
     else:
         has_urls = 'False'

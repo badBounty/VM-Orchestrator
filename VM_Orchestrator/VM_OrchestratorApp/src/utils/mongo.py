@@ -85,7 +85,7 @@ def get_responsive_http_resources(target):
                     'domain': subdomain['domain'],
                     'ip': subdomain['ip'],
                     'subdomain': subdomain['subdomain'],
-                    'url': url_with_http
+                    'url': url_with_http['url']
                 }
                 subdomain_list.append(current_subdomain)
     return subdomain_list
