@@ -158,7 +158,6 @@ def find_last_version_of_librarie(name):
 
 def approve_resources(info):
     for resource in info['data']:
-        print(resource)
         exists = resources.find_one({'domain': resource['domain'], 'subdomain': resource['subdomain'], 'type':resource['type']})
         if not exists:
             print('RESOURCE %s FROM %s WAS IN THE CSV BUT NOT IN OUR DATABASE' % (resource['subdomain'], resource['domain']))
