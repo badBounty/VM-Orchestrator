@@ -428,7 +428,7 @@ def update_elasticsearch():
             'resource_priority': resource['priority'],
             'resource_exposition': resource['exposition'],
             'resource_asset_value': resource['asset_value'],
-            'resource_has_urls': resource['has_urls'],
+            'resource_has_urls': bool(resource['has_urls']),
             'resource_responsive_urls': resource['url'],
             'resource_nmap_information': resource['nmap_information']
         })
