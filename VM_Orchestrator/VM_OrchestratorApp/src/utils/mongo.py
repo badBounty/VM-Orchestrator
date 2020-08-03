@@ -116,7 +116,9 @@ def get_data_for_approved_scan():
             'domain': data['domain'],
             'resource': resource
         })
-    info_to_return = [dict(t) for t in {tuple(sorted(d.items())) for d in information}]
+    import pandas as pd
+    info_to_return = pd.DataFrame(information).drop_duplicates().to_dict('records')
+    #info_to_return = [dict(t) for t in {tuple(sorted(d.items())) for d in information}]
 
     return info_to_return
 
@@ -141,7 +143,9 @@ def get_data_for_monitor():
             'domain': data['domain'],
             'resource': resource
         })
-    info_to_return = [dict(t) for t in {tuple(sorted(d.items())) for d in information}]
+    import pandas as pd
+    info_to_return = pd.DataFrame(information).drop_duplicates().to_dict('records')
+    #info_to_return = [dict(t) for t in {tuple(sorted(d.items())) for d in information}]
 
     return info_to_return
 
@@ -154,6 +158,7 @@ def find_last_version_of_librarie(name):
 
 def approve_resources(info):
     for resource in info['data']:
+        print(resource)
         exists = resources.find_one({'domain': resource['domain'], 'subdomain': resource['subdomain'], 'type':resource['type']})
         if not exists:
             print('RESOURCE %s FROM %s WAS IN THE CSV BUT NOT IN OUR DATABASE' % (resource['subdomain'], resource['domain']))
