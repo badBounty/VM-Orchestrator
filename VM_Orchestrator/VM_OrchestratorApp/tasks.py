@@ -419,7 +419,7 @@ def project_monitor_task():
         #elif scan_info['type'] == 'url':
         #    run_web_scanners(scan_info)
         #    run_ip_scans(scan_info)
-    
+        
     return
 
 @periodic_task(run_every=crontab(hour=0, minute=0),

@@ -38,7 +38,7 @@ def run_recon(scan_info):
 
     # Subfinder
     print('Subfinder starting')
-    subprocess.run([subfinder_dir, '-d', scan_info['domain'], '-max-time', '20','-o', PROJECT_DIR + '/subfinder_out.txt'])
+    subprocess.run([subfinder_dir, '-d', scan_info['domain'],'-o', PROJECT_DIR + '/subfinder_out.txt'])
     if path.exists(PROJECT_DIR + '/subfinder_out.txt'):
         print('Subfinder finished correctly')
     else:
