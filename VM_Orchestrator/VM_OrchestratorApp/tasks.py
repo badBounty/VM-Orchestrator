@@ -265,6 +265,7 @@ def start_scan_on_approved_resources(information):
         scan_info['nessus_scan'] = False
         scan_info['acunetix_scan'] = False
         scan_info['burp_scan'] = False
+        scan_info['invasive_scans'] = False
         if scan_info['type'] == 'domain':
             run_web_scanners(scan_info)
             run_ip_scans(scan_info)
