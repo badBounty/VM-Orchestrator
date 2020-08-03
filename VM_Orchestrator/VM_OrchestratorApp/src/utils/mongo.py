@@ -79,13 +79,13 @@ def get_responsive_http_resources(target):
     subdomains = resources.find({'domain': target, 'has_urls': 'True', 'scanned': False, 'approved': True})
     subdomain_list = list()
     for subdomain in subdomains:
-        for url_with_http in subdomain['url'].split(';'):
+        for url_with_http in subdomain['url']:
             if url_with_http:
                 current_subdomain = {
                     'domain': subdomain['domain'],
                     'ip': subdomain['ip'],
                     'subdomain': subdomain['subdomain'],
-                    'url': subdomain['url']
+                    'url': url_with_http
                 }
                 subdomain_list.append(current_subdomain)
     return subdomain_list

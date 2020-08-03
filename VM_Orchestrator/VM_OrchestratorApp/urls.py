@@ -7,7 +7,8 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('start_recon/', views.run_recon_against_target, name='start_recon'),
     path('get_resources/', views.get_resources_from_target, name='get_resources'),
+    path('start_scan_on_approved', views.start_scan_on_approved, name='approved_scan'),
     path('on_demand_scan/', views.on_demand_scan, name='on_demand_scan'),
     path('update_elasticsearch/', views.force_update_elasticsearch, name='update_elasticsearch/'),
-    path('start_scan_on_approved', views.start_scan_on_approved, name='approved_scan')
+    path('sync_redmine/', views.sync_redmine, name='sync_redmine')
 ]

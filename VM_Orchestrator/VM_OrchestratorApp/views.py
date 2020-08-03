@@ -60,6 +60,13 @@ def force_update_elasticsearch(request):
         return JsonResponse({'INFO': 'Updating elasticsearch'})
     return JsonResponse({'ERROR': 'Post is required'})
 
+
+@csrf_exempt
+def sync_redmine(request):
+    if request.method == 'POST':
+        manager.force_sync_redmine()
+        return JsonResponse({'INFO': 'Synchronizing redmine'})
+    return JsonResponse({'ERROR': 'Post is required'})
 ### ON DEMAND SCAN APPROVED REQUESTS ###
 '''
 Will run web and ip scans against https://example.com
