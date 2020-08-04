@@ -1,10 +1,12 @@
 import os
 
 def start_httprobe(subdomain_list, scan_info):
+    print('Starting httprobe against ' + str(len(subdomain_list))+ ' subdomains')
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     TOOL_DIR = ROOT_DIR + '/tools/httprobe'
     OUTPUT_DIR = ROOT_DIR + '/output'
     for subdomain in subdomain_list:
+        print('Probing %s' % subdomain['subdomain'])
         with open(OUTPUT_DIR+'/httprobe_input.txt', 'w') as f:
             f.write("%s\n" % subdomain['subdomain'])
 
