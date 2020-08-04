@@ -393,9 +393,6 @@ def update_issue_if_needed(redmine_issue):
 
     if not vulnerability:
         print('NOT FOUND')
-    print(vuln_name)
-    print(cvss_score)
-    print(status)
 
     vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'cvss_score': cvss_score 
