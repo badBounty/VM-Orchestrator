@@ -357,8 +357,7 @@ def add_urls_from_aquatone(subdomain, has_urls, url_list):
     return
 
 def add_urls_from_httprobe(subdomain, url_to_add):
-    print(subdomain)
-    subdomain = resources.find_one({'subdomain': subdomain})
+    subdomain = resources.find_one({'subdomain': subdomain['subdomain']})
     dict_to_add = {'url': url_to_add}
     if subdomain['url'] is None:
         list_to_add = list()
