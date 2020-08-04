@@ -367,7 +367,6 @@ def add_urls_from_httprobe(subdomain, url_to_add):
             'url': list_to_add}})
         return
     if dict_to_add not in subdomain['url']:
-        print('Httprobe found new urls!')
         new_list = subdomain['url']
         new_list.append(dict_to_add)    
         resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
@@ -454,7 +453,7 @@ def update_elasticsearch():
             'resource_exposition': resource['exposition'],
             'resource_asset_value': resource['asset_value'],
             'resource_has_urls': bool(resource['has_urls']),
-            'resource_responsive_urls': resource['url'],
+            'resource_responsive_urls': None if resource['url'] is None else resource['url'][0]['url'],
             'resource_nmap_information': resource['nmap_information']
         })
 
