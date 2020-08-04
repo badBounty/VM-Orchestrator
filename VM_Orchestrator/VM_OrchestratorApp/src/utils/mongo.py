@@ -4,6 +4,7 @@ from VM_Orchestrator.settings import MONGO_INFO
 from VM_OrchestratorApp.src.utils import slack
 
 from datetime import datetime
+import json
 
 resources = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['RESOURCES_COLLECTION']]
 observations = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['OBSERVATIONS_COLLECTION']]
@@ -430,7 +431,12 @@ def update_elasticsearch():
     new_resources = resources.find()
     resources_list = list()
     for resource in new_resources:
-        print(type(resource['url'][0]))
+        if resource['url'] is None:
+            resource_urls = None
+        else:
+            resource_urls = json.loads(resource['url'])
+
+        print(resource_urls)
         resources_list.append({
             'resource_id': str(resource['_id']),
             'resource_domain': resource['domain'],
@@ -454,7 +460,7 @@ def update_elasticsearch():
             'resource_exposition': resource['exposition'],
             'resource_asset_value': resource['asset_value'],
             'resource_has_urls': bool(resource['has_urls']),
-            'resource_responsive_urls': None if resource['url'] is None else resource['url'][0],
+            'resource_responsive_urls': None if resource_urls is None else resource_urls[0]['url'],
             'resource_nmap_information': resource['nmap_information']
         })
 
