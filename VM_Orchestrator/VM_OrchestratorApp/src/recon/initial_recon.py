@@ -113,8 +113,8 @@ def gather_data(project_dir, scan_info):
                 'region': None,
                 'city': None,
                 'org': None,
-                'lat': None,
-                'lon': None
+                'lat': '0',
+                'lon': '0'
         }
         if has_ip.decode():
             value = has_ip.decode().split('\n')
