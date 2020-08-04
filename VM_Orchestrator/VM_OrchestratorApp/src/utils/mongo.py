@@ -434,7 +434,7 @@ def update_elasticsearch():
         if resource['url'] is None:
             resource_urls = None
         else:
-            resource_urls = json.loads(resource['url'])
+            resource_urls = json.dumps(resource['url'])
 
         print(resource_urls)
         resources_list.append({
