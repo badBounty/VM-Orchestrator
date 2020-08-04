@@ -8,7 +8,7 @@ import pandas as pd
 import copy
 import os
 
-from VM_OrchestratorApp.src.recon import initial_recon, aquatone
+from VM_OrchestratorApp.src.recon import initial_recon, aquatone, httprobe
 from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
     firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack, \
@@ -26,6 +26,7 @@ def subdomain_recon_task(scan_info):
 def resolver_recon_task(scan_info):
     subdomains = mongo.get_alive_subdomains_for_resolve(scan_info['domain'])
     aquatone.start_aquatone(subdomains, scan_info)
+    httprobe.start_httprobe(subdomains, scan_info)
     return
 
 # ------ SCANNING TASKS ------ #
