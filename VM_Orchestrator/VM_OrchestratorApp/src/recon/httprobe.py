@@ -17,7 +17,7 @@ def start_httprobe(subdomain_list, scan_info):
         for item in output_list:
             if item[-1:] != '/':
                 item = item+'/'
-                mongo.add_urls_from_httprobe(subdomain, item)
+            mongo.add_urls_from_httprobe(subdomain, item)
 
         try:
             os.remove(OUTPUT_DIR)
