@@ -430,8 +430,6 @@ def update_elasticsearch():
     new_resources = resources.find()
     resources_list = list()
     for resource in new_resources:
-        print(resource['url'])
-        print(resource['url'][0])
         resources_list.append({
             'resource_id': str(resource['_id']),
             'resource_domain': resource['domain'],
@@ -455,7 +453,7 @@ def update_elasticsearch():
             'resource_exposition': resource['exposition'],
             'resource_asset_value': resource['asset_value'],
             'resource_has_urls': bool(resource['has_urls']),
-            'resource_responsive_urls': None if resource['url'] is None else resource['url'],
+            'resource_responsive_urls': resource['url'],
             'resource_nmap_information': resource['nmap_information']
         })
 
