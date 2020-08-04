@@ -435,8 +435,8 @@ def update_elasticsearch():
             resource_url = None
         else:
             for url in resource['url']:
-                resource_url = url
-                if 'https' in url:
+                resource_url = url['url']
+                if 'https' in url['url']:
                     break
 
         resources_list.append({
