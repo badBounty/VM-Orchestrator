@@ -11,6 +11,7 @@ def start_httprobe(subdomain_list, scan_info):
             f.write("%s\n" % subdomain['subdomain'])
 
         output = os.popen('cat httprobe_input.txt | '+TOOL_DIR).read()
+        print(output)
         output_list = output.split('\n')
         output_list.remove("")
         for item in output_list:
