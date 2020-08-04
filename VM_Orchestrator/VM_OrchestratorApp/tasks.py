@@ -25,7 +25,7 @@ def subdomain_recon_task(scan_info):
 @shared_task
 def resolver_recon_task(scan_info):
     subdomains = mongo.get_alive_subdomains_for_resolve(scan_info['domain'])
-    aquatone.start_aquatone(subdomains, scan_info)
+    #aquatone.start_aquatone(subdomains, scan_info)
     httprobe.start_httprobe(subdomains, scan_info)
     return
 
@@ -165,11 +165,11 @@ def web_scan_from_nmap_results(scan_information):
 # ------ PREDEFINED TASKS ------ #
 @shared_task
 def run_recon(scan_information):
-    slack.send_notification_to_channel('Starting recon against %s' % scan_information['domain'], '#vm-recon-module')
-    subdomain_recon_task(scan_information)
+    #slack.send_notification_to_channel('Starting recon against %s' % scan_information['domain'], '#vm-recon-module')
+    #subdomain_recon_task(scan_information)
     resolver_recon_task(scan_information)
-    send_email_with_resources_for_verification(scan_information)
-    recon_finished(scan_information)
+    #send_email_with_resources_for_verification(scan_information)
+    #recon_finished(scan_information)
     return
 
 ### WEB SCANS ###
