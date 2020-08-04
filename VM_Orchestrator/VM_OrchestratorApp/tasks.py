@@ -449,6 +449,7 @@ queue='slow_queue', options={'queue': 'slow_queue'})
 def check_redmine_for_updates():
     issues = redmine.get_issues_from_project()
     for issue in issues:
+        print(issue)
         mongo.update_issue_if_needed(issue)
     return
 
