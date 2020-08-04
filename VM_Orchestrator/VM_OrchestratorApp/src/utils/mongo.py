@@ -76,7 +76,7 @@ def remove_scanned_flag():
 
 # This will return every url with http/https
 def get_responsive_http_resources(target):
-    subdomains = resources.find({'domain': target, 'has_urls': 'True', 'scanned': False, 'approved': True})
+    subdomains = resources.find({'domain': target, 'has_urls': True, 'scanned': False, 'approved': True})
     subdomain_list = list()
     for subdomain in subdomains:
         for url_with_http in subdomain['url']:
@@ -352,18 +352,26 @@ def get_nmap_web_interfaces(scan_info):
 def add_urls_from_aquatone(subdomain, has_urls, url_list):
     subdomain = resources.find_one({'subdomain': subdomain})
     resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
-        'has_urls': str(has_urls),
+        'has_urls': has_urls,
         'url': url_list}})
     return
 
 def add_urls_from_httprobe(subdomain, url_to_add):
     subdomain = resources.find_one({'subdomain': subdomain})
     dict_to_add = {'url': url_to_add}
+    if subdomain['url'] is None:
+        list_to_add = list()
+        list_to_add.append(dict_to_add)
+        resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
+            'has_urls': True,
+            'url': list_to_add}})
+        return
     if dict_to_add not in subdomain['url']:
         print('Httprobe found new urls!')
         new_list = subdomain['url']
         new_list.append(dict_to_add)    
         resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
+            'has_urls': True,
             'url': new_list}})
     return
 

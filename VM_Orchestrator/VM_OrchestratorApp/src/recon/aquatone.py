@@ -58,10 +58,10 @@ def parse_results(subdomain, OUTPUT_DIR):
     if urls and urls != ['']:
         for url in urls:
             urls_to_add.append({'url': url})
-        has_urls = 'True'
+        has_urls = True
     else:
         urls_to_add = None
-        has_urls = 'False'
+        has_urls = False
 
     http_image_string = ''
     https_image_string = ''
