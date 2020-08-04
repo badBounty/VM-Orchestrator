@@ -430,6 +430,7 @@ def update_elasticsearch():
     new_resources = resources.find()
     resources_list = list()
     for resource in new_resources:
+        print(resource['url'])
         resources_list.append({
             'resource_id': str(resource['_id']),
             'resource_domain': resource['domain'],
