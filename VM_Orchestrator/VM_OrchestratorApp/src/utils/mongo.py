@@ -391,10 +391,12 @@ def update_issue_if_needed(redmine_issue):
     vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
     'domain': target, 'resource': scanned_url})
 
-    print(vulnerability)
-    print(target)
+    if not vulnerability:
+        print('NOT FOUND')
     print(vuln_name)
-    print(scanned_url)
+    print(cvss_score)
+    print(status)
+
     vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'cvss_score': cvss_score 
         }})
@@ -414,7 +416,6 @@ def update_elasticsearch():
     new_resources = resources.find()
     resources_list = list()
     for resource in new_resources:
-        print(resource['additional_info']['geoloc'])
         resources_list.append({
             'resource_id': str(resource['_id']),
             'resource_domain': resource['domain'],
