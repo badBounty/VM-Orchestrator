@@ -43,6 +43,13 @@ def force_update_elasticsearch():
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
+def force_redmine_sync():
+    slack.send_notification_to_channel('_ Forcing redmine sync... _', '#vm-ondemand')
+    execution_chain = chain(
+        tasks.check_redmine_for_updates.si().set(queue='fast_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
+
 def on_demand_scan(information):
 
     information['is_first_run'] = True
