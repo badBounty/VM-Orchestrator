@@ -53,15 +53,15 @@ def parse_results(subdomain, OUTPUT_DIR):
         print('ERROR: Auatone urls file was not found')
         pass
 
+    urls_to_add = list()
+    urls = [string for string in urls if string != ""]
     if urls and urls != ['']:
         for url in urls:
-            urls_string = url
-            if 'https://' in url:
-                break
-        has_urls = 'True'
+            urls_to_add.append({'url': url})
+        has_urls = True
     else:
-        urls_string = ''
-        has_urls = 'False'
+        urls_to_add = None
+        has_urls = False
 
     http_image_string = ''
     https_image_string = ''
@@ -75,7 +75,7 @@ def parse_results(subdomain, OUTPUT_DIR):
                 with open(OUTPUT_DIR + '/screenshots/' + image, "rb") as image_file:
                     https_image_string = base64.b64encode(image_file.read())
 
-    mongo.add_urls_to_subdomain(subdomain, has_urls, urls_string)
+    mongo.add_urls_from_aquatone(subdomain, has_urls, urls_to_add)
     mongo.add_images_to_subdomain(subdomain, http_image_string, https_image_string)
 
     return

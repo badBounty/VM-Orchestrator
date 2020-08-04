@@ -8,7 +8,7 @@ import pandas as pd
 import copy
 import os
 
-from VM_OrchestratorApp.src.recon import initial_recon, aquatone
+from VM_OrchestratorApp.src.recon import initial_recon, aquatone, httprobe
 from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
     firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack, \
@@ -19,13 +19,14 @@ from VM_OrchestratorApp.src.utils import mongo, slack, redmine
 # ------ RECON ------ #
 @shared_task
 def subdomain_recon_task(scan_info):
-    initial_recon.run_recon(scan_info)
+    #initial_recon.run_recon(scan_info)
     return
 
 @shared_task
 def resolver_recon_task(scan_info):
     subdomains = mongo.get_alive_subdomains_for_resolve(scan_info['domain'])
-    aquatone.start_aquatone(subdomains, scan_info)
+    #aquatone.start_aquatone(subdomains, scan_info)
+    httprobe.start_httprobe(subdomains, scan_info)
     return
 
 # ------ SCANNING TASKS ------ #
@@ -301,7 +302,6 @@ def start_scan_on_approved_resources(information):
 @shared_task
 def on_demand_scan_finished(results, information):
     if information['email'] is None:
-        print('On demand scan finished!')
         return
     # TODO REMOVE Send email with scan results
     vulnerabilities = mongo.get_vulnerabilities_for_email(information)
@@ -321,7 +321,6 @@ def on_demand_scan_finished(results, information):
         print('ERROR:Output for on demand scan was not found')
         pass
     slack.send_notification_to_channel('_ On demand scan against %s finished! _' % information['resource'], '#vm-ondemand')
-    print('On demand scan finished!')
     return
 
 @shared_task
