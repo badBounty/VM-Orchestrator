@@ -64,7 +64,7 @@ def force_update_elasticsearch(request):
 def force_redmine_sync(request):
     if request.method == 'POST':
         manager.force_redmine_sync()
-        return JsonResponse({'INFO': 'Updating elasticsearch'})
+        return JsonResponse({'INFO': 'Synchronizing redmine'})
     return JsonResponse({'ERROR': 'Post is required'})
 
 ### ON DEMAND SCAN APPROVED REQUESTS ###
