@@ -349,12 +349,22 @@ def get_nmap_web_interfaces(scan_info):
                 to_send.append('https://'+scan_info['resource'])
     return to_send
 
-def add_urls_to_subdomain(subdomain, has_urls, url_list):
+def add_urls_from_aquatone(subdomain, has_urls, url_list):
     subdomain = resources.find_one({'subdomain': subdomain})
     resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
         'has_urls': str(has_urls),
         'url': url_list}})
+    return
 
+def add_urls_from_httprobe(subdomain, url_to_add):
+    subdomain = resources.find_one({'subdomain': subdomain})
+    dict_to_add = {'url': url_to_add}
+    if dict_to_add not in subdomain['url']:
+        print('Httprobe found new urls!')
+        new_list = subdomain['url']
+        new_list.append(dict_to_add)    
+        resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
+            'url': new_list}})
     return
 
 def add_images_to_subdomain(subdomain, http_image, https_image):

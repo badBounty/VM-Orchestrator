@@ -19,13 +19,13 @@ from VM_OrchestratorApp.src.utils import mongo, slack, redmine
 # ------ RECON ------ #
 @shared_task
 def subdomain_recon_task(scan_info):
-    #initial_recon.run_recon(scan_info)
+    initial_recon.run_recon(scan_info)
     return
 
 @shared_task
 def resolver_recon_task(scan_info):
     subdomains = mongo.get_alive_subdomains_for_resolve(scan_info['domain'])
-    #aquatone.start_aquatone(subdomains, scan_info)
+    aquatone.start_aquatone(subdomains, scan_info)
     httprobe.start_httprobe(subdomains, scan_info)
     return
 

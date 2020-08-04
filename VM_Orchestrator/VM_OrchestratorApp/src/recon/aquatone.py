@@ -75,7 +75,7 @@ def parse_results(subdomain, OUTPUT_DIR):
                 with open(OUTPUT_DIR + '/screenshots/' + image, "rb") as image_file:
                     https_image_string = base64.b64encode(image_file.read())
 
-    mongo.add_urls_to_subdomain(subdomain, has_urls, urls_to_add)
+    mongo.add_urls_from_aquatone(subdomain, has_urls, urls_to_add)
     mongo.add_images_to_subdomain(subdomain, http_image_string, https_image_string)
 
     return
