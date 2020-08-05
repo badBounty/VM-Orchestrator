@@ -443,8 +443,8 @@ def project_monitor_task():
         
     return
 
-#@periodic_task(run_every=crontab(hour=0, minute=0),
-#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=0, minute=0),
+queue='slow_queue', options={'queue': 'slow_queue'})
 def check_redmine_for_updates():
     print('Synchronizing redmine')
     issues = redmine.get_issues_from_project()
@@ -452,7 +452,7 @@ def check_redmine_for_updates():
         mongo.update_issue_if_needed(issue)
     return
 
-#@periodic_task(run_every=crontab(minute='0', hour='*/1'),
-#queue='fast_queue', options={'queue':'slow_queue'})
+@periodic_task(run_every=crontab(minute='0', hour='*/1'),
+queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
