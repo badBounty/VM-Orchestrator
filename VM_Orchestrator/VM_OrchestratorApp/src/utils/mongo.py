@@ -416,8 +416,8 @@ def add_custom_redmine_issue(redmine_issue):
         vuln_status = 'closed'
 
     vuln_to_add = {
-        'domain': redmine_issue.custom_fields.get(1),
-        'resource': redmine_issue.custom_fields.get(2),
+        'domain': redmine_issue.custom_fields.get(1).value,
+        'resource': redmine_issue.custom_fields.get(2).value,
         'vulnerability_name': redmine_issue.subject,
         'observation': None, # TODO we will add observation in the future
         'extra_info': redmine_issue.description,
