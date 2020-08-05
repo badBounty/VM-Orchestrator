@@ -399,6 +399,40 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
             }})
     return
 
+def add_custom_redmine_issue(redmine_issue):
+    #We are going to suppose the issue exists on our local database
+    #We will check first and send an exception if its not found
+    resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(1),
+     'subdomain': redmine_issue.custom_fields.get(2)})
+    if not resource_exists:
+        print('Failed adding custom redmine resource. Domain %s, resource %s' % 
+        (redmine_issue.custom_fields.get(1),redmine_issue.custom_fields.get(2)))
+        return
+    vuln_status = 'new'
+    status = redmine_issue.status.name
+    if status == 'Remediada':
+        vuln_status = 'resolved'
+    elif status == 'Cerrada':
+        vuln_status = 'closed'
+
+    vuln_to_add = {
+        'domain': redmine_issue.custom_fields.get(1),
+        'resource': redmine_issue.custom_fields.get(2),
+        'vulnerability_name': redmine_issue.subject,
+        'observation': None, # TODO we will add observation in the future
+        'extra_info': redmine_issue.description,
+        'image_string': None,
+        'file_string': None,
+        'date_found': datetime.now(),
+        'last_seen': datetime.now(),
+        'language': None,
+        'cvss_score': redmine_issue.custom_fields.get(10).value,
+        'state': vuln_status
+    }
+    vulnerabilities.insert_one(vuln_to_add)
+    return
+
+
 def update_issue_if_needed(redmine_issue):
     target = redmine_issue.custom_fields.get(1).value
     vuln_name = redmine_issue.subject
@@ -409,8 +443,9 @@ def update_issue_if_needed(redmine_issue):
     vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
     'domain': target, 'resource': scanned_url})
 
+    # This means the vuln is in redmine but not on our local database
     if not vulnerability:
-        print('NOT FOUND')
+        add_custom_redmine_issue(redmine_issue)
 
     vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'cvss_score': cvss_score 
