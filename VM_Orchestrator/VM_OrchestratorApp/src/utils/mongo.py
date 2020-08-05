@@ -446,6 +446,7 @@ def update_issue_if_needed(redmine_issue):
     # This means the vuln is in redmine but not on our local database
     if not vulnerability:
         add_custom_redmine_issue(redmine_issue)
+        return
 
     vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'cvss_score': cvss_score 
