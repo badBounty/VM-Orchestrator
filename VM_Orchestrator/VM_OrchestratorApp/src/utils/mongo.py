@@ -402,11 +402,11 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
 def add_custom_redmine_issue(redmine_issue):
     #We are going to suppose the issue exists on our local database
     #We will check first and send an exception if its not found
-    resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(1),
-     'subdomain': redmine_issue.custom_fields.get(2)})
+    resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(1).value,
+     'subdomain': redmine_issue.custom_fields.get(2).value})
     if not resource_exists:
         print('Failed adding custom redmine resource. Domain %s, resource %s' % 
-        (redmine_issue.custom_fields.get(1),redmine_issue.custom_fields.get(2)))
+        (redmine_issue.custom_fields.get(1).value,redmine_issue.custom_fields.get(2).value))
         return
     vuln_status = 'new'
     status = redmine_issue.status.name
