@@ -182,7 +182,7 @@ def approve_resources(info):
                 'is_alive': resource['is_alive'],
                 'has_urls': resource['has_urls'],
                 'approved': resource['approved'],
-                'scan_type': resource['type'],
+                'type': resource['type'],
                 'priority': resource['priority'],
                 'exposition': resource['exposition'],
                 'asset_value': resource['asset_value']
