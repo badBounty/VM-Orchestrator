@@ -36,6 +36,7 @@ def add_vulnerability(vulnerability):
             'last_seen': vulnerability.time,
             'language': vulnerability.language,
             'cvss_score': vulnerability.cvss,
+            'vuln_type': vulnerability.vuln_type,
             'state': 'new'
         }
         vulnerabilities.insert_one(resource)
@@ -538,6 +539,7 @@ def update_elasticsearch():
                 'vulnerability_last_seen': vuln['last_seen'],
                 'vulnerability_language': vuln['language'],
                 'vulnerability_cvss_score': vuln['cvss_score'],
+                'vulnerability_vuln_type': vuln['vuln_type'],
                 'vulnerability_state': vuln['state']
             })
 
