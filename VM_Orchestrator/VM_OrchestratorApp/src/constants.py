@@ -106,10 +106,10 @@ ANON_ACCESS_FTP = {
     'spanish_name': 'Permisos de escritura en servidor FTP en forma anónima',
     'status': 1
 }
-# TODO revisar spanish name
+
 CRED_ACCESS_FTP = {
     'english_name': 'Access to FTP server with default credentials',
-    'spanish_name': 'Acceso administrativo mediante usuarios por defecto',
+    'spanish_name': 'Acceso a FTP con credenciales por defecto',
     'status': 1
 }
 DEFAULT_CREDS = {
