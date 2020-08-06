@@ -22,7 +22,7 @@ def index(request):
     return render(request, 'base.html')
 
 def dashboards(request):
-    return render(request, 'dashboards.html')
+    return render(request, 'dashboard.html')
 
 '''
 {
