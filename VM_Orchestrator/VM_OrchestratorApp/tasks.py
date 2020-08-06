@@ -246,57 +246,16 @@ def run_ip_scans(scan_information):
         [
             nmap_script_baseline_task.s(ip_information).set(queue='slow_queue'),
             nmap_script_scan_task.s(ip_information).set(queue='slow_queue'),
-            nessus_scan_task.s(ip_information).set(queue='slow_queue'),
-            add_scanned_resources.s(ip_information).set(queue='fast_queue')
+            nessus_scan_task.s(ip_information).set(queue='slow_queue')
         ],
         body=ip_security_scan_finished.s(ip_information).set(queue='fast_queue'),
         immutable=True)
     execution_chord.apply_async(queue='fast_queue', interval=60)
     return
 
-# Similar to how monitor works
 @shared_task
-def start_scan_on_approved_resources(information):
+def approve_resources(information):
     mongo.approve_resources(information)
-    resources = mongo.get_data_for_approved_scan()
-    print(resources)
-    for resource in resources:
-        scan_info = resource
-        scan_info['email'] = None
-        scan_info['nessus_scan'] = False
-        scan_info['acunetix_scan'] = False
-        scan_info['burp_scan'] = False
-        scan_info['invasive_scans'] = False
-        if scan_info['type'] == 'domain':
-            execution_chord= chord(
-                    [
-                        run_web_scanners.si(scan_info).set(queue='fast_queue'),
-                        run_ip_scans.si(scan_info).set(queue='slow_queue')
-                    ],
-                    body=on_demand_scan_finished.s(scan_info).set(queue='fast_queue'),
-                    immutable = True
-                )
-            execution_chord.apply_async(queue='fast_queue', interval=300)
-        elif scan_info['type'] == 'ip':
-            execution_chord = chord(
-                    [
-                        run_ip_scans.si(scan_info).set(queue='slow_queue')
-                    ],
-                    body=on_demand_scan_finished.s(scan_info).set(queue='fast_queue'),
-                    immutable = True
-                )
-            execution_chord.apply_async(queue='fast_queue', interval=300)
-        elif scan_info['type'] == 'url':
-            execution_chord = chord(
-                    [
-                        run_web_scanners.si(scan_info).set(queue='fast_queue'),
-                        run_ip_scans.si(scan_info).set(queue='slow_queue')
-                    ],
-                    body=on_demand_scan_finished.s(scan_info).set(queue='fast_queue'),
-                    immutable = True
-                )
-            execution_chord.apply_async(queue='fast_queue', interval=300)
-
 
 # ------ END ALERTS ------ #
 @shared_task
@@ -365,8 +324,19 @@ def send_email_with_resources_for_verification(scan_information):
 
 # ------ MONITOR TOOLS ------ #
 @shared_task
-def add_scanned_resources(resource_list):
-    mongo.add_scanned_resources(resource_list)
+def add_scanned_resources(scan_info):
+    if scan_info['type'] == 'domain':
+        scan_info['scan_type'] = 'target'
+        subdomains_plain = mongo.get_alive_subdomains_from_target(scan_info['domain'])
+        only_subdomains = list()
+        for subdomain in subdomains_plain:
+            only_subdomains.append(subdomain['subdomain'])
+        scan_info['target'] = only_subdomains
+    else:
+        scan_info['scan_type'] = 'single'
+        scan_info['target'] = scan_info['resource']
+
+    mongo.add_scanned_resources(scan_info)
     return
 
 # ------ PERIODIC TASKS ------ #
@@ -441,6 +411,50 @@ def project_monitor_task():
         #    run_web_scanners(scan_info)
         #    run_ip_scans(scan_info)
         
+    return
+
+@periodic_task(run_every=crontab(hour=settings['PROJECT']['SCAN_START_HOUR'], minute=settings['PROJECT']['SCAN_START_MINUTE']),
+queue='slow_queue', options={'queue': 'slow_queue'})
+def start_scan_on_approved_resources():
+    resources = mongo.get_data_for_approved_scan()
+    print(resources)
+    for resource in resources:
+        scan_info = resource
+        scan_info['email'] = None
+        scan_info['nessus_scan'] = settings['PROJECT']['ACTIVATE_NESSUS']
+        scan_info['acunetix_scan'] = settings['PROJECT']['ACTIVATE_ACUNETIX']
+        scan_info['burp_scan'] = settings['PROJECT']['ACTIVATE_BURP']
+        scan_info['invasive_scans'] = settings['PROJECT']['ACTIVATE_INVASIVE_SCANS']
+        if scan_info['type'] == 'domain':
+            execution_chord= chord(
+                    [
+                        add_scanned_resources.si(scan_info).set(queue='fast_queue'),
+                        run_web_scanners.si(scan_info).set(queue='fast_queue'),
+                        run_ip_scans.si(scan_info).set(queue='slow_queue')
+                    ],
+                    body=on_demand_scan_finished.s(scan_info).set(queue='fast_queue'),
+                    immutable = True
+                )
+            execution_chord.apply_async(queue='fast_queue', interval=300)
+        elif scan_info['type'] == 'ip':
+            execution_chord = chord(
+                    [
+                        run_ip_scans.si(scan_info).set(queue='slow_queue')
+                    ],
+                    body=on_demand_scan_finished.s(scan_info).set(queue='fast_queue'),
+                    immutable = True
+                )
+            execution_chord.apply_async(queue='fast_queue', interval=300)
+        elif scan_info['type'] == 'url':
+            execution_chord = chord(
+                    [
+                        run_web_scanners.si(scan_info).set(queue='fast_queue'),
+                        run_ip_scans.si(scan_info).set(queue='slow_queue')
+                    ],
+                    body=on_demand_scan_finished.s(scan_info).set(queue='fast_queue'),
+                    immutable = True
+                )
+            execution_chord.apply_async(queue='fast_queue', interval=300)
     return
 
 @periodic_task(run_every=crontab(hour=0, minute=0),

@@ -33,10 +33,6 @@ def vulns(request):
     "email": "example@example.com"
 }
 '''
-[{  
-    'domain': 'tesla.com',
-    'subdomain': 'vpn.tesla.com'
-}]
 @csrf_exempt
 def run_recon_against_target(request):
     if request.method == 'POST':
