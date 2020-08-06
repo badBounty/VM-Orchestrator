@@ -17,7 +17,7 @@ def get_resources_from_target(information):
 
 def recon_against_target(information):
     information['is_first_run'] = True
-    information['language'] = 'eng'
+    information['language'] = settings['LANGUAGE']
     information['priority'] = None
     information['exposition'] = None
     information['type'] = 'domain'
@@ -53,7 +53,7 @@ def force_redmine_sync():
 def on_demand_scan(information):
 
     information['is_first_run'] = True
-    information['language'] = 'eng'
+    information['language'] = settings['LANGUAGE']
 
     # The "Information" argument on chord body is temporary
 

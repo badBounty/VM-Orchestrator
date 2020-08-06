@@ -389,7 +389,7 @@ def project_start_task():
         'invasive_scans': False,
         'nessus_scan': False,
         'acunetix_scan': False,
-        'language': 'eng'
+        'language': settings['LANGUAGE']
         }
         scan_info['type'] = data['Type']
         scan_info['priority'] = data['Priority']

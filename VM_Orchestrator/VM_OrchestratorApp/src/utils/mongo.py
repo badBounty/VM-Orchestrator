@@ -1,5 +1,6 @@
 # pylint: disable=import-error
 from VM_OrchestratorApp import MONGO_CLIENT
+from VM_Orchestrator import settings
 from VM_Orchestrator.settings import MONGO_INFO
 from VM_OrchestratorApp.src.utils import slack
 
@@ -110,7 +111,7 @@ def get_data_for_approved_scan():
         information.append({
             'is_first_run': False,
             'invasive_scans': False,
-            'language': 'eng',
+            'language': settings['LANGUAGE'],
             'type': data['type'],
             'priority': data['priority'],
             'exposition': data['exposition'],
@@ -137,7 +138,7 @@ def get_data_for_monitor():
         information.append({
             'is_first_run': False,
             'invasive_scans': False,
-            'language': 'eng',
+            'language': settings['LANGUAGE'],
             'type': data['type'],
             'priority': data['priority'],
             'exposition': data['exposition'],
