@@ -21,6 +21,9 @@ import VM_OrchestratorApp.tasks as tasks
 def index(request):
     return render(request, 'base.html')
 
+def dashboards(request):
+    return render(request, 'dashboards.html')
+
 '''
 {
     "domain": example.com,
