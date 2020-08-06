@@ -1,6 +1,6 @@
 # pylint: disable=import-error
 from VM_Orchestrator.settings import settings, redmine_client
-from VM_Orchestrator import REDMINE_IDS
+from VM_Orchestrator.settings import REDMINE_IDS
 
 import urllib3
 
