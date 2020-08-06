@@ -1,6 +1,7 @@
 # pylint: disable=import-error
 from VM_OrchestratorApp import MONGO_CLIENT
 from VM_Orchestrator import settings
+from VM_Orchestrator import REDMINE_IDS
 from VM_Orchestrator.settings import MONGO_INFO
 from VM_OrchestratorApp.src.utils import slack
 
@@ -404,11 +405,11 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
 def add_custom_redmine_issue(redmine_issue):
     #We are going to suppose the issue exists on our local database
     #We will check first and send an exception if its not found
-    resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(1).value,
-     'subdomain': redmine_issue.custom_fields.get(2).value})
+    resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value,
+     'subdomain': redmine_issue.custom_fields.get(REDMINE_IDS['SUB_RESOURCE']).value})
     if not resource_exists:
         print('Failed adding custom redmine resource. Domain %s, resource %s' % 
-        (redmine_issue.custom_fields.get(1).value,redmine_issue.custom_fields.get(2).value))
+        (redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value,redmine_issue.custom_fields.get(REDMINE_IDS['SUB_RESOURCE']).value))
         return
     vuln_status = 'new'
     status = redmine_issue.status.name
@@ -418,8 +419,8 @@ def add_custom_redmine_issue(redmine_issue):
         vuln_status = 'closed'
 
     vuln_to_add = {
-        'domain': redmine_issue.custom_fields.get(1).value,
-        'resource': redmine_issue.custom_fields.get(2).value,
+        'domain': redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value,
+        'resource': redmine_issue.custom_fields.get(REDMINE_IDS['SUB_RESOURCE']).value,
         'vulnerability_name': redmine_issue.subject,
         'observation': None, # TODO we will add observation in the future
         'extra_info': redmine_issue.description,
@@ -428,7 +429,7 @@ def add_custom_redmine_issue(redmine_issue):
         'date_found': datetime.now(),
         'last_seen': datetime.now(),
         'language': None,
-        'cvss_score': redmine_issue.custom_fields.get(10).value,
+        'cvss_score': redmine_issue.custom_fields.get(REDMINE_IDS['CVSS_SCORE']).value,
         'state': vuln_status
     }
     vulnerabilities.insert_one(vuln_to_add)
@@ -436,10 +437,10 @@ def add_custom_redmine_issue(redmine_issue):
 
 
 def update_issue_if_needed(redmine_issue):
-    target = redmine_issue.custom_fields.get(1).value
+    target = redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value
     vuln_name = redmine_issue.subject
-    scanned_url = redmine_issue.custom_fields.get(2).value
-    cvss_score = redmine_issue.custom_fields.get(10).value
+    scanned_url = redmine_issue.custom_fields.get(REDMINE_IDS['SUB_RESOURCE']).value
+    cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['CVSS_SCORE']).value
     status = redmine_issue.status.name
 
     vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
