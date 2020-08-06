@@ -164,7 +164,30 @@ def approve_resources(info):
     for resource in info['data']:
         exists = resources.find_one({'domain': resource['domain'], 'subdomain': resource['subdomain'], 'type':resource['type']})
         if not exists:
-            print('RESOURCE %s FROM %s WAS IN THE CSV BUT NOT IN OUR DATABASE' % (resource['subdomain'], resource['domain']))
+            print('RESOURCE %s FROM %s WAS IN THE CSV BUT NOT IN OUR DATABASE. ADDING' % (resource['subdomain'], resource['domain']))
+            new_resource = {
+                'domain': resource['domain'],
+                'subdomain': resource['subdomain'],
+                'url': resource['url'],
+                'ip': resource['ip'],
+                'isp': resource['isp'],
+                'asn': resource['asn'],
+                'country': resource['country'],
+                'region': resource['region'],
+                'city': resource['city'],
+                'org': resource['org'],
+                'geoloc': resource['geoloc'],
+                'first_seen': resource['first_seen'],
+                'last_seen': resource['last_seen'],
+                'is_alive': resource['is_alive'],
+                'has_urls': resource['has_urls'],
+                'approved': resource['approved'],
+                'scan_type': resource['type'],
+                'priority': resource['priority'],
+                'exposition': resource['exposition'],
+                'asset_value': resource['asset_value']
+            }
+            resources.insert_one(new_resource)
             continue
         resources.update_one({'_id': exists.get('_id')},
          {'$set': 

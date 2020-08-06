@@ -52,10 +52,10 @@ def get_resources_from_target(request):
     return JsonResponse({'ERROR': 'Post is required'})
 
 @csrf_exempt
-def start_scan_on_approved(request):
+def approve_resources(request):
     if request.method == 'POST':
         json_data = json.loads(request.body)
-        manager.start_scan_on_approved(json_data)
+        manager.approve_resources(json_data)
         return JsonResponse({'INFO': 'ACCEPTED'})
     return JsonResponse({'ERROR': 'Post is required'})
 
