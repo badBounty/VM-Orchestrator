@@ -181,7 +181,7 @@ def add_simple_url_resource(scan_info):
         resource ={
                 'domain': scan_info['domain'],
                 'subdomain': None,
-                'url': scan_info['resource'],
+                'url': [{'url': scan_info['resource']}],
                 'ip': None,
                 'is_alive': True,
                 'additional_info':{
@@ -281,7 +281,7 @@ def add_resource(url_info, scan_info):
                 'last_seen': timestamp,
                 'scanned': False,
                 'type': scan_info['type'],
-                'priority': None,
+                'priority': "50",
                 'exposition': None,
                 'asset_value': None,
                 'has_urls': False,
