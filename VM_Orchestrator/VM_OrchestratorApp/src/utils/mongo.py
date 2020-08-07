@@ -165,10 +165,11 @@ def approve_resources(info):
         exists = resources.find_one({'domain': resource['domain'], 'subdomain': resource['subdomain'], 'type':resource['type']})
         if not exists:
             print('RESOURCE %s FROM %s WAS IN THE CSV BUT NOT IN OUR DATABASE. ADDING' % (resource['subdomain'], resource['domain']))
+            print(resource)
             new_resource = {
                 'domain': resource['domain'],
                 'subdomain': resource['subdomain'],
-                'url': json.loads(resource['url']),
+                'url': resource['url'],
                 'ip': resource['ip'],
                 'isp': resource['isp'],
                 'asn': resource['asn'],
@@ -177,8 +178,8 @@ def approve_resources(info):
                 'city': resource['city'],
                 'org': resource['org'],
                 'geoloc': resource['geoloc'],
-                'first_seen': resource['first_seen'],
-                'last_seen': resource['last_seen'],
+                'first_seen': datetime.now(),
+                'last_seen': datetime.now(),
                 'is_alive': resource['is_alive'],
                 'has_urls': resource['has_urls'],
                 'approved': resource['approved'],
