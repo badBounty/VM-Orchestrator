@@ -4,10 +4,12 @@ from VM_Orchestrator import settings
 from VM_Orchestrator.settings import REDMINE_IDS
 from VM_Orchestrator.settings import MONGO_INFO
 from VM_OrchestratorApp.src.utils import slack
+from VM_OrchestratorApp.src.utils import utils
 
 from datetime import datetime
 import json
 import ast
+import urllib3
 
 resources = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['RESOURCES_COLLECTION']]
 observations = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['OBSERVATIONS_COLLECTION']]
@@ -84,13 +86,14 @@ def get_responsive_http_resources(target):
     subdomains = resources.find({'domain': target, 'has_urls': True, 'scanned': False, 'approved': True})
     subdomain_list = list()
     for subdomain in subdomains:
-        for url_with_http in subdomain['url']:
+        valid_urls_found = utils.get_distinct_urls(subdomain['url'])
+        for url_with_http in valid_urls_found:
             if url_with_http:
                 current_subdomain = {
                     'domain': subdomain['domain'],
                     'ip': subdomain['ip'],
                     'subdomain': subdomain['subdomain'],
-                    'url': url_with_http['url']
+                    'url': url_with_http
                 }
                 subdomain_list.append(current_subdomain)
     return subdomain_list

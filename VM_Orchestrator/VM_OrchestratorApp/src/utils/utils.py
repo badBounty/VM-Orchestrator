@@ -4,6 +4,7 @@ import math
 import os
 import subprocess
 import traceback
+from urllib.parse import urlparse
 from selenium import webdriver
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -106,4 +107,24 @@ def url_screenshot(url):
     OUTPUT_DIR = ROOT_DIR+'/../security/tools_output'
     driver.save_screenshot(OUTPUT_DIR+name+".png")
     driver.quit()
+
+# Receives url_list = [{'url': url}]
+def get_distinct_urls(url_list):
+    parsed_urls = list()
+    #We will add each url netloc to a list, then we will return geturl() of each one
+    for url in url_list:
+        url_parse = urlparse(url['url'])
+        found = False
+        for sub_url in parsed_urls:
+            if url_parse.netloc == sub_url.netloc:
+                found = True
+                break
+        if not found:
+            parsed_urls.append(url_parse)
+
+    final_url_list = list()
+    for url in parsed_urls:
+        final_url_list.append(url.geturl())
+
+    return final_url_list
 
