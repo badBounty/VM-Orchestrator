@@ -1,6 +1,6 @@
 # pylint: disable=import-error
 from VM_OrchestratorApp import MONGO_CLIENT
-from VM_Orchestrator import settings
+from VM_Orchestrator.settings import settings
 from VM_Orchestrator.settings import REDMINE_IDS
 from VM_Orchestrator.settings import MONGO_INFO
 from VM_OrchestratorApp.src.utils import slack
