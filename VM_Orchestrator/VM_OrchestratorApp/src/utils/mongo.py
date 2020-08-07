@@ -7,6 +7,7 @@ from VM_OrchestratorApp.src.utils import slack
 
 from datetime import datetime
 import json
+import ast
 
 resources = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['RESOURCES_COLLECTION']]
 observations = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['OBSERVATIONS_COLLECTION']]
@@ -165,11 +166,10 @@ def approve_resources(info):
         exists = resources.find_one({'domain': resource['domain'], 'subdomain': resource['subdomain'], 'type':resource['type']})
         if not exists:
             print('RESOURCE %s FROM %s WAS IN THE CSV BUT NOT IN OUR DATABASE. ADDING' % (resource['subdomain'], resource['domain']))
-            print(resource)
             new_resource = {
                 'domain': resource['domain'],
                 'subdomain': resource['subdomain'],
-                'url': resource['url'],
+                'url': ast.literal_eval(resource['url']),
                 'ip': resource['ip'],
                 'isp': resource['isp'],
                 'asn': resource['asn'],
@@ -188,7 +188,6 @@ def approve_resources(info):
                 'exposition': resource['exposition'],
                 'asset_value': resource['asset_value']
             }
-            print(new_resource)
             resources.insert_one(new_resource)
             continue
         resources.update_one({'_id': exists.get('_id')},
