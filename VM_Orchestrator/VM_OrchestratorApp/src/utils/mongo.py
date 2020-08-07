@@ -493,9 +493,8 @@ def update_elasticsearch():
     new_resources = resources.find()
     resources_list = list()
     for resource in new_resources:
-        if resource['url'] is None:
-            resource_url = None
-        else:
+        resource_url = None
+        if resource['url'] is not None:
             for url in resource['url']:
                 resource_url = url['url']
                 if 'https' in url['url']:
