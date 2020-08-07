@@ -174,13 +174,15 @@ def approve_resources(info):
                 'subdomain': resource['subdomain'],
                 'url': ast.literal_eval(resource['url']),
                 'ip': resource['ip'],
-                'isp': resource['isp'],
-                'asn': resource['asn'],
-                'country': resource['country'],
-                'region': resource['region'],
-                'city': resource['city'],
-                'org': resource['org'],
-                'geoloc': resource['geoloc'],
+                'additional_info':{
+                    'isp': resource['isp'],
+                    'asn': resource['asn'],
+                    'country': resource['country'],
+                    'region': resource['region'],
+                    'city': resource['city'],
+                    'org': resource['org'],
+                    'geoloc': resource['geoloc']
+                },
                 'first_seen': datetime.now(),
                 'last_seen': datetime.now(),
                 'is_alive': resource['is_alive'],
@@ -189,7 +191,9 @@ def approve_resources(info):
                 'type': resource['type'],
                 'priority': resource['priority'],
                 'exposition': resource['exposition'],
-                'asset_value': resource['asset_value']
+                'asset_value': resource['asset_value'],
+                'nmap_information': None,
+                'reported': False
             }
             resources.insert_one(new_resource)
             continue
