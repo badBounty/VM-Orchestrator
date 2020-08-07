@@ -428,9 +428,9 @@ def start_scan_on_approved_resources():
         if scan_info['type'] == 'domain':
             execution_chord= chord(
                     [
-                        add_scanned_resources.si(scan_info).set(queue='fast_queue'),
                         run_web_scanners.si(scan_info).set(queue='fast_queue'),
-                        run_ip_scans.si(scan_info).set(queue='slow_queue')
+                        run_ip_scans.si(scan_info).set(queue='slow_queue'),
+                        add_scanned_resources.si(scan_info).set(queue='fast_queue')
                     ],
                     body=on_demand_scan_finished.s(scan_info).set(queue='fast_queue'),
                     immutable = True
