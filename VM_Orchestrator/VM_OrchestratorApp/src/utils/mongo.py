@@ -433,11 +433,11 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
 def add_custom_redmine_issue(redmine_issue):
     #We are going to suppose the issue exists on our local database
     #We will check first and send an exception if its not found
-    resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value,
-     'subdomain': redmine_issue.custom_fields.get(REDMINE_IDS['SUB_RESOURCE']).value})
+    resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value,
+     'subdomain': redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value})
     if not resource_exists:
         print('Failed adding custom redmine resource. Domain %s, resource %s' % 
-        (redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value,redmine_issue.custom_fields.get(REDMINE_IDS['SUB_RESOURCE']).value))
+        (redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value,redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value))
         return
     vuln_status = 'new'
     status = redmine_issue.status.name
@@ -447,8 +447,8 @@ def add_custom_redmine_issue(redmine_issue):
         vuln_status = 'closed'
 
     vuln_to_add = {
-        'domain': redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value,
-        'resource': redmine_issue.custom_fields.get(REDMINE_IDS['SUB_RESOURCE']).value,
+        'domain': redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value,
+        'resource': redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value,
         'vulnerability_name': redmine_issue.subject,
         'observation': None, # TODO we will add observation in the future
         'extra_info': redmine_issue.description,
@@ -465,9 +465,9 @@ def add_custom_redmine_issue(redmine_issue):
 
 
 def update_issue_if_needed(redmine_issue):
-    target = redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value
+    target = redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value
     vuln_name = redmine_issue.subject
-    scanned_url = redmine_issue.custom_fields.get(REDMINE_IDS['SUB_RESOURCE']).value
+    scanned_url = redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value
     cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['CVSS_SCORE']).value
     status = redmine_issue.status.name
 
