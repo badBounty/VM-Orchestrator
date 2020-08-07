@@ -168,7 +168,7 @@ def approve_resources(info):
             new_resource = {
                 'domain': resource['domain'],
                 'subdomain': resource['subdomain'],
-                'url': resource['url'],
+                'url': list(resource['url']),
                 'ip': resource['ip'],
                 'isp': resource['isp'],
                 'asn': resource['asn'],
@@ -187,6 +187,7 @@ def approve_resources(info):
                 'exposition': resource['exposition'],
                 'asset_value': resource['asset_value']
             }
+            print(new_resource)
             resources.insert_one(new_resource)
             continue
         resources.update_one({'_id': exists.get('_id')},
