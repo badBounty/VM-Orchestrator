@@ -168,7 +168,7 @@ def approve_resources(info):
             new_resource = {
                 'domain': resource['domain'],
                 'subdomain': resource['subdomain'],
-                'url': list(resource['url']),
+                'url': json.loads(resource['url']),
                 'ip': resource['ip'],
                 'isp': resource['isp'],
                 'asn': resource['asn'],
