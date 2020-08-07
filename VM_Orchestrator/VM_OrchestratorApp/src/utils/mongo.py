@@ -193,7 +193,7 @@ def approve_resources(info):
                 'exposition': resource['exposition'],
                 'asset_value': resource['asset_value'],
                 'nmap_information': None,
-                'reported': False
+                'scanned': False
             }
             resources.insert_one(new_resource)
             continue
@@ -236,7 +236,6 @@ def add_simple_url_resource(scan_info):
                 'has_urls': False,
                 'nmap_information': None,
                 'approved': False,
-                'reported': False
         }
         resources.insert_one(resource)
     else:
@@ -275,7 +274,6 @@ def add_simple_ip_resource(scan_info):
                 'has_urls': False,
                 'nmap_information': None,
                 'approved': False,
-                'reported': False
         }
         resources.insert_one(resource)
     else:
@@ -320,7 +318,6 @@ def add_resource(url_info, scan_info):
                 'has_urls': False,
                 'nmap_information': None,
                 'approved': False,
-                'reported': False
         }
         if not scan_info['is_first_run']:
             slack.send_new_resource_found("New resource found! %s" % url_info['subdomain'], '#vm-recon-module')
