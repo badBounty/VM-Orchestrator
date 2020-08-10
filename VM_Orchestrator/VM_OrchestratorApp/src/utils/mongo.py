@@ -3,8 +3,7 @@ from VM_OrchestratorApp import MONGO_CLIENT
 from VM_Orchestrator.settings import settings
 from VM_Orchestrator.settings import REDMINE_IDS
 from VM_Orchestrator.settings import MONGO_INFO
-from VM_OrchestratorApp.src.utils import slack
-from VM_OrchestratorApp.src.utils import utils
+from VM_OrchestratorApp.src.utils import slack, redmine, utils
 
 from datetime import datetime
 import json
@@ -430,8 +429,14 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
             }})
     return
 
+def push_vulns_to_redmine():
+    found_vulns = vulnerabilities.find()
+    for vuln in found_vulns:
+        redmine.force_add_vulnerability(vuln)
+
+
 def add_custom_redmine_issue(redmine_issue):
-    #We are going to suppose the issue exists on our local database
+    #We are going to suppose the resource exists on our local database
     #We will check first and send an exception if its not found
     resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value,
      'subdomain': redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value})
@@ -583,8 +588,6 @@ def update_elasticsearch():
     for vuln in vulnerabilities_list:
         res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
 
-
-    
 
 # TODO Temporary function for result revision
 def get_vulnerabilities_for_email(scan_information):
