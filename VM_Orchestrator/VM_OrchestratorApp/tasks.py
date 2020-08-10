@@ -234,12 +234,7 @@ def run_ip_scans(scan_information):
         ip_information['target'] = only_subdomains
     else:
         ip_information['scan_type'] = 'single'
-        if ip_information['type'] == 'ip':
-            ip_information['target'] = ip_information['resource']
-            mongo.add_simple_ip_resource(ip_information)
-        else:
-            #We can scan an url for IP things, we just use the hostname, resource will be added before
-            ip_information['target'] = ip_information['resource']
+        ip_information['target'] = ip_information['resource']
 
     # We will flag the resource as scanned here, mainly because all alive resources will reach this point
     execution_chord = chord(
