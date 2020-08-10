@@ -17,7 +17,7 @@ import VM_OrchestratorApp.src.task_manager as manager
 
 import VM_OrchestratorApp.tasks as tasks
 
-# Create your views here.
+### VIEWS ###
 def index(request):
     return render(request, 'base.html')
 
@@ -26,6 +26,18 @@ def activos(request):
 
 def vulns(request):
     return render(request, 'vulns.html')
+
+def test_html(request):
+    return render(request, 'testbase.html')
+#
+def current_resources(request):
+    return JsonResponse({'order': 'current_resources. TODO'})
+def new_resource(request):
+    return JsonResponse({'order': 'new_resource. TODO'})
+def current_vulnerabilities(request):
+    return JsonResponse({'order': 'current_vulnerabilities. TODO'})
+def new_vulnerability(request):
+    return JsonResponse({'order': 'new_vulnerability. TODO'})
 
 '''
 {
