@@ -83,7 +83,7 @@ def remove_scanned_flag():
 
 # This will return every url with http/https
 def get_responsive_http_resources(target):
-    subdomains = resources.find({'domain': target, 'has_urls': True, 'scanned': False, 'approved': True})
+    subdomains = resources.find({'domain': target, 'has_urls': True, 'scanned': False, 'approved': True, 'is_alive': 'True'})
     subdomain_list = list()
     for subdomain in subdomains:
         valid_urls_found = utils.get_distinct_urls(subdomain['url'])
