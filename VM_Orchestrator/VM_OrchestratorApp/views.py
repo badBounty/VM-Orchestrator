@@ -17,16 +17,43 @@ import VM_OrchestratorApp.src.task_manager as manager
 
 import VM_OrchestratorApp.tasks as tasks
 
-# Create your views here.
+### VIEWS ###
 def index(request):
     return render(request, 'base.html')
 
+def activos(request):
+    return render(request, 'activos.html')
+
+def vulns(request):
+    return render(request, 'vulns.html')
+
+def test_html(request):
+    return render(request, 'testbase.html')
+#
+def current_resources(request):
+    return JsonResponse({'order': 'current_resources. TODO'})
+def new_resource(request):
+    return JsonResponse({'order': 'new_resource. TODO'})
+def current_vulnerabilities(request):
+    return JsonResponse({'order': 'current_vulnerabilities. TODO'})
+def new_vulnerability(request):
+    return JsonResponse({'order': 'new_vulnerability. TODO'})
+
+### WARNING. ONLY TO BE USED IF MONGO CONTAINS NON-SCANNABLE VULNS
+## This will not check if vulns already exist, it is a way of starting out a project
+@csrf_exempt
+def add_mongo_vulns_to_redmine(request):
+    if request.method == 'POST':
+        manager.add_mongo_vulns_to_redmine()
+        return JsonResponse({'INFO': 'Forcing redmine update'})
+    return JsonResponse({'ERROR': 'Post is required'})
 '''
 {
     "domain": example.com,
     "email": "example@example.com"
 }
 '''
+
 @csrf_exempt
 def run_recon_against_target(request):
     if request.method == 'POST':
@@ -46,10 +73,10 @@ def get_resources_from_target(request):
     return JsonResponse({'ERROR': 'Post is required'})
 
 @csrf_exempt
-def start_scan_on_approved(request):
+def approve_resources(request):
     if request.method == 'POST':
         json_data = json.loads(request.body)
-        manager.start_scan_on_approved(json_data)
+        manager.approve_resources(json_data)
         return JsonResponse({'INFO': 'ACCEPTED'})
     return JsonResponse({'ERROR': 'Post is required'})
 

@@ -68,7 +68,6 @@ def handle_single(info):
 
 def add_vulnerability(scan_info, vuln):
     specific_info = copy.deepcopy(scan_info)
-    specific_info['target'] = vuln['origin']
     vulnerability = Vulnerability(constants.CORS, specific_info, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     redmine.create_new_issue(vulnerability)

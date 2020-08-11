@@ -1,5 +1,6 @@
 # pylint: disable=import-error
 from VM_Orchestrator.settings import settings, redmine_client
+from VM_Orchestrator.settings import REDMINE_IDS
 
 import urllib3
 
@@ -10,47 +11,73 @@ def get_issues_from_project():
         return []
     return redmine_client.issue.filter(project_id=settings['REDMINE']['project_name'])
 
-def issue_already_exists(vulnerability):
+def issue_already_exists(vuln):
     issues = redmine_client.issue.filter(project_id=settings['REDMINE']['project_name'])
     for issue in issues:
-        if(vulnerability.vulnerability_name == issue.subject and
-            vulnerability.domain == issue.custom_fields.get(1).value and
-            vulnerability.target == issue.custom_fields.get(2).value):
+        if(vuln.vulnerability_name == issue.subject and
+            vuln.domain == issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value and
+            vuln.target == issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value):
             # This means the issue already exists in redmine. We will update the description and last seen
-            redmine_client.issue.update(issue.id, description=vulnerability.custom_description,
-            custom_fields=[{'id': 1, 'value': vulnerability.domain},
-            {'id': 2, 'value': vulnerability.target},
-            {'id':9, 'value': str(vulnerability.time.strftime("%Y-%m-%d"))}])
+            redmine_client.issue.update(issue.id, description=vuln.custom_description,
+            custom_fields=[{'id': REDMINE_IDS['DOMAIN'], 'value': vuln.domain},
+            {'id': REDMINE_IDS['RESOURCE'], 'value': vuln.target},
+            {'id': REDMINE_IDS['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))}])
             return True
     return False
 
-def create_new_issue(vulnerability):
+def create_new_issue(vuln):
     if redmine_client is None:
         return
-    if issue_already_exists(vulnerability):
+    if issue_already_exists(vuln):
         return
     issue = redmine_client.issue.new()
     issue.project_id = settings['REDMINE']['project_name']
-    issue.subject = vulnerability.vulnerability_name
-    issue.tracker_id = 4
-    issue.description = vulnerability.custom_description
-    issue.status_id = vulnerability.status
-    issue.priority_id = vulnerability.resolve_priority()
-    issue.assigned_to_id = 5
-    issue.watcher_user_ids = [5]
-    # [1]: Resource
-    # [2]: Sub_resource
-    # [8]: Date Found
-    # [9]: Last seen
-    # [10]: CVSS score
-    issue.custom_fields= [{'id': 1, 'value': vulnerability.domain},
-     {'id': 2, 'value': vulnerability.target},
-    {'id':8, 'value': str(vulnerability.time.strftime("%Y-%m-%d"))},
-    {'id':9, 'value': str(vulnerability.time.strftime("%Y-%m-%d"))},
-    {'id':10, 'value': vulnerability.cvss}]
-    if vulnerability.attachment_path is not None:
-        issue.uploads = [{'path': vulnerability.attachment_path,
-                          'filename': vulnerability.attachment_name}]
+    issue.subject = vuln.vulnerability_name
+    issue.tracker_id = REDMINE_IDS['FINDING_TRACKER']
+    issue.description = vuln.custom_description
+    issue.status_id = vuln.status
+    issue.priority_id = vuln.resolve_priority()
+    issue.assigned_to_id = REDMINE_IDS['ASSIGNED_USER']
+    issue.watcher_user_ids = REDMINE_IDS['WATCHERS']
+    issue.custom_fields= [{'id': REDMINE_IDS['DOMAIN'], 'value': vuln.domain},
+     {'id': REDMINE_IDS['RESOURCE'], 'value': vuln.target},
+    {'id': REDMINE_IDS['DATE_FOUND'], 'value': str(vuln.time.strftime("%Y-%m-%d"))},
+    {'id': REDMINE_IDS['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))},
+    {'id': REDMINE_IDS['CVSS_SCORE'], 'value': vuln.cvss}]
+    if vuln.attachment_path is not None:
+        issue.uploads = [{'path': vuln.attachment_path,
+                          'filename': vuln.attachment_name}]
+    try:
+        issue.save()
+    except Exception as e:
+        print("Redmine error" + str(e))
+        pass
+
+# This should not be used
+def force_add_vulnerability(vuln):
+    severity_dict = {'INFORMATIONAL': REDMINE_IDS['SEVERITY_INFORMATIONAL'],
+     'LOW': REDMINE_IDS['SEVERITY_LOW'], 'MEDIUM': REDMINE_IDS['SEVERITY_MEDIUM'],
+      'HIGH': REDMINE_IDS['SEVERITY_HIGH'], 'CRITICAL': REDMINE_IDS['SEVERITY_CRITICAL']}
+    if redmine_client is None:
+        return
+    issue = redmine_client.issue.new()
+    issue.project_id = settings['REDMINE']['project_name']
+    issue.subject = vuln['vulnerability_name']
+    issue.tracker_id = REDMINE_IDS['FINDING_TRACKER']
+    issue.description = vuln['extra_info']
+    issue.status_id = REDMINE_IDS['STATUS_NEW']
+    try:
+        issue.priority_id = severity_dict[vuln['observation']['severity']]
+    except (KeyError,AttributeError):
+        issue.priority_id = REDMINE_IDS['SEVERITY_MEDIUM']
+
+    issue.assigned_to_id = REDMINE_IDS['ASSIGNED_USER']
+    issue.watcher_user_ids = REDMINE_IDS['WATCHERS']
+    issue.custom_fields= [{'id': REDMINE_IDS['DOMAIN'], 'value': vuln['domain']},
+     {'id': REDMINE_IDS['RESOURCE'], 'value': vuln['resource']},
+    {'id': REDMINE_IDS['DATE_FOUND'], 'value': str(vuln['date_found'].strftime("%Y-%m-%d"))},
+    {'id': REDMINE_IDS['LAST_SEEN'], 'value': str(vuln['last_seen'].strftime("%Y-%m-%d"))},
+    {'id': REDMINE_IDS['CVSS_SCORE'], 'value': vuln['cvss_score']}]
     try:
         issue.save()
     except Exception as e:
