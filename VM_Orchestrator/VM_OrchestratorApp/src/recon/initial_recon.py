@@ -35,7 +35,7 @@ def run_recon(scan_info):
         print('Amass finished against %s' % scan_info['domain'])
     else:
         print('Amass outfile does not exist')
-        with open('amass_out.txt', 'w') as fp: 
+        with open(PROJECT_DIR + '/amass_out.txt', 'w') as fp: 
             pass
 
     # Subfinder
@@ -45,7 +45,7 @@ def run_recon(scan_info):
         print('Subfinder finished against %s' % scan_info['domain'])
     else:
         print('Subfinder outfile does not exist')
-        with open('subfinder_out.txt', 'w') as fp: 
+        with open(PROJECT_DIR + '/subfinder_out.txt', 'w') as fp: 
             pass
 
     # sublist3r
@@ -56,7 +56,7 @@ def run_recon(scan_info):
         print('Sublist3r finished against %s' % scan_info['domain'])
     else:
         print('Sublist3r outfile does not exist')
-        with open('sublist3r_out.txt', 'w') as fp: 
+        with open(PROJECT_DIR + '/sublist3r_out.txt', 'w') as fp: 
             pass
 
     parse_results(PROJECT_DIR, scan_info)
