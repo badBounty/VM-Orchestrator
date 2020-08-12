@@ -27,7 +27,7 @@ def recon_against_target(information):
         current_scan_info = copy.deepcopy(information)
         current_scan_info['domain'] = domain
         execution_chain = chain(
-            tasks.run_recon.si(information).set(queue='slow_queue')
+            tasks.run_recon.si(current_scan_info).set(queue='slow_queue')
         )
         execution_chain.apply_async(queue='fast_queue', interval=300)
 

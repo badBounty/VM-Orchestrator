@@ -166,7 +166,6 @@ def web_scan_from_nmap_results(scan_information):
 # ------ PREDEFINED TASKS ------ #
 @shared_task
 def run_recon(scan_information):
-    slack.send_notification_to_channel('Starting recon against %s' % scan_information['domain'], '#vm-recon-module')
     subdomain_recon_task(scan_information)
     resolver_recon_task(scan_information)
     send_email_with_resources_for_verification(scan_information)
