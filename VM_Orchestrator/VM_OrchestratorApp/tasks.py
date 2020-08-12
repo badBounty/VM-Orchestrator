@@ -9,6 +9,7 @@ import copy
 import os
 
 from VM_OrchestratorApp.src.recon import initial_recon, aquatone, httprobe
+from VM_OrchestratorApp.src.utils import email_handler
 from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
     firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack, \
@@ -267,7 +268,7 @@ def on_demand_scan_finished(results, information):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'resource', 'vulnerability_name', 'extra_info',
     'date_found', 'last_seen', 'language', 'state'])
-    email_handler.send_email(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
+    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
     "Orchestrator: Vulnerabilities found!")
     try:
         os.remove(ROOT_DIR + '/output.csv')
@@ -297,19 +298,21 @@ def recon_finished(scan_information):
 # ------ EMAIL NOTIFICATIONS ------
 @shared_task
 def send_email_with_resources_for_verification(scan_information):
-    # TODO REMOVE Send email with scan results
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     resources = mongo.get_resources_for_email(scan_information)
     df = pd.DataFrame(resources)
     if df.empty:
-        print('No resources found! Canceling email')
+        print('No resources found at %s! Canceling email' % scan_information['domain'])
+        email_handler.send_email_message_only(scan_information['email'], "No resources found at %s" % scan_information['domain'],
+    "Orchestrator: No resources from domain %s were found" % scan_information['domain'])
         return
-    from VM_OrchestratorApp.src.utils import email_handler
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'priority', 'exposition', 'asset_value', 'isp', 'asn',
      'country', 'region', 'city', 'org', 'geoloc', 'first_seen', 'last_seen', 'is_alive', 'has_urls', 'approved',
      'scan_type'])
-    email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
-    "Orchestrator: Resources found!")
+    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
+    "Orchestrator: Resources from domain %s found!" % scan_information['domain'])
+
     try:
         os.remove(ROOT_DIR + '/output.csv')
     except FileNotFoundError:
