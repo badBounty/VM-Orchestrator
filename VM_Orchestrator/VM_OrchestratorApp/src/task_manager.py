@@ -22,14 +22,14 @@ def recon_against_target(information):
     information['exposition'] = None
     information['type'] = 'domain'
 
+    slack.send_notification_to_channel('_ Starting recon only scan against %s _' % str(information['domain']), '#vm-ondemand')
     for domain in information['domain']:
-        print(domain)
-
-    #slack.send_notification_to_channel('_ Starting recon only scan against %s _' % information['domain'], '#vm-ondemand')
-    #execution_chain = chain(
-    #    tasks.run_recon.si(information).set(queue='slow_queue')
-    #)
-    #execution_chain.apply_async(queue='fast_queue', interval=300)
+        current_scan_info = copy.deepcopy(information)
+        current_scan_info['domain'] = domain
+        execution_chain = chain(
+            tasks.run_recon.si(information).set(queue='slow_queue')
+        )
+        execution_chain.apply_async(queue='fast_queue', interval=300)
 
 def approve_resources(information):
     slack.send_notification_to_channel('_ Starting scan against approved resources _', '#vm-ondemand')
