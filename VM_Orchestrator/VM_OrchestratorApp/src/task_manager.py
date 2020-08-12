@@ -50,12 +50,11 @@ def force_redmine_sync():
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
-def add_mongo_vulns_to_redmine():
+def add_code_vuln(data):
     execution_chain = chain(
-        tasks.add_mongo_vulns_to_redmine.si().set(queue='fast_queue')
+        tasks.add_code_vuln.si(data).set(queue='fast_queue')
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
-
 
 def on_demand_scan(information):
 

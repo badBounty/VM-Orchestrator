@@ -10,17 +10,29 @@ import json
 import ast
 import urllib3
 
-resources = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['RESOURCES_COLLECTION']]
+libraries_versions = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['LIBRARIES_COLLECTION']]
 observations = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['OBSERVATIONS_COLLECTION']]
-vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['VULNERABILITIES_COLLECTION']]
-libraries_versions = MONGO_CLIENT[MONGO_INFO['DATABASE']]['libraries_versions']
+resources = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['RESOURCES_COLLECTION']]
+web_vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['WEB_VULNERABILITIES_COLLECTION']]
+infra_vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['INFRA_VULNERABILITIES_COLLECTION']]
+code_vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['CODE_VULNERABILITIES_COLLECTION']]
 
+### Handles vuln add. Vulns will go to different collections depending on its type.
+### Each vuln will have its custom fields, so differenciation is needed
 def add_vulnerability(vulnerability):
-    exists = vulnerabilities.find_one({'domain': vulnerability.domain, 'resource': vulnerability.target,
+    # Each vuln has its fields
+    if vulnerability.vuln_type == 'ip':
+        add_infra_vuln(vulnerability)
+    elif vulnerability.vuln_type == 'web':
+        add_web_vuln(vulnerability)
+
+## Uses infra_vulnerabilities collection
+def add_infra_vuln(vulnerability):
+    exists = infra_vulnerabilities.find_one({'domain': vulnerability.domain, 'resource': vulnerability.target,
                                           'vulnerability_name': vulnerability.vulnerability_name,
                                           'language': vulnerability.language})
     if exists:
-        vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
+        infra_vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
             'extra_info': vulnerability.custom_description,
             'last_seen': vulnerability.time,
             'image_string': vulnerability.image_string,
@@ -42,7 +54,68 @@ def add_vulnerability(vulnerability):
             'vuln_type': vulnerability.vuln_type,
             'state': 'new'
         }
-        vulnerabilities.insert_one(resource)
+        infra_vulnerabilities.insert_one(resource)
+    return
+
+## Uses web_vulnerabilities collection
+def add_web_vuln(vulnerability):
+    exists = web_vulnerabilities.find_one({'domain': vulnerability.domain, 'resource': vulnerability.target,
+                                          'vulnerability_name': vulnerability.vulnerability_name,
+                                          'language': vulnerability.language})
+    if exists:
+        web_vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
+            'extra_info': vulnerability.custom_description,
+            'last_seen': vulnerability.time,
+            'image_string': vulnerability.image_string,
+            'file_string': vulnerability.file_string
+        }})
+    else:
+        resource = {
+            'domain': vulnerability.domain,
+            'resource': vulnerability.target,
+            'vulnerability_name': vulnerability.vulnerability_name,
+            'observation': vulnerability.get_json_observation(),
+            'extra_info': vulnerability.custom_description,
+            'image_string': vulnerability.image_string,
+            'file_string': vulnerability.file_string,
+            'date_found': vulnerability.time,
+            'last_seen': vulnerability.time,
+            'language': vulnerability.language,
+            'cvss_score': vulnerability.cvss,
+            'vuln_type': vulnerability.vuln_type,
+            'state': 'new'
+        }
+        web_vulnerabilities.insert_one(resource)
+    return
+
+'''
+{
+  "Component": "src/main/java/org/owasp/webwolf/FileServer.java",
+  "Line": 25,
+  "Message": "Unrestricted Spring's RequestMapping makes the method vulnerable to CSRF attacks",
+  "Date": "2020-08-11",
+  "Commit": "261283c"
+}
+'''
+## Uses code_vulnerabilities collection
+def add_code_vuln(vulnerability):
+    timestamp = datetime.now()
+    exists = code_vulnerabilities.find_one({'component': vulnerability['Component'],
+     'line': vulnerability['Line'], 'message': vulnerability['Message'], 'commit': vulnerability['Commit']})
+    if exists:
+        code_vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
+            'last_seen': timestamp
+        }})
+    else:
+        vuln_to_add = {
+            'component': vulnerability['Component'],
+            'line': vulnerability['Line'],
+            'message': vulnerability['Message'],
+            'commit': vulnerability['Commit'],
+            'date_found': timestamp,
+            'last_seen': timestamp
+        }
+        code_vulnerabilities.insert_one(vuln_to_add)
     return
 
 
@@ -429,12 +502,6 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
             }})
     return
 
-def push_vulns_to_redmine():
-    found_vulns = vulnerabilities.find()
-    for vuln in found_vulns:
-        redmine.force_add_vulnerability(vuln)
-
-
 def add_custom_redmine_issue(redmine_issue):
     #We are going to suppose the resource exists on our local database
     #We will check first and send an exception if its not found
@@ -465,10 +532,12 @@ def add_custom_redmine_issue(redmine_issue):
         'cvss_score': redmine_issue.custom_fields.get(REDMINE_IDS['CVSS_SCORE']).value,
         'state': vuln_status
     }
-    vulnerabilities.insert_one(vuln_to_add)
+    # TODO add redmine dropdown in which the user can choose the issue type, this will define the fields used
+    #vulnerabilities.insert_one(vuln_to_add)
     return
 
 
+# TODO same as above, we will need to know the issue type
 def update_issue_if_needed(redmine_issue):
     target = redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value
     vuln_name = redmine_issue.subject
@@ -476,26 +545,26 @@ def update_issue_if_needed(redmine_issue):
     cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['CVSS_SCORE']).value
     status = redmine_issue.status.name
 
-    vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
-    'domain': target, 'resource': scanned_url})
+    #vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
+    #'domain': target, 'resource': scanned_url})
 
     # This means the vuln is in redmine but not on our local database
-    if not vulnerability:
-        add_custom_redmine_issue(redmine_issue)
-        return
+    #if not vulnerability:
+    #    add_custom_redmine_issue(redmine_issue)
+    #    return
 
-    vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'cvss_score': cvss_score 
-        }})
+    #vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+    #       'cvss_score': cvss_score 
+    #    }})
 
-    if status == 'Remediada':
-        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'state': 'resolved' 
-        }})
-    elif status == 'Cerrada':
-        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'state': 'closed' 
-        }})
+    #if status == 'Remediada':
+        #vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+        #    'state': 'resolved' 
+        #}})
+    #elif status == 'Cerrada':
+        #vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+        #    'state': 'closed' 
+        #}})
     return
 
 
@@ -538,7 +607,9 @@ def update_elasticsearch():
         })
 
     ### VULNS ###
-    new_vulnerabilities = vulnerabilities.find()
+    # TODO Define which fields will be needed for each vuln type
+    #new_vulnerabilities = vulnerabilities.find()
+    new_vulnerabilities = list()
     vulnerabilities_list = list()
     for vuln in new_vulnerabilities:
         if not vuln['observation']:
@@ -590,9 +661,12 @@ def update_elasticsearch():
 
 
 # TODO Temporary function for result revision
+# TODO Gather data from all 3 collections
+# start using project id instead of domain
 def get_vulnerabilities_for_email(scan_information):
     return_list = list()
-    found_vulns = vulnerabilities.find({'domain': scan_information['domain']})
+    #found_vulns = vulnerabilities.find({'domain': scan_information['domain']})
+    found_vulns = list()
     for vuln in found_vulns:
             return_list.append(vuln)
 

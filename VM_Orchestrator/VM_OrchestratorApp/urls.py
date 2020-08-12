@@ -11,7 +11,7 @@ urlpatterns = [
     path('on_demand_scan/', views.on_demand_scan, name='on_demand_scan'),
     path('update_elasticsearch/', views.force_update_elasticsearch, name='update_elasticsearch'),
     path('sync_redmine/', views.force_redmine_sync, name='sync_redmine'),
-    path('add_mongo_vulns_to_redmine/', views.add_mongo_vulns_to_redmine, name='add_mongo_vulns_to_redmine'),
+    path('add_code_vulnerability/', views.add_code_vuln, name='add_code_vulnerability'),
     # Views
     path('', views.index, name='index'),
     path('test_html/', views.test_html, name='test_html'),

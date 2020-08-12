@@ -334,47 +334,12 @@ def add_scanned_resources(scan_info):
     mongo.add_scanned_resources(scan_info)
     return
 
-# ------ PERIODIC TASKS ------ #
-#@periodic_task(run_every=crontab(day_of_month=settings['PROJECT']['START_DATE'].day, month_of_year=settings['PROJECT']['START_DATE'].month),
-#queue='slow_queue', options={'queue': 'slow_queue'})
-#@periodic_task(run_every=crontab(hour=12, minute=12),
-#queue='slow_queue', options={'queue': 'slow_queue'})
-def project_start_task():
-    today_date = datetime.combine(date.today(), datetime.min.time())
-    # This will make it so the tasks only runs once in the program existence
-    if(today_date.year != settings['PROJECT']['START_DATE'].year):
-       return
-       
-    df = pd.read_csv(settings['PROJECT']['START_FILE'])
-    input_data = df.to_dict('records')
-
-    for data in input_data:
-        scan_info = {
-        'is_first_run': True,
-        'invasive_scans': False,
-        'nessus_scan': False,
-        'acunetix_scan': False,
-        'language': settings['LANGUAGE']
-        }
-        scan_info['type'] = data['Type']
-        scan_info['priority'] = data['Priority']
-        scan_info['exposition'] = data['Exposition']
-        scan_info['domain'] = data['Domain']
-        scan_info['resource'] = data['Resource']
-
-        if scan_info['type'] == 'domain':
-            run_recon(scan_info)
-            run_web_scanners(scan_info)
-            run_ip_scans(scan_info)
-        elif scan_info['type'] == 'ip':
-            run_ip_scans(scan_info)
-        elif scan_info['type'] == 'url':
-            run_web_scanners(scan_info)
-            run_ip_scans(scan_info)
-
+@shared_task
+def add_code_vuln(data):
+    mongo.add_code_vuln(data)
     return
 
-
+# ------ PERIODIC TASKS ------ #
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
 #@periodic_task(run_every=crontab(hour=4, minute=0),
 #queue='slow_queue', options={'queue': 'slow_queue'})
@@ -465,7 +430,3 @@ def check_redmine_for_updates():
 queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
-
-@shared_task
-def add_mongo_vulns_to_redmine():
-    mongo.push_vulns_to_redmine()
