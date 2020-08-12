@@ -166,6 +166,7 @@ def web_scan_from_nmap_results(scan_information):
 # ------ PREDEFINED TASKS ------ #
 @shared_task
 def run_recon(scan_information):
+    slack.send_notification_to_channel('Starting recon against %s' % scan_information['domain'], '#vm-recon-module')
     subdomain_recon_task(scan_information)
     resolver_recon_task(scan_information)
     send_email_with_resources_for_verification(scan_information)
@@ -301,9 +302,9 @@ def send_email_with_resources_for_verification(scan_information):
     resources = mongo.get_resources_for_email(scan_information)
     df = pd.DataFrame(resources)
     if df.empty:
-        print('No resources found at %s! Canceling email' % scan_information['domain'])
+        print('No resources found at %s!' % scan_information['domain'])
         email_handler.send_email_message_only(scan_information['email'], "No resources found at %s" % scan_information['domain'],
-    "Orchestrator: No resources from domain %s were found" % scan_information['domain'])
+    "Orchestrator: No resources from domain %s were found!" % scan_information['domain'])
         return
 
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'priority', 'exposition', 'asset_value', 'isp', 'asn',
