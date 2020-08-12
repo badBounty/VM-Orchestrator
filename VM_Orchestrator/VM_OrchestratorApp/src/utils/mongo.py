@@ -515,7 +515,7 @@ def update_elasticsearch():
             'resource_domain': resource['domain'],
             'resource_subdomain': resource['subdomain'],
             'resource_ip': resource['ip'],
-            'resource_is_alive': bool(resource['is_alive']),
+            'resource_is_alive': False if resource['is_alive'] == "False" else True,
             'resource_additional_info':{
                 'resource_isp': resource['additional_info']['isp'],
                 'resource_asn': resource['additional_info']['asn'],
