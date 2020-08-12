@@ -15,8 +15,8 @@ urlpatterns = [
     # Views
     path('', views.index, name='index'),
     path('test_html/', views.test_html, name='test_html'),
-    path('activos/', views.activos, name='dashboard_activo'),
-    path('vulns/', views.vulns, name='dashboard_vuln'),
+    #path('activos/', views.activos, name='dashboard_activo'),
+    #path('vulns/', views.vulns, name='dashboard_vuln'),
     #
     path('current_resources/', views.current_resources, name='current_resources'),
     path('new_resource/', views.new_resource, name='new_resource'),
