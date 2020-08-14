@@ -379,7 +379,7 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=4, minute=0),
+@periodic_task(run_every=crontab(hour=19, minute=0),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
@@ -391,7 +391,7 @@ def project_monitor_task():
     # The idea is similar to the project start, we just need to ge the same information from our database.
 
     monitor_data = mongo.get_data_for_monitor()
-
+    print(monitor_data)
     for data in monitor_data:
         scan_info = data
         scan_info['email'] = None
