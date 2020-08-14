@@ -14,7 +14,7 @@ from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_t
     firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack, \
     iis_shortname_scanner, burp_scan, nessus_scan, acunetix_scan
 from VM_Orchestrator.settings import settings
-from VM_OrchestratorApp.src.utils import mongo, slack, redmine
+from VM_OrchestratorApp.src.utils import mongo, slack, redmine, utils
 
 # ------ RECON ------ #
 @shared_task
@@ -340,9 +340,31 @@ def add_code_vuln(data):
     return
 
 # ------ PERIODIC TASKS ------ #
+def vulnerability_monitor_task():
+    # We get every vulnerability flagged as closed or resolved.
+    # TODO Get vulns from each collection
+    web_vulns = list()
+    infra_vulns = list()
+
+    # We need to replicate our basic scan_info and call a single scan with only the needed module
+    for web_vuln in web_vulns:
+        # We need a reference to the method that executes the scan
+        function_to_use = utils.get_web_function_by_name(web_vuln)
+        if not function_to_use:
+            return
+        function_to_use.apply_async(args=[], queue='fast_queue')
+        pass
+
+    for infra_vuln in infra_vulns:
+        function_to_use = utils.get_infra_function_by_name(infra_vuln)
+        if not function_to_use:
+            return
+        function_to_use.apply_async(args=[], queue='fast_queue')
+        pass
+
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-#@periodic_task(run_every=crontab(hour=4, minute=0),
-#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=4, minute=0),
+queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     
     # We first check if the project has started, we return if not

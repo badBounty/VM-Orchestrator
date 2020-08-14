@@ -90,30 +90,58 @@ def add_web_vuln(vulnerability):
 
 '''
 {
-  "Component": "src/main/java/org/owasp/webwolf/FileServer.java",
-  "Line": 25,
-  "Message": "Unrestricted Spring's RequestMapping makes the method vulnerable to CSRF attacks",
-  "Date": "2020-08-11",
-  "Commit": "261283c"
+  "Title": "Unrestricted Spring's RequestMapping makes the method vulnerable to CSRF attacks", *
+  "Description": "Tool title \n tool description", *
+  "Component": "src/main/java/org/owasp/webwolf/FileServer.java", *
+  "Line": 25, *
+  "Affected_code": "string", *
+  "Commit": "261283c",
+ "Username": "username", *
+  "Pipeline_name": "name", *
+  "Language": "spa/eng",
+  "Hash": "hash",
+  "Severity_tool": "Severity"
 }
 '''
 ## Uses code_vulnerabilities collection
+## TODO If the vuln matches completely, we update time.
+## If everything but the line is the same, we check the code snippet (new data)
 def add_code_vuln(vulnerability):
     timestamp = datetime.now()
-    exists = code_vulnerabilities.find_one({'component': vulnerability['Component'],
-     'line': vulnerability['Line'], 'message': vulnerability['Message'], 'commit': vulnerability['Commit']})
+    exists = code_vulnerabilities.find_one({
+        'title': vulnerability['Title'],
+        'description': vulnerability['Description'],
+        'component': vulnerability['Component'],
+        'affected_code': vulnerability['Affected_code'],
+        'username': vulnerability['Username'],
+        'pipeline_name': vulnerability['Pipeline_name']})
     if exists:
         code_vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
-            'last_seen': timestamp
+            'last_seen': timestamp,
+            'last_commit': vulnerability['Commit'],
+            'line': vulnerability['Line'],
+            'hash': vulnerability['Hash']
         }})
     else:
         vuln_to_add = {
+            'title': vulnerability['Title'],
+            'description': vulnerability['Description'],
             'component': vulnerability['Component'],
             'line': vulnerability['Line'],
-            'message': vulnerability['Message'],
-            'commit': vulnerability['Commit'],
-            'date_found': timestamp,
-            'last_seen': timestamp
+            'affected_code': vulnerability['Affected_code'],
+            'first_commit': vulnerability['Commit'],
+            'last_commit': vulnerability['Commit'],
+            'username': vulnerability['Username'],
+            'pipeline_name': vulnerability['Pipeline_name'],
+            'language': vulnerability['Language'],
+            'hash': vulnerability['Hash'],
+            'severity_tool': vulnerability['Severity_tool'],
+            'severity': None, #Future KB Value
+            'category': None, #Future KB Value
+            'first_seen': timestamp,
+            'last_seen': timestamp,
+            'vuln_type': 'code',
+            'state': 'new'
         }
         code_vulnerabilities.insert_one(vuln_to_add)
     return
@@ -505,11 +533,11 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
 def add_custom_redmine_issue(redmine_issue):
     #We are going to suppose the resource exists on our local database
     #We will check first and send an exception if its not found
-    resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value,
-     'subdomain': redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value})
+    resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value,
+     'subdomain': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value})
     if not resource_exists:
         print('Failed adding custom redmine resource. Domain %s, resource %s' % 
-        (redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value,redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value))
+        (redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value,redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value))
         return
     vuln_status = 'new'
     status = redmine_issue.status.name
@@ -519,8 +547,8 @@ def add_custom_redmine_issue(redmine_issue):
         vuln_status = 'closed'
 
     vuln_to_add = {
-        'domain': redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value,
-        'resource': redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value,
+        'domain': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value,
+        'resource': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value,
         'vulnerability_name': redmine_issue.subject,
         'observation': None, # TODO we will add observation in the future
         'extra_info': redmine_issue.description,
@@ -529,7 +557,7 @@ def add_custom_redmine_issue(redmine_issue):
         'date_found': datetime.now(),
         'last_seen': datetime.now(),
         'language': None,
-        'cvss_score': redmine_issue.custom_fields.get(REDMINE_IDS['CVSS_SCORE']).value,
+        'cvss_score': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['CVSS_SCORE']).value,
         'state': vuln_status
     }
     # TODO add redmine dropdown in which the user can choose the issue type, this will define the fields used
@@ -539,10 +567,10 @@ def add_custom_redmine_issue(redmine_issue):
 
 # TODO same as above, we will need to know the issue type
 def update_issue_if_needed(redmine_issue):
-    target = redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value
+    target = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value
     vuln_name = redmine_issue.subject
-    scanned_url = redmine_issue.custom_fields.get(REDMINE_IDS['RESOURCE']).value
-    cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['CVSS_SCORE']).value
+    scanned_url = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value
+    cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['CVSS_SCORE']).value
     status = redmine_issue.status.name
 
     #vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
@@ -608,45 +636,111 @@ def update_elasticsearch():
 
     ### VULNS ###
     # TODO Define which fields will be needed for each vuln type
-    #new_vulnerabilities = vulnerabilities.find()
-    new_vulnerabilities = list()
     vulnerabilities_list = list()
-    for vuln in new_vulnerabilities:
+    
+    web_vulns = web_vulnerabilities.find()
+    infra_vulns = infra_vulnerabilities.find()
+    code_vulns = code_vulnerabilities.find()
+    
+    #### Adding web vulns to elastic
+    for vuln in web_vulns:
         if not vuln['observation']:
             observation_data = {
-                    'vulnerability_title': None,
-                    'vulnerability_observation_title': None,
-                    'vulnerability_observation_note': None,
-                    'vulnerability_implication': None,
-                    'vulnerability_recommendation_title': None,
-                    'vulnerability_recommendation_note': None,
-                    'vulnerability_severity': None
+                    'web_vulnerability_title': None,
+                    'web_vulnerability_observation_title': None,
+                    'web_vulnerability_observation_note': None,
+                    'web_vulnerability_implication': None,
+                    'web_vulnerability_recommendation_title': None,
+                    'web_vulnerability_recommendation_note': None,
+                    'web_vulnerability_severity': None
                 }
         else:
             observation_data = {
-                    'vulnerability_title': vuln['observation']['title'],
-                    'vulnerability_observation_title': vuln['observation']['observation_title'],
-                    'vulnerability_observation_note': vuln['observation']['observation_note'],
-                    'vulnerability_implication': vuln['observation']['implication'],
-                    'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
-                    'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
-                    'vulnerability_severity': vuln['observation']['severity']
+                    'web_vulnerability_title': vuln['observation']['title'],
+                    'web_vulnerability_observation_title': vuln['observation']['observation_title'],
+                    'web_vulnerability_observation_note': vuln['observation']['observation_note'],
+                    'web_vulnerability_implication': vuln['observation']['implication'],
+                    'web_vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
+                    'web_vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
+                    'web_vulnerability_severity': vuln['observation']['severity']
                 }
         vulnerabilities_list.append({
-                'vulnerability_id': str(vuln['_id']),
-                'vulnerability_domain': vuln['domain'],
-                'vulnerability_subdomain': vuln['resource'],
-                'vulnerability_vulnerability_name': vuln['vulnerability_name'],
-                'vulnerability_observation': observation_data,
-                'vulnerability_extra_info': vuln['extra_info'],
-                'vulnerability_date_found': vuln['date_found'],
-                'vulnerability_last_seen': vuln['last_seen'],
-                'vulnerability_language': vuln['language'],
-                'vulnerability_cvss_score': vuln['cvss_score'],
-                'vulnerability_vuln_type': vuln['vuln_type'],
-                'vulnerability_state': vuln['state']
+                'web_vulnerability_id': str(vuln['_id']),
+                'web_vulnerability_domain': vuln['domain'],
+                'web_vulnerability_subdomain': vuln['resource'],
+                'web_vulnerability_vulnerability_name': vuln['vulnerability_name'],
+                'web_vulnerability_observation': observation_data,
+                'web_vulnerability_extra_info': vuln['extra_info'],
+                'web_vulnerability_date_found': vuln['date_found'],
+                'web_vulnerability_last_seen': vuln['last_seen'],
+                'web_vulnerability_language': vuln['language'],
+                'web_vulnerability_cvss_score': vuln['cvss_score'],
+                'web_vulnerability_vuln_type': vuln['vuln_type'],
+                'web_vulnerability_state': vuln['state']
             })
 
+    #### Adding web vulns to elastic
+    for vuln in infra_vulns:
+        if not vuln['observation']:
+            observation_data = {
+                    'infra_vulnerability_title': None,
+                    'infra_vulnerability_observation_title': None,
+                    'infra_vulnerability_observation_note': None,
+                    'infra_vulnerability_implication': None,
+                    'infra_vulnerability_recommendation_title': None,
+                    'infra_vulnerability_recommendation_note': None,
+                    'infra_vulnerability_severity': None
+                }
+        else:
+            observation_data = {
+                    'infra_vulnerability_title': vuln['observation']['title'],
+                    'infra_vulnerability_observation_title': vuln['observation']['observation_title'],
+                    'infra_vulnerability_observation_note': vuln['observation']['observation_note'],
+                    'infra_vulnerability_implication': vuln['observation']['implication'],
+                    'infra_vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
+                    'infra_vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
+                    'infra_vulnerability_severity': vuln['observation']['severity']
+                }
+        vulnerabilities_list.append({
+                'infra_vulnerability_id': str(vuln['_id']),
+                'infra_vulnerability_domain': vuln['domain'],
+                'infra_vulnerability_subdomain': vuln['resource'],
+                'infra_vulnerability_vulnerability_name': vuln['vulnerability_name'],
+                'infra_vulnerability_observation': observation_data,
+                'infra_vulnerability_extra_info': vuln['extra_info'],
+                'infra_vulnerability_date_found': vuln['date_found'],
+                'infra_vulnerability_last_seen': vuln['last_seen'],
+                'infra_vulnerability_language': vuln['language'],
+                'infra_vulnerability_cvss_score': vuln['cvss_score'],
+                'infra_vulnerability_vuln_type': vuln['vuln_type'],
+                'infra_vulnerability_state': vuln['state']
+            })
+
+    ### Add code vulns to elastic
+    for vuln in code_vulns:
+        vuln_to_add = {
+            'code_vulnerability_title': vuln['title'],
+            'code_vulnerability_description': vuln['description'],
+            'code_vulnerability_component': vuln['component'],
+            'code_vulnerability_line': vuln['line'],
+            'code_vulnerability_affected_code': vuln['affected_code'],
+            'code_vulnerability_first_commit': vuln['first_commit'],
+            'code_vulnerability_last_commit': vuln['last_commit'],
+            'code_vulnerability_username': vuln['username'],
+            'code_vulnerability_pipeline_name': vuln['pipeline_name'],
+            'code_vulnerability_language': vuln['language'],
+            'code_vulnerability_hash': vuln['hash'],
+            'code_vulnerability_severity_tool': vuln['severity_tool'],
+            'code_vulnerability_severity': vuln['severity'],
+            'code_vulnerability_category': vuln['category'],
+            'code_vulnerability_first_seen': vuln['first_seen'],
+            'code_vulnerability_last_seen': vuln['last_seen'],
+            'code_vulnerability_vuln_type': vuln['code'],
+            'code_vulnerability_state': vuln['new']
+        }
+        vulnerabilities_list.append(vuln_to_add)
+
+    
     # Import Elasticsearch package 
     from VM_OrchestratorApp import ELASTIC_CLIENT
     if ELASTIC_CLIENT is None:

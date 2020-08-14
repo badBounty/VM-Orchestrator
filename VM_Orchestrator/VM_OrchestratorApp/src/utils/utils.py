@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 import requests
 import re
 import math
@@ -5,6 +6,8 @@ import os
 import subprocess
 import traceback
 from urllib.parse import urlparse
+import VM_OrchestratorApp.src.constants as c
+from VM_Orchestrator.settings import settings
 from selenium import webdriver
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -127,4 +130,34 @@ def get_distinct_urls(url_list):
         final_url_list.append(url.geturl())
 
     return final_url_list
+
+def get_web_function_by_name(web_vuln):
+    # We will create a list with all our valid web vulns dictionaries for comparisson
+    # c is our constants file. We will not re-run vulns that require verification for now
+    vuln_names = [c.INVALID_VALUE_ON_HEADER, c.HEADER_NOT_FOUND,
+    c.HOST_HEADER_ATTACK, c.UNSECURE_METHOD, c.SSL_TLS, c.OUTDATED_3RD_LIBRARIES,
+    c.CORS, c.ENDPOINT, c.BUCKET, c.TOKEN_SENSITIVE_INFO, c.CSS_INJECTION,
+    c.OPEN_FIREBASE, c.IIS_SHORTNAME_MICROSOFT, c.POSSIBLE_ERROR_PAGES]
+
+    language_key = 'english_name'
+    if settings['LANGUAGE'] == 'spa':
+        language_key = 'spanish_name'
+
+    for name in vuln_names:
+        if web_vuln['vulnerability_name'] == name[language_key]:
+            return name['task']
+    return None
+
+def get_infra_function_by_name(infra_vuln):
+    vuln_names = [c.OUTDATED_SOFTWARE_NMAP, c.HTTP_PASSWD_NMAP, c.WEB_VERSIONS_NMAP, c.ANON_ACCESS_FTP, 
+    c.CRED_ACCESS_FTP, c.DEFAULT_CREDS, c.PLAINTEXT_COMUNICATION, c.UNNECESSARY_SERVICES]
+    
+    language_key = 'english_name'
+    if settings['LANGUAGE'] == 'spa':
+        language_key = 'spanish_name'
+
+    for name in vuln_names:
+        if infra_vuln['vulnerability_name'] == name[language_key]:
+            return name['task']
+    return None
 
