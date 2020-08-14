@@ -284,6 +284,10 @@ def add_simple_ip_resource(scan_info):
 
 
 def add_resource(url_info, scan_info):
+    # This makes it so only subdomains containing the domain will be added
+    domain_with_dot = '.'+url_info['domain']
+    if domain_with_dot not in url_info['subdomain']:
+        return
     exists = resources.find_one({'domain': url_info['domain'], 'subdomain': url_info['subdomain']})
     timestamp = datetime.now()
     ip = url_info['ip']
