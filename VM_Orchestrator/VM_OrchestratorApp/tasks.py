@@ -379,15 +379,9 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=19, minute=0),
+@periodic_task(run_every=crontab(hour=19, minute=10),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
-    
-    # We first check if the project has started, we return if not
-    today_date = datetime.combine(date.today(), datetime.min.time())
-    if today_date < settings['PROJECT']['START_DATE']:
-        return
-    
     # The idea is similar to the project start, we just need to ge the same information from our database.
 
     monitor_data = mongo.get_data_for_monitor()
