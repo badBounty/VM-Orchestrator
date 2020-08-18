@@ -323,7 +323,7 @@ def send_email_with_resources_for_verification(scan_information):
 @shared_task
 def send_email_with_all_resources(scan_information):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    resources = mongo.get_all_resources_for_email(scan_information)
+    resources = mongo.get_all_resources_for_email()
     df = pd.DataFrame(resources)
     if df.empty:
         print('No resources found at %s!' % scan_information['domain'])
