@@ -379,7 +379,7 @@ def project_start_task():
 
 
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=12, minute=15),
+@periodic_task(run_every=crontab(hour=22, minute=25),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     # The idea is similar to the project start, we just need to ge the same information from our database.
@@ -394,7 +394,7 @@ def project_monitor_task():
         scan_info['burp_scan'] = False
         slack.send_notification_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
-            run_recon(scan_info)
+            run_recon.apply_async(args=[scan_info], queue='fast_queue')
     return
 
 @periodic_task(run_every=crontab(hour=settings['PROJECT']['SCAN_START_HOUR'], minute=settings['PROJECT']['SCAN_START_MINUTE']),
