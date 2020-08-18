@@ -332,7 +332,7 @@ def send_email_with_all_resources(scan_information):
      'country', 'region', 'city', 'org', 'geoloc', 'first_seen', 'last_seen', 'is_alive', 'has_urls', 'approved',
      'scan_type'])
     email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
-    "Orchestrator: Resources from domain %s found!" % scan_information['domain'])
+    "Orchestrator: Returning all resources")
 
     try:
         os.remove(ROOT_DIR + '/output.csv')
