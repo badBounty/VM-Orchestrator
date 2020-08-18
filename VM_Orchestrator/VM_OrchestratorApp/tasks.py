@@ -394,10 +394,7 @@ def project_monitor_task():
         scan_info['burp_scan'] = False
         slack.send_notification_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
-            execution_chain = chain(
-                run_recon.si(scan_info).set(queue='slow_queue')
-            )
-            execution_chain.apply_async(queue='fast_queue', interval=300)
+            run_recon.apply_async(args=[scan_info], queue='fast_queue')
     return
 
 @periodic_task(run_every=crontab(hour=settings['PROJECT']['SCAN_START_HOUR'], minute=settings['PROJECT']['SCAN_START_MINUTE']),
