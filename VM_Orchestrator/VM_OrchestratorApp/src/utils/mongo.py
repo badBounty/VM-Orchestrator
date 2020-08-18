@@ -602,6 +602,36 @@ def get_vulnerabilities_for_email(scan_information):
 
     return  return_list
 
+def get_all_resources_for_email():
+    return_list = list()
+    found_resources = resources.find()
+    for resource in found_resources:
+        res = {
+            'domain': resource['domain'],
+            'subdomain': resource['subdomain'],
+            'url': resource['url'],
+            'ip': resource['ip'],
+            'isp': resource['additional_info']['isp'],
+            'asn': resource['additional_info']['asn'],
+            'country': resource['additional_info']['country'],
+            'region': resource['additional_info']['region'],
+            'city': resource['additional_info']['city'],
+            'org': resource['additional_info']['org'],
+            'geoloc': resource['additional_info']['geoloc'],
+            'first_seen': resource['first_seen'],
+            'last_seen': resource['last_seen'],
+            'is_alive': resource['is_alive'],
+            'has_urls': resource['has_urls'],
+            'approved': resource['approved'],
+            'scan_type': resource['type'],
+            'priority': resource['priority'],
+            'exposition': resource['exposition'],
+            'asset_value': resource['asset_value']
+        }
+        return_list.append(res)
+ 
+    return return_list
+
 # TODO Temporary function for result revision
 def get_resources_for_email(scan_information):
     return_list = list()

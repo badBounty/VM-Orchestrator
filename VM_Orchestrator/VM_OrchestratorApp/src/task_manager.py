@@ -11,7 +11,7 @@ from VM_Orchestrator.settings import settings
 
 def get_resources_from_target(information):
     execution_chain = chain(
-        tasks.send_email_with_resources_for_verification.si(information).set(queue='slow_queue')
+        tasks.send_email_with_all_resources.si(information).set(queue='slow_queue')
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
