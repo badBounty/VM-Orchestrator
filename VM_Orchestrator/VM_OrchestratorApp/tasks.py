@@ -326,9 +326,6 @@ def send_email_with_all_resources(scan_information):
     resources = mongo.get_all_resources_for_email()
     df = pd.DataFrame(resources)
     if df.empty:
-        print('No resources found at %s!' % scan_information['domain'])
-        email_handler.send_email_message_only(scan_information['email'], "No resources found at %s" % scan_information['domain'],
-    "Orchestrator: No resources from domain %s were found!" % scan_information['domain'])
         return
 
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'priority', 'exposition', 'asset_value', 'isp', 'asn',
