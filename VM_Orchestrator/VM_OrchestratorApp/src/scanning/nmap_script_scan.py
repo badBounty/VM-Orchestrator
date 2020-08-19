@@ -307,6 +307,10 @@ def default_account(scan_info,url_to_scan):
     xml_file.close()
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
+    try:
+        test = json_data['nmaprun']['host']['ports']['port']
+    except KeyError:
+        return
     for port in json_data['nmaprun']['host']['ports']['port']:
         try:
             for scp in port['script']:

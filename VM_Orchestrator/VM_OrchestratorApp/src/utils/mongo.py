@@ -3,6 +3,7 @@ from VM_OrchestratorApp import MONGO_CLIENT
 from VM_Orchestrator.settings import settings
 from VM_Orchestrator.settings import REDMINE_IDS
 from VM_Orchestrator.settings import MONGO_INFO
+from VM_OrchestratorApp import ELASTIC_CLIENT
 from VM_OrchestratorApp.src.utils import slack, redmine, utils
 
 from datetime import datetime
@@ -42,7 +43,9 @@ def add_vulnerability(vulnerability):
             'vuln_type': vulnerability.vuln_type,
             'state': 'new'
         }
-        vulnerabilities.insert_one(resource)
+        vuln_id = vulnerabilities.insert_one(resource)
+        resource['_id'] = vuln_id
+        add_vuln_to_elastic(resource)
     return
 
 
@@ -324,7 +327,9 @@ def add_resource(url_info, scan_info):
         }
         if not scan_info['is_first_run']:
             slack.send_new_resource_found("New resource found! %s" % url_info['subdomain'], '#vm-recon-module')
-        resources.insert_one(resource)
+        resource_id = resources.insert_one(resource)
+        resource['_id'] = resource_id
+        add_resource_to_elastic(resource)
     else:
         resources.update_one({'_id': exists.get('_id')},
          {'$set': 
@@ -502,7 +507,7 @@ def update_issue_if_needed(redmine_issue):
         }})
     return
 
-
+###### ELASTICSEARCH ######
 def update_elasticsearch():
     new_resources = resources.find()
     resources_list = list()
@@ -580,8 +585,6 @@ def update_elasticsearch():
                 'vulnerability_state': vuln['state']
             })
 
-    # Import Elasticsearch package 
-    from VM_OrchestratorApp import ELASTIC_CLIENT
     if ELASTIC_CLIENT is None:
         return 
     # Connect to the elastic cluster
@@ -592,6 +595,84 @@ def update_elasticsearch():
     for vuln in vulnerabilities_list:
         res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
 
+def add_vuln_to_elastic(vuln):
+    if ELASTIC_CLIENT is None:
+        return 
+    if not vuln['observation']:
+        observation_data = {
+            'vulnerability_title': None,
+            'vulnerability_observation_title': None,
+            'vulnerability_observation_note': None,
+            'vulnerability_implication': None,
+            'vulnerability_recommendation_title': None,
+            'vulnerability_recommendation_note': None,
+            'vulnerability_severity': None
+        }
+    else:
+        observation_data = {
+            'vulnerability_title': vuln['observation']['title'],
+            'vulnerability_observation_title': vuln['observation']['observation_title'],
+            'vulnerability_observation_note': vuln['observation']['observation_note'],
+            'vulnerability_implication': vuln['observation']['implication'],
+            'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
+            'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
+            'vulnerability_severity': vuln['observation']['severity']
+        }
+    vulnerability_to_add = {
+        'vulnerability_id': str(vuln['_id']),
+        'vulnerability_domain': vuln['domain'],
+        'vulnerability_subdomain': vuln['resource'],
+        'vulnerability_vulnerability_name': vuln['vulnerability_name'],
+        'vulnerability_observation': observation_data,
+        'vulnerability_extra_info': vuln['extra_info'],
+        'vulnerability_date_found': vuln['date_found'],
+        'vulnerability_last_seen': vuln['last_seen'],
+        'vulnerability_language': vuln['language'],
+        'vulnerability_cvss_score': vuln['cvss_score'],
+        'vulnerability_vuln_type': vuln['vuln_type'],
+        'vulnerability_state': vuln['state']
+    }
+    res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vulnerability_to_add['vulnerability_id'],body=vulnerability_to_add)
+    return
+
+def add_resource_to_elastic(resource):
+    if ELASTIC_CLIENT is None:
+        return
+    resource_url = None
+    if resource['url'] is not None:
+        for url in resource['url']:
+            resource_url = url['url']
+            if 'https' in url['url']:
+                break
+
+    resource_to_add = {
+        'resource_id': str(resource['_id']),
+        'resource_domain': resource['domain'],
+        'resource_subdomain': resource['subdomain'],
+        'resource_ip': resource['ip'],
+        'resource_is_alive': False if resource['is_alive'] == "False" else True,
+        'resource_additional_info':{
+            'resource_isp': resource['additional_info']['isp'],
+            'resource_asn': resource['additional_info']['asn'],
+            'resource_country': resource['additional_info']['country'],
+            'resource_region': resource['additional_info']['region'],
+            'resource_city': resource['additional_info']['city'],
+            'resource_org': resource['additional_info']['org'],
+            'resource_geoloc': '0 , 0' if resource['additional_info']['geoloc'] == 'None , None' else resource['additional_info']['geoloc']
+        },
+        'resource_first_seen': resource['first_seen'],
+        'resource_last_seen': resource['last_seen'],
+        'resource_scanned': bool(resource['scanned']),
+        'resource_type': resource['type'],
+        'resource_priority': resource['priority'],
+        'resource_exposition': resource['exposition'],
+        'resource_asset_value': resource['asset_value'],
+        'resource_has_urls': bool(resource['has_urls']),
+        'resource_responsive_urls': resource_url,
+        'resource_nmap_information': resource['nmap_information']
+    }
+    res = ELASTIC_CLIENT.index(index='resources',doc_type='_doc',id=resource_to_add['resource_id'],body=resource_to_add)
+    return
 
 # TODO Temporary function for result revision
 def get_vulnerabilities_for_email(scan_information):
