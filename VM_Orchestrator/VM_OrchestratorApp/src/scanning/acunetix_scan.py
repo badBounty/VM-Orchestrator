@@ -187,14 +187,29 @@ def check_acu_status_and_create_vuln(scan_info,id_list,headers,session):
     return 
 
 def check_if_scan_is_possible(headers,session):
-    #Get already runned runnings scans
-    r = session.get(basic_url+launch_scan_url,verify=verify,headers=headers)
-    json_data = json.loads(r.text)
-    scans_running = len(json_data['scans'])
-    if scans_running < max_scans_possible:
-        #We can launch a scan
-        return True,max_scans_possible if scans_running == 0 else (max_scans_possible-scans_running)
-    else:
+    try:
+        #Get already runned scans
+        r = session.get(basic_url+launch_scan_url,verify=verify,headers=headers)
+        json_scan = json.loads(r.text)
+        #Just in case we get disconnected for some reason   
+        try:
+            json_scan['code']
+            if json_scan['message'] == 'Unauthorized':
+                r = session.post(basic_url+login_url,json=login_json,verify=verify)
+                #Get login values
+                headers['X-Auth'] = r.headers['X-Auth']
+                headers['X-Cookie'] = r.headers['Set-Cookie']
+                r = session.get(basic_url+launch_scan_url,verify=verify,headers=headers)
+                json_scan = json.loads(r.text)
+        except KeyError:
+                pass
+        scans_running = len(json_scan['scans'])
+        if scans_running < max_scans_possible:
+            #We can launch a scan
+            return True,max_scans_possible if scans_running == 0 else (max_scans_possible-scans_running)
+        else:
+            return False,0
+    except requests.exceptions.ReadTimeout:
         return False,0
 
 def scan_target(scan_info):
