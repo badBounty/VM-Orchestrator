@@ -256,6 +256,7 @@ def approve_resources(information):
 # ------ END ALERTS ------ #
 @shared_task
 def on_demand_scan_finished(results, information):
+    add_scanned_resources(information)
     if information['email'] is None:
         return
     # TODO REMOVE Send email with scan results
@@ -381,6 +382,7 @@ def project_monitor_task():
 @periodic_task(run_every=crontab(hour=settings['PROJECT']['SCAN_START_HOUR'], minute=settings['PROJECT']['SCAN_START_MINUTE']),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def start_scan_on_approved_resources():
+    slack.send_notification_to_channel('_ Starting scan against approved resources _', '#vm-ondemand')
     resources = mongo.get_data_for_approved_scan()
     print(resources)
     for resource in resources:
@@ -393,7 +395,6 @@ def start_scan_on_approved_resources():
         if scan_info['type'] == 'domain':
             execution_chord= chord(
                     [
-                        add_scanned_resources.si(scan_info).set(queue='fast_queue'),
                         run_web_scanners.si(scan_info).set(queue='fast_queue'),
                         run_ip_scans.si(scan_info).set(queue='slow_queue')
                     ],

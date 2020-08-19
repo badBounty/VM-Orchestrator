@@ -32,7 +32,6 @@ def recon_against_target(information):
         execution_chain.apply_async(queue='fast_queue', interval=300)
 
 def approve_resources(information):
-    slack.send_notification_to_channel('_ Starting scan against approved resources _', '#vm-ondemand')
     execution_chain = chain(
         tasks.approve_resources.si(information).set(queue='fast_queue')
     )

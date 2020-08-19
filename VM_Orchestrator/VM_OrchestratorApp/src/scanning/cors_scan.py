@@ -30,14 +30,16 @@ def handle_target(info):
     # We first put all the urls with http/s into a txt file
     random_filename = uuid.uuid4().hex
     FILE_WITH_URLS = ROOT_DIR + '/tools_output/' + random_filename + '.txt'
-    with open(FILE_WITH_URLS, 'w') as f:
-        for item in info['target']:
-            f.write("%s\n" % item)
+    for subdomain in info['target']:
+        scan_info = copy.deepcopy(info)
+        scan_info['target'] = subdomain
+        with open(FILE_WITH_URLS, 'w') as f:
+            f.write("%s\n" % subdomain)
+        # Call scan target with the file
+        scan_target(scan_info, FILE_WITH_URLS)
+        # Delete all created files
+        cleanup(FILE_WITH_URLS)
 
-    # Call scan target with the file
-    scan_target(info, FILE_WITH_URLS)
-    # Delete all created files
-    cleanup(FILE_WITH_URLS)
     slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     print('Module CORS Scan finished against %s' % info['domain'])
     return
