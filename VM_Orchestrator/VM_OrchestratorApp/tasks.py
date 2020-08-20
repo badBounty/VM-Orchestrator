@@ -310,7 +310,8 @@ def get_all_vulnerabilities(information):
     df = pd.DataFrame(vulnerabilities)
     if df.empty:
         return
-    df.to_csv(ROOT_DIR + '/output.csv', index=False)
+    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['_id', 'domain', 'resource', 'vulnerability_name', 'observation',
+    'extra_info', 'date_found', 'last_seen', 'language', 'cvss_score', 'vuln_type', 'state'])
     email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
     "Orchestrator: Vulnerabilities found!")
     
