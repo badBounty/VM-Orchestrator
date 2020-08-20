@@ -329,7 +329,7 @@ def get_domains_for_monitor():
     found = domains.find()
     return_list = list()
     for domain in found:
-        return_list.append({'domain': domain})
+        return_list.append({'domain': domain['domain']})
     return return_list
 
 def add_domain(scan_info):
