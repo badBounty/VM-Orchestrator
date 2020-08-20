@@ -700,10 +700,9 @@ def add_resource_found_log(vulnerability):
 # TODO Temporary function for result revision
 def get_vulnerabilities_for_email(scan_information):
     return_list = list()
-    found_vulns = vulnerabilities.find({'domain': scan_information['domain']})
+    found_vulns = vulnerabilities.find()
     for vuln in found_vulns:
             return_list.append(vuln)
-
     return  return_list
 
 def get_all_resources_for_email():

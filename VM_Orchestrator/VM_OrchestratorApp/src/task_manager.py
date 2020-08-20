@@ -56,6 +56,13 @@ def add_mongo_vulns_to_redmine():
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
 
+def get_all_vulnerabilities(information):
+    execution_chain = chain(
+        tasks.get_all_vulnerabilities.si(information).set(queue='fast_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
+    return
+
 def on_demand_scan(information):
 
     information['is_first_run'] = True

@@ -302,6 +302,21 @@ def recon_finished(scan_information):
 
 # ------ EMAIL NOTIFICATIONS ------
 @shared_task
+def get_all_vulnerabilities(information):
+    if information['email'] is None:
+        return
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    vulnerabilities = mongo.get_vulnerabilities_for_email(information)
+    df = pd.DataFrame(vulnerabilities)
+    if df.empty:
+        return
+    df.to_csv(ROOT_DIR + '/output.csv', index=False)
+    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
+    "Orchestrator: Vulnerabilities found!")
+    
+    return
+
+@shared_task
 def send_email_with_resources_for_verification(scan_information):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     resources = mongo.get_resources_for_email(scan_information)
