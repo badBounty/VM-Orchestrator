@@ -167,7 +167,11 @@ def web_scan_from_nmap_results(scan_information):
 @shared_task
 def run_recon(scan_information):
     slack.send_notification_to_channel('Starting recon against %s' % scan_information['domain'], '#vm-recon-module')
+    #We add the domain to our domain database
+    mongo.add_domain(scan_information)
+    # Scanning for subdomains
     subdomain_recon_task(scan_information)
+    # We resolve to get http/https urls
     resolver_recon_task(scan_information)
     send_email_with_resources_for_verification(scan_information)
     recon_finished(scan_information)
@@ -360,20 +364,19 @@ def add_scanned_resources(scan_info):
     return
 
 # ------ PERIODIC TASKS ------ #
+# We monitor assets on our domain database
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
 @periodic_task(run_every=crontab(hour=12, minute=0),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     # The idea is similar to the project start, we just need to ge the same information from our database.
-
-    monitor_data = mongo.get_data_for_monitor()
+    monitor_data = mongo.get_domains_for_monitor()
     print(monitor_data)
     for data in monitor_data:
         scan_info = data
+        scan_info['is_first_run'] = False
         scan_info['email'] = None
-        scan_info['nessus_scan'] = False
-        scan_info['acunetix_scan'] = False
-        scan_info['burp_scan'] = False
+        scan_info['type'] = 'domain'
         slack.send_notification_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
             run_recon.apply_async(args=[scan_info], queue='fast_queue')

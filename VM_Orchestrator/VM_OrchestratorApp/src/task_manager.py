@@ -17,9 +17,6 @@ def get_resources_from_target(information):
 
 def recon_against_target(information):
     information['is_first_run'] = True
-    information['language'] = settings['LANGUAGE']
-    information['priority'] = None
-    information['exposition'] = None
     information['type'] = 'domain'
 
     slack.send_notification_to_channel('_ Starting recon only scan against %s _' % str(information['domain']), '#vm-ondemand')
