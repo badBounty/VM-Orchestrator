@@ -365,7 +365,7 @@ def add_scanned_resources(scan_info):
 
 # ------ PERIODIC TASKS ------ #
 # We monitor assets on our domain database
-@periodic_task(run_every=crontab(hour=settings['PROJECT']['RECON_START_HOUR'], minute=settings['PROJECT']['RECON_START_HOUR']),
+@periodic_task(run_every=crontab(hour=settings['PROJECT']['RECON_START_HOUR'], minute=settings['PROJECT']['RECON_START_MINUTE']),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     # The idea is similar to the project start, we just need to ge the same information from our database.
