@@ -310,11 +310,16 @@ def get_all_vulnerabilities(information):
     df = pd.DataFrame(vulnerabilities)
     if df.empty:
         return
-    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['_id', 'domain', 'resource', 'vulnerability_name', 'observation',
+    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'resource', 'vulnerability_name', 'observation',
     'extra_info', 'date_found', 'last_seen', 'language', 'cvss_score', 'vuln_type', 'state'])
     email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
     "Orchestrator: Vulnerabilities found!")
     
+    try:
+        os.remove(ROOT_DIR + '/output.csv')
+    except FileNotFoundError:
+        print('ERROR Output file for resources was not found')
+        pass
     return
 
 @shared_task
