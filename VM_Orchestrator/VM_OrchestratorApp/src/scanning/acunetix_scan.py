@@ -203,7 +203,10 @@ def check_if_scan_is_possible(headers,session):
                 json_scan = json.loads(r.text)
         except KeyError:
                 pass
-        scans_running = len(json_scan['scans'])
+        try:
+            scans_running = len(json_scan['scans'])
+        except KeyError:
+            return False,0
         if scans_running < max_scans_possible:
             #We can launch a scan
             return True,max_scans_possible if scans_running == 0 else (max_scans_possible-scans_running)
