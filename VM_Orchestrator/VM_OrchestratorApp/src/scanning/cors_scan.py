@@ -11,6 +11,8 @@ import copy
 from datetime import datetime
 
 MODULE_NAME = 'CORS module'
+
+MODULE_IDENTIFIER = 'cors_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-cors'
 
 def cleanup(path):
@@ -20,13 +22,23 @@ def cleanup(path):
         pass
     return
 
+def send_module_status_log(info, status):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': status,
+            'domain': info['domain'],
+            'found': None,
+            'arguments': info
+        })
+    return
 
 def handle_target(info):
     info = copy.deepcopy(info)
     print('Module CORS Scan starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    send_module_status_log(info, 'start')
 
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     # We first put all the urls with http/s into a txt file
     random_filename = uuid.uuid4().hex
     FILE_WITH_URLS = ROOT_DIR + '/tools_output/' + random_filename + '.txt'
@@ -40,8 +52,9 @@ def handle_target(info):
         # Delete all created files
         cleanup(FILE_WITH_URLS)
 
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
     print('Module CORS Scan finished against %s' % info['domain'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
     return
 
 

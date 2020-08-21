@@ -16,6 +16,8 @@ import base64
 from datetime import datetime
 
 MODULE_NAME = 'Burp module'
+
+MODULE_IDENTIFIER = 'burp_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-burp'
 
 #Put
@@ -37,17 +39,41 @@ download_report = "http://localhost:8090/burp/report?reportType=XML&urlPrefix=%s
 #Get
 stop_burp = "http://localhost:8090/burp/stop"
 
+def send_module_start_log(info):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': 'start',
+            'domain': info['domain'],
+            'found': None,
+            'arguments': info
+        })
+    return
+
+def send_module_end_log(info):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': 'end',
+            'domain': info['domain'],
+            'found': None,
+            'arguments': info
+        })
+    return
+
 def handle_target(info):
     info = copy.deepcopy(info)
     if BURP_FOLDER and info['burp_scan']:
         print('Module Burp Scan starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_start_log(info)
+
         for url in info['target']:
             sub_info = copy.deepcopy(info)
             sub_info['target'] = url
             scan_target(sub_info)
-        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
         print('Module Burp Scan finished against %s' % info['domain'])
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_end_log(info)
     return
 
 

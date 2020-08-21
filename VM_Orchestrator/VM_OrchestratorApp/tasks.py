@@ -167,6 +167,14 @@ def web_scan_from_nmap_results(scan_information):
 @shared_task
 def run_recon(scan_information):
     slack.send_notification_to_channel('Starting recon against %s' % scan_information['domain'], '#vm-recon-module')
+    mongo.add_module_status_log({
+        'module_keyword': "recon_module",
+        'state': "start",
+        'domain': scan_information['domain'], #En los casos de start/stop de genericos, va None
+        'found': None,
+        'arguments': scan_information
+    })
+
     #We add the domain to our domain database
     mongo.add_domain(scan_information)
     # Scanning for subdomains
@@ -174,6 +182,14 @@ def run_recon(scan_information):
     # We resolve to get http/https urls
     resolver_recon_task(scan_information)
     send_email_with_resources_for_verification(scan_information)
+
+    mongo.add_module_status_log({
+        'module_keyword': "recon_module",
+        'state': "start",
+        'domain': scan_information['domain'], #En los casos de start/stop de genericos, va None
+        'found': None,
+        'arguments': scan_information
+    })
     recon_finished(scan_information)
     return
 
@@ -324,6 +340,8 @@ def get_all_vulnerabilities(information):
 
 @shared_task
 def send_email_with_resources_for_verification(scan_information):
+    if scan_information['email'] is None:
+        return
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     resources = mongo.get_resources_for_email(scan_information)
     df = pd.DataFrame(resources)
@@ -391,6 +409,13 @@ queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     # The idea is similar to the project start, we just need to ge the same information from our database.
     monitor_data = mongo.get_domains_for_monitor()
+    mongo.add_module_status_log({
+        'module_keyword': "monitor_recon_module",
+        'state': "start",
+        'domain': None, #En los casos de start/stop de genericos, va None
+        'found': None,
+        'arguments': monitor_data
+    })
     print(monitor_data)
     for data in monitor_data:
         scan_info = data
@@ -415,6 +440,13 @@ def start_scan_on_approved_resources():
         scan_info['acunetix_scan'] = settings['PROJECT']['ACTIVATE_ACUNETIX']
         scan_info['burp_scan'] = settings['PROJECT']['ACTIVATE_BURP']
         scan_info['invasive_scans'] = settings['PROJECT']['ACTIVATE_INVASIVE_SCANS']
+        mongo.add_module_status_log({
+            'module_keyword': "general_vuln_module",
+            'state': "start",
+            'domain': scan_info['domain'], #En los casos de start/stop de genericos, va None
+            'found': None,
+            'arguments': scan_info
+        })
         if scan_info['type'] == 'domain':
             execution_chord= chord(
                     [

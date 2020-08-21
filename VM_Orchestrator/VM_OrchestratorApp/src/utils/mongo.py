@@ -47,6 +47,7 @@ def add_vulnerability(vulnerability):
         }
         vuln_id = vulnerabilities.insert_one(resource)
         resource['_id'] = vuln_id
+        add_found_vulnerability_log(resource, vulnerability)
         add_vuln_to_elastic(resource)
     return
 
@@ -304,6 +305,8 @@ def add_resource(url_info, scan_info):
             slack.send_new_resource_found("New resource found! %s" % url_info['subdomain'], '#vm-recon-module')
         resource_id = resources.insert_one(resource)
         resource['_id'] = resource_id
+        module_keyword = 'on_demand_recon_module' if scan_info['is_first_run'] else 'monitor_recon_module'
+        add_resource_found_log(resource, module_keyword)
         add_resource_to_elastic(resource)
     else:
         resources.update_one({'_id': exists.get('_id')},
@@ -664,20 +667,49 @@ def add_resource_to_elastic(resource):
     res = ELASTIC_CLIENT.index(index='resources',doc_type='_doc',id=resource_to_add['resource_id'],body=resource_to_add)
     return
 
+'''
+{
+    "log_module_keyword": "module_keyword",
+    "log_module_state": "start/end",
+    "log_module_domain": "domain", #En los casos de start/stop de genericos, va None
+    "log_module_found": "found/not_found/None",
+    "log_module_extra_information": "Argumentos del metodo",
+    "log_module_timestamp": "datetime.now()"
+}
+'''
 # We log if the module starts or finishes
-def add_module_status_log(info, status):
-    log_id = logs.insert_one({})
+def add_module_status_log(info):
     log_to_add = {
-        'log_id': log_id
+        'log_module_keyword': info['module_keyword'],
+        'log_module_state': info['state'],
+        'log_module_domain': info['domain'],
+        #Found is just used for recon modules
+        'log_module_found': info['found'],
+        'log_module_extra_information': info['arguments'],
+        'log_module_timestamp': datetime.now
     }
-    res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
+    log_id = logs.insert_one(log_to_add)
+    log_to_add['log_id'] = log_id
+    ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
+'''
+{
+    "log_vulnerability_module_keyword": "module_keyword",
+    "log_vulnerability_found": true/false,
+    "log_vulnerability_name": "vuln_name",
+    "log_vulnerability_timestamp": "datetime.now()"
+}
+'''
 # We log if a vuln is found
-def add_found_vulnerability_log(vulnerability):
-    log_id = logs.insert_one({})
+def add_found_vulnerability_log(vulnerability, vuln_obj):
     log_to_add = {
-        'log_id': log_id
+        "log_vulnerability_module_keyword": vuln_obj.module_identifier,
+        "log_vulnerability_found": True,
+        "log_vulnerability_name": vulnerability['vulnerability_name'],
+        "log_vulnerability_timestamp": datetime.now
     }
+    log_id = logs.insert_one(log_to_add)
+    log_to_add['log_id'] = log_id
     res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
 # We log if a vuln is not found
@@ -688,12 +720,26 @@ def add_not_found_vulnerability_log(vulnerability):
     }
     res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
+'''
+{
+    "log_resource_module_keyword": "on_demand_recon_module/monitor_recon_module",
+    "log_resource_domain": "domain",
+    "log_resource_subdomain": "subdomain",
+    "log_resource_id": "_id",
+    "log_resource_timestamp": "datetime.now()"
+}
+'''
 # We log if a resource is found. IT can be from a recon or a monitor
-def add_resource_found_log(vulnerability):
-    log_id = logs.insert_one({})
+def add_resource_found_log(resource, module_keyword):
     log_to_add = {
-        'log_id': log_id
+        "log_resource_module_keyword": module_keyword,
+        "log_resource_domain": resource['domain'],
+        "log_resource_subdomain": resource['subdomain'],
+        "log_resource_id": resource['_id'],
+        "log_resource_timestamp": datetime.now()
     }
+    log_id = logs.insert_one({})
+    log_to_add['log_id'] = log_id
     res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
     
 

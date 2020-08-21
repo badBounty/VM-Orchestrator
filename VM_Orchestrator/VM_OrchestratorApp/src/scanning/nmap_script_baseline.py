@@ -16,6 +16,7 @@ from PIL import Image
 from io import BytesIO
 
 MODULE_NAME = 'Nmap Baseline module'
+MODULE_IDENTIFIER = 'nmap_baseline_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-nmap-baseline'
 
 def cleanup(path):
@@ -27,11 +28,22 @@ def cleanup(path):
         pass
     return
 
+def send_module_status_log(info, status):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': status,
+            'domain': info['domain'],
+            'found': None,
+            'arguments': info
+        })
+    return
 
 def handle_target(info):
     info = copy.deepcopy(info)
     print('Module Nmap baseline starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
+    
     scanned_hosts = list()
     for url in info['target']:
         sub_info = copy.deepcopy(info)
@@ -43,8 +55,11 @@ def handle_target(info):
         if host not in scanned_hosts:
             basic_scan(sub_info, host)
         scanned_hosts.append(host)
-    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module Nmap baseline finished against %s' % info['domain'])
+    slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
+
     return
 
 

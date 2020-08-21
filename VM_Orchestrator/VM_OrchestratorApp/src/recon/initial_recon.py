@@ -9,6 +9,7 @@ import time
 import requests
 import json
 
+MODULE_IDENTIFIER = 'subdomain_recon_module'
 
 def run_recon(scan_info):
 
@@ -90,6 +91,24 @@ def gather_data(project_dir, scan_info):
     # Take final text file and run through API that checks information
     # Here we call the add_to_db
     lines = open(project_dir + '/all.txt', 'r').readlines()
+
+    # List is empty
+    if not lines:
+        mongo.add_module_status_log({
+        'module_keyword': "subdomain_recon_module",
+        'state': "start",
+        'domain': scan_info['domain'], #En los casos de start/stop de genericos, va None
+        'found': "not_found",
+        'arguments': scan_info
+    })
+    else:
+        mongo.add_module_status_log({
+        'module_keyword': "subdomain_recon_module",
+        'state': "start",
+        'domain': scan_info['domain'], #En los casos de start/stop de genericos, va None
+        'found': "found",
+        'arguments': scan_info
+    })
 
     for url in lines:
         url = url.replace('\n', '')

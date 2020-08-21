@@ -20,6 +20,14 @@ def recon_against_target(information):
     information['type'] = 'domain'
 
     slack.send_notification_to_channel('_ Starting recon only scan against %s _' % str(information['domain']), '#vm-ondemand')
+    mongo.add_module_status_log({
+        'module_keyword': "on_demand_recon_module",
+        'state': "start",
+        'domain': None, #En los casos de start/stop de genericos, va None
+        'found': None,
+        'arguments': information
+    })
+    
     for domain in information['domain']:
         current_scan_info = copy.deepcopy(information)
         current_scan_info['domain'] = domain

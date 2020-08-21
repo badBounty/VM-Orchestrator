@@ -12,7 +12,10 @@ import re
 import copy
 
 MODULE_NAME = 'Acunetix module'
+
+MODULE_IDENTIFIER = 'acu_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-acunetix'
+
 login_json = {
     'email':acunetix_info['USER'],
     'password':acunetix_info['PASSWORD_HASH'],
@@ -35,6 +38,16 @@ login_url = '/api/v1/me/login'
 target_url = '/api/v1/targets'
 #LAUNCH / START SCAN - POST -- IF GET -> Obtains the scans running
 launch_scan_url = '/api/v1/scans'
+
+def send_module_status_log(info, status):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': status,
+            'domain': info['domain'],
+            'found': None,
+            'arguments': info
+        })
+    return
 
 def is_url(url):
     split_url = url.split('/')
@@ -62,15 +75,20 @@ def remove_duplicates_if_exists(url_list):
 def handle_target(info):
     info_copy = copy.deepcopy(info)
     if info_copy['acunetix_scan'] and acunetix:
+
         print('Module Acunetix Scan starting against %s alive urls from %s' % (str(len(info_copy['target'])), info_copy['domain']))
         slack.send_module_start_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info_copy, 'start')
+
         #We can have repeated urls differenced by http o https so we get only one (The https one's)
         full_list = remove_duplicates_if_exists(sorted(info_copy['target'],reverse=True))
         info_for_scan = copy.deepcopy(info_copy)
         info_for_scan['target'] = full_list
         scan_target(info_for_scan)
-        slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        
         print('Module Acunetix Scan Finished against %s alive urls from %s' % (str(len(full_list)), info_copy['domain']))
+        slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info_copy, 'end')
     return
 
 

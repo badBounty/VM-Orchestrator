@@ -16,6 +16,7 @@ from PIL import Image
 from io import BytesIO
 
 MODULE_NAME = 'Nmap Script module'
+MODULE_IDENTIFIER = 'nmap_script_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-nmap-scripts'
 
 def cleanup(path):
@@ -27,11 +28,22 @@ def cleanup(path):
         pass
     return
 
+def send_module_status_log(info, status):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': status,
+            'domain': info['domain'],
+            'found': None,
+            'arguments': info
+        })
+    return
 
 def handle_target(info):
     info = copy.deepcopy(info)
     print('Module Nmap scripts starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
+
     scanned_hosts = list()
     for url in info['target']:
         sub_info = copy.deepcopy(info)
@@ -51,8 +63,11 @@ def handle_target(info):
                     ftp_anon_login(sub_info, host)#FTP ANON
                 default_account(sub_info,host)#Default creds in web console
         scanned_hosts.append(host)
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module Nmap Scripts finished against %s' % info['domain'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
+
     return
 
 

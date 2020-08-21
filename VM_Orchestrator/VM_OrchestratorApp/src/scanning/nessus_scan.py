@@ -13,6 +13,8 @@ import uuid
 import traceback
 
 MODULE_NAME = 'Nessus module'
+
+MODULE_IDENTIFIER = 'nessus_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-nessus'
 
 username = nessus_info['USER']
@@ -31,6 +33,17 @@ header = {'X-Cookie':'',
             'X-API-Token':nessus_info['API'],
             'Content-Type':'application/json'
         }
+
+def send_module_status_log(info, status):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': status,
+            'domain': info['domain'],
+            'found': None,
+            'arguments': info
+        })
+    return
+
 def perform_login():
     r = requests.post(login_url,data={'username':username,'password':password},verify=verify)
     return 'token='+json.loads(r.text)['token']
@@ -52,6 +65,8 @@ def handle_target(info):
     if info['nessus_scan'] and nessus:
         print('Module Nessus Scan starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info, 'start')
+        
         targets = len(info['target'])
         if targets > 0:
             url_list = info['target']
@@ -68,8 +83,10 @@ def handle_target(info):
             sub_info['target'] = url_list[:divider]
             sub_info['nessus_target'] = urls
             scan_target(sub_info)
-        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
         print('Module Nessus Scan Finished against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info, 'end')
     return
 
 

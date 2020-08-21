@@ -13,18 +13,33 @@ from datetime import datetime
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 MODULE_NAME = 'Host header attack module'
+MODULE_IDENTIFIER = 'hha_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-hha'
+
+def send_module_status_log(info, status):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': status,
+            'domain': info['domain'],
+            'found': None,
+            'arguments': info
+        })
+    return
 
 def handle_target(info):
     info = copy.deepcopy(info)
     print('Module Host Header Attack starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
+
     for url in info['target']:
         sub_info = copy.deepcopy(info)
         sub_info['target'] = url
         scan_target(sub_info, sub_info['target'])
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module Host Header Attack finished against %s' % info['domain'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
     return
 
 
