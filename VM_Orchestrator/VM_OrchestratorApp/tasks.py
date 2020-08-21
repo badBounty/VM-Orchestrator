@@ -26,6 +26,8 @@ def subdomain_recon_task(scan_info):
 @shared_task
 def resolver_recon_task(scan_info):
     subdomains = mongo.get_alive_subdomains_for_resolve(scan_info['domain'])
+    if len(subdomains) == 0:
+        return
     aquatone.start_aquatone(subdomains, scan_info)
     httprobe.start_httprobe(subdomains, scan_info)
     return
