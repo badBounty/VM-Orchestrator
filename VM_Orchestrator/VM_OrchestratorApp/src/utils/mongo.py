@@ -424,7 +424,7 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
                 'nmap_information': nmap_json
             }})
     #This is the one that we just updated
-    resource_to_update_elastic = resources.find({'_id': resource.get('_id')})
+    resource_to_update_elastic = resources.find_one({'_id': resource.get('_id')})
     add_resource_to_elastic(resource_to_update_elastic)
     return
 
