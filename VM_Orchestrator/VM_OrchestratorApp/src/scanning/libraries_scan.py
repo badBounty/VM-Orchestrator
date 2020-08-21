@@ -17,13 +17,13 @@ SLACK_NOTIFICATION_CHANNEL = '#vm-lib-scan'
 def get_latest_version(name):
     return mongo.find_last_version_of_librarie(name)
 
-def send_module_status_log(info, status):
+def send_module_status_log(scan_info, status):
     mongo.add_module_status_log({
             'module_keyword': MODULE_IDENTIFIER,
             'state': status,
-            'domain': info['domain'],
+            'domain': scan_info['domain'],
             'found': None,
-            'arguments': info
+            'arguments': scan_info
         })
     return
 

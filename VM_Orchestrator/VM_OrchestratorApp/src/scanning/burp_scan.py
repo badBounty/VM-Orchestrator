@@ -39,13 +39,13 @@ download_report = "http://localhost:8090/burp/report?reportType=XML&urlPrefix=%s
 #Get
 stop_burp = "http://localhost:8090/burp/stop"
 
-def send_module_status_log(info, status):
+def send_module_status_log(scan_info, status):
     mongo.add_module_status_log({
             'module_keyword': MODULE_IDENTIFIER,
             'state': status,
-            'domain': info['domain'],
+            'domain': scan_info['domain'],
             'found': None,
-            'arguments': info
+            'arguments': scan_info
         })
     return
 

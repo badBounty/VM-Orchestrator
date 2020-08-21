@@ -17,13 +17,13 @@ MODULE_NAME = 'Header scan module'
 MODULE_IDENTIFIER = 'header_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-header-scan'
 
-def send_module_status_log(info, status):
+def send_module_status_log(scan_info, status):
     mongo.add_module_status_log({
             'module_keyword': MODULE_IDENTIFIER,
             'state': status,
-            'domain': info['domain'],
+            'domain': scan_info['domain'],
             'found': None,
-            'arguments': info
+            'arguments': scan_info
         })
     return
 

@@ -18,13 +18,13 @@ MODULE_NAME = 'Token finder module'
 MODULE_IDENTIFIER = 'token_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-token'
 
-def send_module_status_log(info, status):
+def send_module_status_log(scan_info, status):
     mongo.add_module_status_log({
             'module_keyword': MODULE_IDENTIFIER,
             'state': status,
-            'domain': info['domain'],
+            'domain': scan_info['domain'],
             'found': None,
-            'arguments': info
+            'arguments': scan_info
         })
     return
 

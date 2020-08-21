@@ -24,13 +24,13 @@ regions = ['us-east-2', 'us-east-1', 'us-west-1', 'us-west-2', 'ap-east-1', 'ap-
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def send_module_status_log(info, status):
+def send_module_status_log(scan_info, status):
     mongo.add_module_status_log({
             'module_keyword': MODULE_IDENTIFIER,
             'state': status,
-            'domain': info['domain'],
+            'domain': scan_info['domain'],
             'found': None,
-            'arguments': info
+            'arguments': scan_info
         })
     return
 
