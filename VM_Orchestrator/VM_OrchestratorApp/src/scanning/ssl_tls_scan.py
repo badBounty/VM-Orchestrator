@@ -57,6 +57,8 @@ def handle_single(info):
     # Url will come with http or https, we will strip and append ports that could have tls/ssl
     url = info['target']
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
+
     valid_ports = ['443']
     split_url = url.split('/')
     try:
@@ -66,8 +68,10 @@ def handle_single(info):
     print('Module SSL/TLS starting against %s' % info['target'])
     for port in valid_ports:
         scan_target(info, url, final_url+':'+port)
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module SSL/TLS finished against %s' % info['target'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
     return
 
 

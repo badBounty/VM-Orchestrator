@@ -97,11 +97,15 @@ def handle_single(info):
     if info_copy['acunetix_scan'] and acunetix and is_url(info_copy['target']):
         print('Module Acunetix Single Scan Starting against %s' % info_copy['target'])
         slack.send_module_start_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info_copy, 'start')
+
         urls = [info_copy['target']]
         info_copy['target'] = urls
         scan_target(info_copy)
-        slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
         print('Module Acunetix Single Scan Finished against %s' % info_copy['target'])
+        slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info_copy, 'end')
     return
 
 def add_vulnerability(scan_info,scan_id,vulns):

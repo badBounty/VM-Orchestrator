@@ -47,9 +47,13 @@ def handle_single(info):
     info = copy.deepcopy(info)
     print('Module Host Header Attack starting against %s' % info['target'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
+
     scan_target(info, info['target'])
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module Host Header Attack finished against %s' % info['target'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
     return
 
 

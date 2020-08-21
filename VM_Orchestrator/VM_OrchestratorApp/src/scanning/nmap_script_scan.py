@@ -75,6 +75,7 @@ def handle_single(info):
     info = copy.deepcopy(info)
     print('Module Nmap Scripts starting against %s' % info['target'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
     # We receive the url with http/https, we will get only the host so nmap works
     host = info['target']
     if info['type'] == 'url':
@@ -88,8 +89,10 @@ def handle_single(info):
             ssh_ftp_brute_login(info, host, False)#FTP
             ftp_anon_login(info, host)#FTP ANON
         default_account(info,host)#Default creds in web console
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module Nmap Scripts finished against %s' % info['target'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
     return
 
 

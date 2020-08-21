@@ -39,20 +39,10 @@ download_report = "http://localhost:8090/burp/report?reportType=XML&urlPrefix=%s
 #Get
 stop_burp = "http://localhost:8090/burp/stop"
 
-def send_module_start_log(info):
+def send_module_status_log(info, status):
     mongo.add_module_status_log({
             'module_keyword': MODULE_IDENTIFIER,
-            'state': 'start',
-            'domain': info['domain'],
-            'found': None,
-            'arguments': info
-        })
-    return
-
-def send_module_end_log(info):
-    mongo.add_module_status_log({
-            'module_keyword': MODULE_IDENTIFIER,
-            'state': 'end',
+            'state': status,
             'domain': info['domain'],
             'found': None,
             'arguments': info
@@ -64,7 +54,7 @@ def handle_target(info):
     if BURP_FOLDER and info['burp_scan']:
         print('Module Burp Scan starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        send_module_start_log(info)
+        send_module_status_log(info, 'start')
 
         for url in info['target']:
             sub_info = copy.deepcopy(info)
@@ -73,7 +63,7 @@ def handle_target(info):
 
         print('Module Burp Scan finished against %s' % info['domain'])
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
-        send_module_end_log(info)
+        send_module_status_log(info, 'end')
     return
 
 
@@ -82,9 +72,13 @@ def handle_single(info):
     if BURP_FOLDER and info['burp_scan']:
         print('Module Burp Scan starting against %s' % info['target'])
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info, 'start')
+
         scan_target(info)
+
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module Burp Scan finished against %s' % info['target'])
+        send_module_status_log(info, 'end')
     return
 
 

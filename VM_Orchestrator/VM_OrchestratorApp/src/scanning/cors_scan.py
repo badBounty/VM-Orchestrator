@@ -62,6 +62,8 @@ def handle_single(info):
     info = copy.deepcopy(info)
     print('Module CORS Scan starting against %s' % info['target'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
+
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
     # Put urls in a single file
@@ -76,8 +78,10 @@ def handle_single(info):
 
     # Delete all created files
     cleanup(FILE_WITH_URL)
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module CORS Scan finished against %s' % info['target'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
     return
 
 

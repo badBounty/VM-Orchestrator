@@ -67,13 +67,17 @@ def handle_single(info):
     info = copy.deepcopy(info)
     print('Module Nmap baseline starting against %s' % info['target'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
+    
     # We receive the url with http/https, we will get only the host so nmap works
     host = info['target']
     if info['type'] == 'url':
         host = host.split('/')[2]
     basic_scan(info, host)
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module Nmap baseline finished against %s' % info['target'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
     return
 
 def add_vuln_to_mongo(scan_info, scan_type, description, img_str):

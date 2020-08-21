@@ -95,12 +95,16 @@ def handle_single(info):
     if info['nessus_scan'] and nessus and is_not_ip(info['target']):
         print('Module Nessus Single Scan Starting against %s' % info['target'])
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info, 'start')
+
         url_plain = get_only_url(info['target'])
         info['nessus_target'] = url_plain
         info['target'] = list().append(info['target'])
         scan_target(info)
+
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
         print('Module Nessus Scan Finished against %s' % info['nessus_target'])
+        send_module_status_log(info, 'end')
     else:
         pass
     return
