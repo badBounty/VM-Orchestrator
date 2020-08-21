@@ -688,7 +688,7 @@ def add_found_vulnerability_log(vulnerability, vuln_obj):
     log_to_add = {
         "log_vulnerability_module_keyword": vuln_obj.module_identifier,
         "log_vulnerability_found": True,
-        "log_vulnerability_id": vulnerability['_id'],
+        "log_vulnerability_id": str(vulnerability['_id']),
         "log_vulnerability_name": vulnerability['vulnerability_name'],
         "log_vulnerability_timestamp": datetime.now()
     }
