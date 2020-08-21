@@ -679,7 +679,7 @@ def add_module_status_log(info):
         'log_module_timestamp': datetime.now()
     }
     log_id = logs.insert_one(log_to_add)
-    log_to_add['log_id'] = str(log_id)
+    log_to_add['log_id'] = str(log_to_add.pop('_id'))
     ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
 
@@ -693,13 +693,13 @@ def add_found_vulnerability_log(vulnerability, vuln_obj):
         "log_vulnerability_timestamp": datetime.now()
     }
     log_id = logs.insert_one(log_to_add)
-    log_to_add['log_id'] = str(log_id)
+    log_to_add['log_id'] = str(log_to_add.pop('_id'))
     res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
 # We log if a vuln is not found
 def add_not_found_vulnerability_log(vulnerability):
     log_id = logs.insert_one({})
-    res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
+    #res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
 # We log if a resource is found. IT can be from a recon or a monitor
 def add_resource_found_log(resource, module_keyword):
@@ -711,7 +711,7 @@ def add_resource_found_log(resource, module_keyword):
         "log_resource_timestamp": datetime.now()
     }
     log_id = logs.insert_one(log_to_add)
-    log_to_add['log_id'] = str(log_id)
+    log_to_add['log_id'] = str(log_to_add.pop('_id'))
     res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
     
 
