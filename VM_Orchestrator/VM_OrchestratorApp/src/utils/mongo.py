@@ -667,16 +667,6 @@ def add_resource_to_elastic(resource):
     res = ELASTIC_CLIENT.index(index='resources',doc_type='_doc',id=resource_to_add['resource_id'],body=resource_to_add)
     return
 
-'''
-{
-    "log_module_keyword": "module_keyword",
-    "log_module_state": "start/end",
-    "log_module_domain": "domain", #En los casos de start/stop de genericos, va None
-    "log_module_found": "found/not_found/None",
-    "log_module_extra_information": "Argumentos del metodo",
-    "log_module_timestamp": "datetime.now()"
-}
-'''
 # We log if the module starts or finishes
 def add_module_status_log(info):
     log_to_add = {
@@ -692,19 +682,13 @@ def add_module_status_log(info):
     log_to_add['log_id'] = log_id
     ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
-'''
-{
-    "log_vulnerability_module_keyword": "module_keyword",
-    "log_vulnerability_found": true/false,
-    "log_vulnerability_name": "vuln_name",
-    "log_vulnerability_timestamp": "datetime.now()"
-}
-'''
+
 # We log if a vuln is found
 def add_found_vulnerability_log(vulnerability, vuln_obj):
     log_to_add = {
         "log_vulnerability_module_keyword": vuln_obj.module_identifier,
         "log_vulnerability_found": True,
+        "log_vulnerability_id": vulnerability['_id'],
         "log_vulnerability_name": vulnerability['vulnerability_name'],
         "log_vulnerability_timestamp": datetime.now
     }
@@ -720,15 +704,6 @@ def add_not_found_vulnerability_log(vulnerability):
     }
     res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
-'''
-{
-    "log_resource_module_keyword": "on_demand_recon_module/monitor_recon_module",
-    "log_resource_domain": "domain",
-    "log_resource_subdomain": "subdomain",
-    "log_resource_id": "_id",
-    "log_resource_timestamp": "datetime.now()"
-}
-'''
 # We log if a resource is found. IT can be from a recon or a monitor
 def add_resource_found_log(resource, module_keyword):
     log_to_add = {
