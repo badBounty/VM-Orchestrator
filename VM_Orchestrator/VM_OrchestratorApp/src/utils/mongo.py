@@ -675,7 +675,7 @@ def add_module_status_log(info):
         'log_module_domain': info['domain'],
         #Found is just used for recon modules
         'log_module_found': info['found'],
-        'log_module_extra_information': info['arguments'],
+        'log_module_target': info['target'],
         'log_module_timestamp': datetime.now
     }
     log_id = logs.insert_one(log_to_add)
