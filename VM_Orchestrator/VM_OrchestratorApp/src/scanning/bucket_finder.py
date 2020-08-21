@@ -30,7 +30,7 @@ def send_module_status_log(scan_info, status):
             'state': status,
             'domain': scan_info['domain'],
             'found': None,
-            'target': scan_info['target']
+            'arguments': scan_info
         })
     return
 

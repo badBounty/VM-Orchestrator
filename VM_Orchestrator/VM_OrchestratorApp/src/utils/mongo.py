@@ -675,8 +675,8 @@ def add_module_status_log(info):
         'log_module_domain': info['domain'],
         #Found is just used for recon modules
         'log_module_found': info['found'],
-        'log_module_target': info['target'],
-        'log_module_timestamp': datetime.now
+        'log_module_arguments': info['arguments'],
+        'log_module_timestamp': datetime.now()
     }
     log_id = logs.insert_one(log_to_add)
     log_to_add['log_id'] = log_id
@@ -690,7 +690,7 @@ def add_found_vulnerability_log(vulnerability, vuln_obj):
         "log_vulnerability_found": True,
         "log_vulnerability_id": vulnerability['_id'],
         "log_vulnerability_name": vulnerability['vulnerability_name'],
-        "log_vulnerability_timestamp": datetime.now
+        "log_vulnerability_timestamp": datetime.now()
     }
     log_id = logs.insert_one(log_to_add)
     log_to_add['log_id'] = log_id
@@ -713,7 +713,7 @@ def add_resource_found_log(resource, module_keyword):
         "log_resource_id": resource['_id'],
         "log_resource_timestamp": datetime.now()
     }
-    log_id = logs.insert_one({})
+    log_id = logs.insert_one(log_to_add)
     log_to_add['log_id'] = log_id
     res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
     
