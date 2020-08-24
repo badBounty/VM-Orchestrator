@@ -1,6 +1,10 @@
 # pylint: disable=import-error
 from VM_Orchestrator.settings import REDMINE_IDS
-from VM_OrchestratorApp import tasks
+from VM_OrchestratorApp.tasks import burp_scan_task, nessus_scan_task, acunetix_scan_task,\
+    header_scan_task, host_header_attack_scan, http_method_scan_task, ssl_tls_scan_task,\
+    libraries_scan_task, cors_scan_task, ffuf_task, bucket_finder_task, token_scan_task,\
+    css_scan_task, firebase_scan_task, nmap_script_scan_task, nmap_script_baseline_task,\
+    iis_shortname_scan_task
 """
 CONSTANTS.PY
 """
@@ -15,7 +19,7 @@ BURP_SCAN = {
     'spanish_name': '[BURP SCAN] - ',
     'status' : REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'web',
-    'task': tasks.burp_scan_task,
+    'task': burp_scan_task,
     'module_identifier': 'burp_module'
 }
 
@@ -24,7 +28,7 @@ NESSUS_SCAN = {
     'spanish_name': '[NESSUS SCAN] - ',
     'status' : REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'ip',
-    'task': tasks.nessus_scan,
+    'task': nessus_scan_task,
     'module_identifier': 'nessus_module'
 }
 
@@ -33,7 +37,7 @@ ACUNETIX_SCAN = {
     'spanish_name': '[ACUNETIX SCAN] - ',
     'status' : REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'ip',
-    'task': tasks.acunetix_scan,
+    'task': acunetix_scan_task,
     'module_identifier': 'acu_module'
 }
 
@@ -43,7 +47,7 @@ INVALID_VALUE_ON_HEADER = {
     'spanish_name': 'Inadecuada configuración de encabezados de seguridad',
     'status' : REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'web',
-    'task': tasks.header_scan_task,
+    'task': header_scan_task,
     'module_identifier': 'header_module'
 }
 HEADER_NOT_FOUND = {
@@ -51,7 +55,7 @@ HEADER_NOT_FOUND = {
     'spanish_name': 'Inadecuada configuración de encabezados de seguridad',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'web',
-    'task': tasks.header_scan_task,
+    'task': header_scan_task,
     'module_identifier': 'header_module'
 }
 HOST_HEADER_ATTACK = {
@@ -59,7 +63,7 @@ HOST_HEADER_ATTACK = {
     'spanish_name': 'Ataque de cabecera Host posible',
     'status': REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'web',
-    'task': tasks.host_header_attack_scan,
+    'task': host_header_attack_scan,
     'module_identifier': 'hha_module'
 }
 UNSECURE_METHOD = {
@@ -67,7 +71,7 @@ UNSECURE_METHOD = {
     'spanish_name': 'Métodos HTTP extendidos habilitados',
     'status': REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'web',
-    'task': tasks.http_method_scan_task,
+    'task': http_method_scan_task,
     'module_identifier': 'httpmethod_module'
 }
 SSL_TLS = {
@@ -75,7 +79,7 @@ SSL_TLS = {
     'spanish_name': 'Inadecuada configuración de seguridad de capa de transporte (TLS)',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'web',
-    'task': tasks.ssl_tls_scan_task,
+    'task': ssl_tls_scan_task,
     'module_identifier': 'tls_module'
 }
 OUTDATED_3RD_LIBRARIES = {
@@ -83,7 +87,7 @@ OUTDATED_3RD_LIBRARIES = {
     'spanish_name': 'Librerias 3rd party desactualizadas en uso',
     'status': REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'web',
-    'task': tasks.libraries_scan_task,
+    'task': libraries_scan_task,
     'module_identifier': 'libraries_module'
 }
 CORS = {
@@ -91,7 +95,7 @@ CORS = {
     'spanish_name': 'Se encontro una vulnerabilidad de CORS',
     'status': REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'web',
-    'task': tasks.cors_scan_task,
+    'task': cors_scan_task,
     'module_identifier': 'cors_module'
 }
 ENDPOINT = {
@@ -99,7 +103,7 @@ ENDPOINT = {
     'spanish_name': 'Se encontraron endpoints vulnerables',
     'status': REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'web',
-    'task': tasks.ffuf_task,
+    'task': ffuf_task,
     'module_identifier': 'ffuf_module'
 }
 BUCKET = {
@@ -107,7 +111,7 @@ BUCKET = {
     'spanish_name': 'Mala configuración en Bucket',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'web',
-    'task': tasks.bucket_finder_task,
+    'task': bucket_finder_task,
     'module_identifier': 'bucket_module'
 }
 TOKEN_SENSITIVE_INFO = {
@@ -115,7 +119,7 @@ TOKEN_SENSITIVE_INFO = {
     'spanish_name': 'Token con informacion sensible encontrado',
     'status': REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'web',
-    'task': tasks.token_scan_task,
+    'task': token_scan_task,
     'module_identifier': 'token_module'
 }
 CSS_INJECTION = {
@@ -123,7 +127,7 @@ CSS_INJECTION = {
     'spanish_name': 'Posible inyeccion css',
     'status': REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'web',
-    'task': tasks.css_scan_task,
+    'task': css_scan_task,
     'module_identifier': 'css_module'
 }
 OPEN_FIREBASE = {
@@ -131,7 +135,7 @@ OPEN_FIREBASE = {
     'spanish_name': 'Se encontro firebase abierta',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'web',
-    'task': tasks.firebase_scan_task,
+    'task': firebase_scan_task,
     'module_identifier': 'firebase_module'
 }
 OUTDATED_SOFTWARE_NMAP = {
@@ -139,7 +143,7 @@ OUTDATED_SOFTWARE_NMAP = {
     'spanish_name': 'Software desactualizado',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'ip',
-    'task': tasks.nmap_script_scan_task,
+    'task': nmap_script_scan_task,
     'module_identifier': 'nmap_script_module'
 }
 HTTP_PASSWD_NMAP = {
@@ -147,7 +151,7 @@ HTTP_PASSWD_NMAP = {
     'spanish_name': 'Path traversal encontrado',
     'status': REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'ip',
-    'task': tasks.nmap_script_scan_task,
+    'task': nmap_script_scan_task,
     'module_identifier': 'nmap_script_module'
 }
 WEB_VERSIONS_NMAP = {
@@ -155,7 +159,7 @@ WEB_VERSIONS_NMAP = {
     'spanish_name': 'Vulnerabilidades de versiones web encontradas',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'ip',
-    'task': tasks.nmap_script_scan_task,
+    'task': nmap_script_scan_task,
     'module_identifier': 'nmap_script_module'
 }
 ANON_ACCESS_FTP = {
@@ -163,7 +167,7 @@ ANON_ACCESS_FTP = {
     'spanish_name': 'Permisos de escritura en servidor FTP en forma anónima',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'ip',
-    'task': tasks.nmap_script_scan_task,
+    'task': nmap_script_scan_task,
     'module_identifier': 'nmap_script_module'
 }
 
@@ -172,7 +176,7 @@ CRED_ACCESS_FTP = {
     'spanish_name': 'Acceso a FTP con credenciales por defecto',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'ip',
-    'task': tasks.nmap_script_scan_task,
+    'task': nmap_script_scan_task,
     'module_identifier': 'nmap_script_module'
 }
 DEFAULT_CREDS = {
@@ -180,7 +184,7 @@ DEFAULT_CREDS = {
     'spanish_name': 'Acceso administrativo mediante usuarios por defecto',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'ip',
-    'task': tasks.nmap_script_scan_task,
+    'task': nmap_script_scan_task,
     'module_identifier': 'nmap_script_module'
 }
 IIS_SHORTNAME_MICROSOFT = {
@@ -188,7 +192,7 @@ IIS_SHORTNAME_MICROSOFT = {
     'spanish_name': 'Enumeración de nombres cortos de archivos y directorios de Microsoft',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'web',
-    'task': tasks.iis_shortname_scan_task,
+    'task': iis_shortname_scan_task,
     'module_identifier': 'iis_module'
 }
 POSSIBLE_ERROR_PAGES = {
@@ -196,7 +200,7 @@ POSSIBLE_ERROR_PAGES = {
     'spanish_name': 'Posible inadecuado manejo de errores',
     'status': REDMINE_IDS['STATUS_NEW_VERIFY'],
     'scan_type': 'web',
-    'task': tasks.nmap_script_scan_task,
+    'task': nmap_script_scan_task,
     'module_identifier': 'nmap_script_module'
 }
 PLAINTEXT_COMUNICATION = {
@@ -204,7 +208,7 @@ PLAINTEXT_COMUNICATION = {
     'spanish_name': 'Comunicación no cifrada',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'ip',
-    'task': tasks.nmap_script_baseline_task,
+    'task': nmap_script_baseline_task,
     'module_identifier': 'nmap_baseline_module'
 }
 UNNECESSARY_SERVICES = {
@@ -212,6 +216,6 @@ UNNECESSARY_SERVICES = {
     'spanish_name': 'Servicios innecesarios disponibles en internet',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'ip',
-    'task': tasks.nmap_script_baseline_task,
+    'task': nmap_script_baseline_task,
     'module_identifier': 'nmap_baseline_module'
 }
