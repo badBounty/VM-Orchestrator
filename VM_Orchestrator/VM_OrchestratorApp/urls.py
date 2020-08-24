@@ -10,6 +10,7 @@ urlpatterns = [
     path('get_vulnerabilities/', views.get_all_vulnerabilities, name='get_vulnerabilities'),
     path('approve_resources/', views.approve_resources, name='approved_scan'),
     path('update_elasticsearch/', views.force_update_elasticsearch, name='update_elasticsearch'),
+    path('update_elasticsearch_logs/', views.force_update_elasticsearch_logs, name='update_elasticsearch_logs'),
     path('sync_redmine/', views.force_redmine_sync, name='sync_redmine'),
     path('on_demand_scan/', views.on_demand_scan, name='on_demand_scan'), ## ON DEMAND
     # Views

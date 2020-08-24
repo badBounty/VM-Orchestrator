@@ -586,6 +586,22 @@ def update_elasticsearch():
     for vuln in vulnerabilities_list:
         res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
 
+def update_elasticsearch_logs():
+    logs_found = logs.find()
+    for log in logs_found:
+        log_to_add = {
+            'log_id': str(log['_id']),
+            'log_module_keyword': log['log_module_keyword'],
+            'log_module_state': log['log_module_state'],
+            'log_module_domain': log['log_module_domain'],
+            #Found is just used for recon modules
+            'log_module_found': log['log_module_found'],
+            'log_module_arguments': log['log_module_arguments'],
+            'log_module_timestamp': log['log_module_timestamp']
+        }
+        ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
+
+
 def add_vuln_to_elastic(vuln):
     if ELASTIC_CLIENT is None:
         return 

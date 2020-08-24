@@ -585,3 +585,7 @@ def check_redmine_for_updates():
 queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
+
+@shared_task
+def update_elasticsearch_logs():
+    mongo.update_elasticsearch_logs()

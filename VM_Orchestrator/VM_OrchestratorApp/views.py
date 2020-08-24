@@ -90,6 +90,13 @@ def force_update_elasticsearch(request):
     return JsonResponse({'ERROR': 'Post is required'})
 
 @csrf_exempt
+def force_update_elasticsearch_logs(request):
+    if request.method == 'POST':
+        manager.force_update_elasticsearch_logs()
+        return JsonResponse({'INFO': 'Updating elasticsearch logs'})
+    return JsonResponse({'ERROR': 'Post is required'})
+
+@csrf_exempt
 def force_redmine_sync(request):
     if request.method == 'POST':
         manager.force_redmine_sync()
