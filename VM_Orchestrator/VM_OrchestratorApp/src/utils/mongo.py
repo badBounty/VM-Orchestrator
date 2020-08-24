@@ -587,19 +587,25 @@ def update_elasticsearch():
         res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
 
 def update_elasticsearch_logs():
+    print('Synchronizing log files')
     logs_found = logs.find()
     for log in logs_found:
-        log_to_add = {
-            'log_id': str(log['_id']),
-            'log_module_keyword': log['log_module_keyword'],
-            'log_module_state': log['log_module_state'],
-            'log_module_domain': log['log_module_domain'],
-            #Found is just used for recon modules
-            'log_module_found': log['log_module_found'],
-            'log_module_arguments': log['log_module_arguments'],
-            'log_module_timestamp': log['log_module_timestamp']
-        }
-        ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
+        log['log_id'] = str(log.pop('_id'))
+        try:
+            something = log['log_module_keyword']
+            ELASTIC_CLIENT.index(index='log_module',doc_type='_doc',id=log['log_id'],body=log)
+        except KeyError:
+            pass
+        try:
+            something = log['log_vulnerability_module_keyword']
+            ELASTIC_CLIENT.index(index='log_vuln',doc_type='_doc',id=log['log_id'],body=log)
+        except KeyError:
+            pass
+        try:
+            something = log['log_resource_module_keyword']
+            ELASTIC_CLIENT.index(index='log_resource',doc_type='_doc',id=log['log_id'],body=log)
+        except KeyError:
+            pass
 
 
 def add_vuln_to_elastic(vuln):
@@ -694,7 +700,7 @@ def add_module_status_log(info):
     }
     log_id = logs.insert_one(log_to_add)
     log_to_add['log_id'] = str(log_to_add.pop('_id'))
-    ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
+    ELASTIC_CLIENT.index(index='log_module',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
 
 # We log if a vuln is found
@@ -708,7 +714,7 @@ def add_found_vulnerability_log(vulnerability, vuln_obj):
     }
     log_id = logs.insert_one(log_to_add)
     log_to_add['log_id'] = str(log_to_add.pop('_id'))
-    res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
+    res = ELASTIC_CLIENT.index(index='log_vuln',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
 # We log if a vuln is not found
 def add_not_found_vulnerability_log(vulnerability):
@@ -726,7 +732,7 @@ def add_resource_found_log(resource, module_keyword):
     }
     log_id = logs.insert_one(log_to_add)
     log_to_add['log_id'] = str(log_to_add.pop('_id'))
-    res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
+    res = ELASTIC_CLIENT.index(index='log_resource',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
     
 
 # TODO Temporary function for result revision
