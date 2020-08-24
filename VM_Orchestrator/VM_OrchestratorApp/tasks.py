@@ -493,7 +493,3 @@ def check_redmine_for_updates():
 queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
-
-@shared_task
-def add_mongo_vulns_to_redmine():
-    mongo.push_vulns_to_redmine()

@@ -39,14 +39,6 @@ def current_vulnerabilities(request):
 def new_vulnerability(request):
     return JsonResponse({'order': 'new_vulnerability. TODO'})
 
-### WARNING. ONLY TO BE USED IF MONGO CONTAINS NON-SCANNABLE VULNS
-## This will not check if vulns already exist, it is a way of starting out a project
-@csrf_exempt
-def add_mongo_vulns_to_redmine(request):
-    if request.method == 'POST':
-        manager.add_mongo_vulns_to_redmine()
-        return JsonResponse({'INFO': 'Forcing redmine update'})
-    return JsonResponse({'ERROR': 'Post is required'})
 '''
 {
     "domain": example.com,

@@ -52,34 +52,3 @@ def create_new_issue(vuln):
     except Exception as e:
         print("Redmine error" + str(e))
         pass
-
-# This should not be used
-def force_add_vulnerability(vuln):
-    severity_dict = {'INFORMATIONAL': REDMINE_IDS['SEVERITY_INFORMATIONAL'],
-     'LOW': REDMINE_IDS['SEVERITY_LOW'], 'MEDIUM': REDMINE_IDS['SEVERITY_MEDIUM'],
-      'HIGH': REDMINE_IDS['SEVERITY_HIGH'], 'CRITICAL': REDMINE_IDS['SEVERITY_CRITICAL']}
-    if redmine_client is None:
-        return
-    issue = redmine_client.issue.new()
-    issue.project_id = settings['REDMINE']['project_name']
-    issue.subject = vuln['vulnerability_name']
-    issue.tracker_id = REDMINE_IDS['FINDING_TRACKER']
-    issue.description = vuln['extra_info']
-    issue.status_id = REDMINE_IDS['STATUS_NEW']
-    try:
-        issue.priority_id = severity_dict[vuln['observation']['severity']]
-    except (KeyError,AttributeError):
-        issue.priority_id = REDMINE_IDS['SEVERITY_MEDIUM']
-
-    issue.assigned_to_id = REDMINE_IDS['ASSIGNED_USER']
-    issue.watcher_user_ids = REDMINE_IDS['WATCHERS']
-    issue.custom_fields= [{'id': REDMINE_IDS['DOMAIN'], 'value': vuln['domain']},
-     {'id': REDMINE_IDS['RESOURCE'], 'value': vuln['resource']},
-    {'id': REDMINE_IDS['DATE_FOUND'], 'value': str(vuln['date_found'].strftime("%Y-%m-%d"))},
-    {'id': REDMINE_IDS['LAST_SEEN'], 'value': str(vuln['last_seen'].strftime("%Y-%m-%d"))},
-    {'id': REDMINE_IDS['CVSS_SCORE'], 'value': vuln['cvss_score']}]
-    try:
-        issue.save()
-    except Exception as e:
-        print("Redmine error" + str(e))
-        pass

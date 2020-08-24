@@ -431,12 +431,6 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
     add_resource_to_elastic(resource_to_update_elastic)
     return
 
-def push_vulns_to_redmine():
-    found_vulns = vulnerabilities.find()
-    for vuln in found_vulns:
-        redmine.force_add_vulnerability(vuln)
-
-
 def add_custom_redmine_issue(redmine_issue):
     #We are going to suppose the resource exists on our local database
     #We will check first and send an exception if its not found
