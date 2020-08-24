@@ -8,7 +8,6 @@ import pandas as pd
 import copy
 import os
 
-from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.recon import initial_recon, aquatone, httprobe
 from VM_OrchestratorApp.src.utils import email_handler
 from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_tls_scan,\
@@ -484,6 +483,7 @@ def start_scan_on_approved_resources():
 #@periodic_task(run_every=crontab(hour=0, minute=0),
 #queue='slow_queue', options={'queue': 'slow_queue'})
 def monitor_resolved_issues():
+    from VM_OrchestratorApp.src import constants
     #We first get our local vuln list from constants.
     nmap_scripts_vulns = [constants.OUTDATED_SOFTWARE_NMAP, constants.HTTP_PASSWD_NMAP, constants.WEB_VERSIONS_NMAP, 
     constants.ANON_ACCESS_FTP, constants.CRED_ACCESS_FTP, constants.DEFAULT_CREDS, constants.POSSIBLE_ERROR_PAGES]
