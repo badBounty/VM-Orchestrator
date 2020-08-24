@@ -13,12 +13,25 @@ import subprocess
 import os
 
 MODULE_NAME = 'SSL/TLS module'
+MODULE_IDENTIFIER = 'tls_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-ssl-tls'
+
+def send_module_status_log(scan_info, status):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': status,
+            'domain': scan_info['domain'],
+            'found': None,
+            'arguments': scan_info
+        })
+    return
 
 def handle_target(info):
     info = copy.deepcopy(info)
     print('Module SSL/TLS starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
+
     valid_ports = ['443']
     for url in info['target']:
         sub_info = copy.deepcopy(info)
@@ -31,8 +44,11 @@ def handle_target(info):
             final_url = url
         for port in valid_ports:
             scan_target(sub_info, url, final_url+':'+port)
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module SSL/TLS finished against %s' % info['domain'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
+
     return
 
 
@@ -41,6 +57,8 @@ def handle_single(info):
     # Url will come with http or https, we will strip and append ports that could have tls/ssl
     url = info['target']
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
+
     valid_ports = ['443']
     split_url = url.split('/')
     try:
@@ -50,8 +68,10 @@ def handle_single(info):
     print('Module SSL/TLS starting against %s' % info['target'])
     for port in valid_ports:
         scan_target(info, url, final_url+':'+port)
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module SSL/TLS finished against %s' % info['target'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
     return
 
 
@@ -93,10 +113,13 @@ def scan_target(scan_info, url, url_with_port):
     cleanup(OUTPUT_FULL_NAME)
     # We first run the subprocess that creates the xml output file
     testssl_process = subprocess.run(
-       ['bash', TOOL_DIR, '--fast', '--warnings=off', '-oj', OUTPUT_FULL_NAME, url_with_port], capture_output=True)
+       ['bash', TOOL_DIR, '--fast', '--warnings=off', '-oj', OUTPUT_FULL_NAME, url_with_port], capture_output=True, timeout=300)
 
-    with open(OUTPUT_FULL_NAME) as f:
-        results = json.load(f)
+    try:
+        with open(OUTPUT_FULL_NAME) as f:
+            results = json.load(f)
+    except FileNotFoundError:
+        print('SSL TLS module reached timeout at %s' % url_with_port)
 
     for result in results:
         checker(scan_info, url_with_port, result)

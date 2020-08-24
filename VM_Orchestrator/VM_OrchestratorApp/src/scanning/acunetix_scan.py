@@ -12,7 +12,10 @@ import re
 import copy
 
 MODULE_NAME = 'Acunetix module'
+
+MODULE_IDENTIFIER = 'acu_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-acunetix'
+
 login_json = {
     'email':acunetix_info['USER'],
     'password':acunetix_info['PASSWORD_HASH'],
@@ -35,6 +38,16 @@ login_url = '/api/v1/me/login'
 target_url = '/api/v1/targets'
 #LAUNCH / START SCAN - POST -- IF GET -> Obtains the scans running
 launch_scan_url = '/api/v1/scans'
+
+def send_module_status_log(scan_info, status):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': status,
+            'domain': scan_info['domain'],
+            'found': None,
+            'arguments': scan_info
+        })
+    return
 
 def is_url(url):
     split_url = url.split('/')
@@ -62,15 +75,20 @@ def remove_duplicates_if_exists(url_list):
 def handle_target(info):
     info_copy = copy.deepcopy(info)
     if info_copy['acunetix_scan'] and acunetix:
+
         print('Module Acunetix Scan starting against %s alive urls from %s' % (str(len(info_copy['target'])), info_copy['domain']))
         slack.send_module_start_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info_copy, 'start')
+
         #We can have repeated urls differenced by http o https so we get only one (The https one's)
         full_list = remove_duplicates_if_exists(sorted(info_copy['target'],reverse=True))
         info_for_scan = copy.deepcopy(info_copy)
         info_for_scan['target'] = full_list
         scan_target(info_for_scan)
-        slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        
         print('Module Acunetix Scan Finished against %s alive urls from %s' % (str(len(full_list)), info_copy['domain']))
+        slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info_copy, 'end')
     return
 
 
@@ -79,11 +97,15 @@ def handle_single(info):
     if info_copy['acunetix_scan'] and acunetix and is_url(info_copy['target']):
         print('Module Acunetix Single Scan Starting against %s' % info_copy['target'])
         slack.send_module_start_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info_copy, 'start')
+
         urls = [info_copy['target']]
         info_copy['target'] = urls
         scan_target(info_copy)
-        slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
         print('Module Acunetix Single Scan Finished against %s' % info_copy['target'])
+        slack.send_module_end_notification_to_channel(info_copy, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info_copy, 'end')
     return
 
 def add_vulnerability(scan_info,scan_id,vulns):
@@ -187,14 +209,32 @@ def check_acu_status_and_create_vuln(scan_info,id_list,headers,session):
     return 
 
 def check_if_scan_is_possible(headers,session):
-    #Get already runned runnings scans
-    r = session.get(basic_url+launch_scan_url,verify=verify,headers=headers)
-    json_data = json.loads(r.text)
-    scans_running = len(json_data['scans'])
-    if scans_running < max_scans_possible:
-        #We can launch a scan
-        return True,max_scans_possible if scans_running == 0 else (max_scans_possible-scans_running)
-    else:
+    try:
+        #Get already runned scans
+        r = session.get(basic_url+launch_scan_url,verify=verify,headers=headers)
+        json_scan = json.loads(r.text)
+        #Just in case we get disconnected for some reason   
+        try:
+            json_scan['code']
+            if json_scan['message'] == 'Unauthorized':
+                r = session.post(basic_url+login_url,json=login_json,verify=verify)
+                #Get login values
+                headers['X-Auth'] = r.headers['X-Auth']
+                headers['X-Cookie'] = r.headers['Set-Cookie']
+                r = session.get(basic_url+launch_scan_url,verify=verify,headers=headers)
+                json_scan = json.loads(r.text)
+        except KeyError:
+                pass
+        try:
+            scans_running = len(json_scan['scans'])
+        except KeyError:
+            return False,0
+        if scans_running < max_scans_possible:
+            #We can launch a scan
+            return True,max_scans_possible if scans_running == 0 else (max_scans_possible-scans_running)
+        else:
+            return False,0
+    except requests.exceptions.ReadTimeout:
         return False,0
 
 def scan_target(scan_info):

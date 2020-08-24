@@ -11,25 +11,32 @@ from VM_Orchestrator.settings import settings
 
 def get_resources_from_target(information):
     execution_chain = chain(
-        tasks.send_email_with_resources_for_verification.si(information).set(queue='slow_queue')
+        tasks.send_email_with_all_resources.si(information).set(queue='slow_queue')
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
 def recon_against_target(information):
     information['is_first_run'] = True
-    information['language'] = settings['LANGUAGE']
-    information['priority'] = None
-    information['exposition'] = None
     information['type'] = 'domain'
 
-    slack.send_notification_to_channel('_ Starting recon only scan against %s _' % information['domain'], '#vm-ondemand')
-    execution_chain = chain(
-        tasks.run_recon.si(information).set(queue='slow_queue')
-    )
-    execution_chain.apply_async(queue='fast_queue', interval=300)
+    slack.send_notification_to_channel('_ Starting recon only scan against %s _' % str(information['domain']), '#vm-ondemand')
+    mongo.add_module_status_log({
+        'module_keyword': "on_demand_recon_module",
+        'state': "start",
+        'domain': None, #En los casos de start/stop de genericos, va None
+        'found': None,
+        'arguments': information
+    })
+    
+    for domain in information['domain']:
+        current_scan_info = copy.deepcopy(information)
+        current_scan_info['domain'] = domain
+        execution_chain = chain(
+            tasks.run_recon.si(current_scan_info).set(queue='slow_queue')
+        )
+        execution_chain.apply_async(queue='fast_queue', interval=300)
 
 def approve_resources(information):
-    slack.send_notification_to_channel('_ Starting scan against approved resources _', '#vm-ondemand')
     execution_chain = chain(
         tasks.approve_resources.si(information).set(queue='fast_queue')
     )
@@ -55,6 +62,14 @@ def add_code_vuln(data):
         tasks.add_code_vuln.si(data).set(queue='fast_queue')
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
+
+
+def get_all_vulnerabilities(information):
+    execution_chain = chain(
+        tasks.get_all_vulnerabilities.si(information).set(queue='fast_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
+    return
 
 def on_demand_scan(information):
 

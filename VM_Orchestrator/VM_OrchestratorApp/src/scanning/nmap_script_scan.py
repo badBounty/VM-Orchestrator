@@ -16,6 +16,7 @@ from PIL import Image
 from io import BytesIO
 
 MODULE_NAME = 'Nmap Script module'
+MODULE_IDENTIFIER = 'nmap_script_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-nmap-scripts'
 
 def cleanup(path):
@@ -27,11 +28,22 @@ def cleanup(path):
         pass
     return
 
+def send_module_status_log(scan_info, status):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': status,
+            'domain': scan_info['domain'],
+            'found': None,
+            'arguments': scan_info
+        })
+    return
 
 def handle_target(info):
     info = copy.deepcopy(info)
     print('Module Nmap scripts starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
+
     scanned_hosts = list()
     for url in info['target']:
         sub_info = copy.deepcopy(info)
@@ -51,8 +63,11 @@ def handle_target(info):
                     ftp_anon_login(sub_info, host)#FTP ANON
                 default_account(sub_info,host)#Default creds in web console
         scanned_hosts.append(host)
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module Nmap Scripts finished against %s' % info['domain'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
+
     return
 
 
@@ -60,6 +75,7 @@ def handle_single(info):
     info = copy.deepcopy(info)
     print('Module Nmap Scripts starting against %s' % info['target'])
     slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'start')
     # We receive the url with http/https, we will get only the host so nmap works
     host = info['target']
     if info['type'] == 'url':
@@ -73,8 +89,10 @@ def handle_single(info):
             ssh_ftp_brute_login(info, host, False)#FTP
             ftp_anon_login(info, host)#FTP ANON
         default_account(info,host)#Default creds in web console
-    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
     print('Module Nmap Scripts finished against %s' % info['target'])
+    slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+    send_module_status_log(info, 'end')
     return
 
 
@@ -307,6 +325,10 @@ def default_account(scan_info,url_to_scan):
     xml_file.close()
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
+    try:
+        test = json_data['nmaprun']['host']['ports']['port']
+    except KeyError:
+        return
     for port in json_data['nmaprun']['host']['ports']['port']:
         try:
             for scp in port['script']:

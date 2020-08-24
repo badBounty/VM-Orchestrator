@@ -12,6 +12,7 @@ import copy
 from datetime import datetime
 
 MODULE_NAME = 'FFUF module'
+MODULE_IDENTIFIER = 'ffuf_module'
 SLACK_NOTIFICATION_CHANNEL = '#vm-ffuf'
 
 def cleanup(path):
@@ -21,18 +22,32 @@ def cleanup(path):
         pass
     return
 
+def send_module_status_log(scan_info, status):
+    mongo.add_module_status_log({
+            'module_keyword': MODULE_IDENTIFIER,
+            'state': status,
+            'domain': scan_info['domain'],
+            'found': None,
+            'arguments': scan_info
+        })
+    return
 
 def handle_target(info):
     info = copy.deepcopy(info)
     if FFUF_LIST:
         print('Module ffuf starting against %s alive urls from %s' % (str(len(info['target'])), info['domain']))
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info, 'start')
+
         for url in info['target']:
             sub_info = copy.deepcopy(info)
             sub_info['target'] = url
             scan_target(sub_info, sub_info['target'])
-        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+
         print('Module ffuf finished against domain %s' % info['domain'])
+        slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info, 'end')
+
     return
 
 
@@ -41,8 +56,11 @@ def handle_single(info):
     if FFUF_LIST:
         print('Module ffuf starting against %s' % info['target'])
         slack.send_module_start_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info, 'start')
+
         scan_target(info, info['target'])
         slack.send_module_end_notification_to_channel(info, MODULE_NAME, SLACK_NOTIFICATION_CHANNEL)
+        send_module_status_log(info, 'end')
         print('Module ffuf finished against %s' % info['target'])
     return
 
@@ -67,7 +85,7 @@ def scan_target(scan_info, url_with_http):
         url_with_http = url_with_http + '/'
 
     subprocess.run(
-        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-c', '-v', '-mc', '200,403',
+        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-maxtime', '300', '-timeout', '3', '-c', '-v', '-mc', '200,403',
          '-o', JSON_RESULT], capture_output=True)
 
     with open(JSON_RESULT) as json_file:

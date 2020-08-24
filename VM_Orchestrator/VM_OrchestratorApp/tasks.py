@@ -9,6 +9,7 @@ import copy
 import os
 
 from VM_OrchestratorApp.src.recon import initial_recon, aquatone, httprobe
+from VM_OrchestratorApp.src.utils import email_handler
 from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
     firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack, \
@@ -25,6 +26,8 @@ def subdomain_recon_task(scan_info):
 @shared_task
 def resolver_recon_task(scan_info):
     subdomains = mongo.get_alive_subdomains_for_resolve(scan_info['domain'])
+    if len(subdomains) == 0:
+        return
     aquatone.start_aquatone(subdomains, scan_info)
     httprobe.start_httprobe(subdomains, scan_info)
     return
@@ -166,9 +169,29 @@ def web_scan_from_nmap_results(scan_information):
 @shared_task
 def run_recon(scan_information):
     slack.send_notification_to_channel('Starting recon against %s' % scan_information['domain'], '#vm-recon-module')
+    mongo.add_module_status_log({
+        'module_keyword': "recon_module",
+        'state': "start",
+        'domain': scan_information['domain'], #En los casos de start/stop de genericos, va None
+        'found': None,
+        'arguments': scan_information
+    })
+
+    #We add the domain to our domain database
+    mongo.add_domain(scan_information)
+    # Scanning for subdomains
     subdomain_recon_task(scan_information)
+    # We resolve to get http/https urls
     resolver_recon_task(scan_information)
     send_email_with_resources_for_verification(scan_information)
+
+    mongo.add_module_status_log({
+        'module_keyword': "recon_module",
+        'state': "start",
+        'domain': scan_information['domain'], #En los casos de start/stop de genericos, va None
+        'found': None,
+        'arguments': scan_information
+    })
     recon_finished(scan_information)
     return
 
@@ -255,6 +278,7 @@ def approve_resources(information):
 # ------ END ALERTS ------ #
 @shared_task
 def on_demand_scan_finished(results, information):
+    add_scanned_resources(information)
     if information['email'] is None:
         return
     # TODO REMOVE Send email with scan results
@@ -267,7 +291,7 @@ def on_demand_scan_finished(results, information):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'resource', 'vulnerability_name', 'extra_info',
     'date_found', 'last_seen', 'language', 'state'])
-    email_handler.send_email(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
+    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
     "Orchestrator: Vulnerabilities found!")
     try:
         os.remove(ROOT_DIR + '/output.csv')
@@ -296,20 +320,66 @@ def recon_finished(scan_information):
 
 # ------ EMAIL NOTIFICATIONS ------
 @shared_task
+def get_all_vulnerabilities(information):
+    if information['email'] is None:
+        return
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    vulnerabilities = mongo.get_vulnerabilities_for_email(information)
+    df = pd.DataFrame(vulnerabilities)
+    if df.empty:
+        return
+    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'resource', 'vulnerability_name', 'observation',
+    'extra_info', 'date_found', 'last_seen', 'language', 'cvss_score', 'vuln_type', 'state'])
+    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
+    "Orchestrator: Vulnerabilities found!")
+    
+    try:
+        os.remove(ROOT_DIR + '/output.csv')
+    except FileNotFoundError:
+        print('ERROR Output file for resources was not found')
+        pass
+    return
+
+@shared_task
 def send_email_with_resources_for_verification(scan_information):
-    # TODO REMOVE Send email with scan results
+    if scan_information['email'] is None:
+        return
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     resources = mongo.get_resources_for_email(scan_information)
     df = pd.DataFrame(resources)
     if df.empty:
-        print('No resources found! Canceling email')
+        print('No resources found at %s!' % scan_information['domain'])
+        email_handler.send_email_message_only(scan_information['email'], "No resources found at %s" % scan_information['domain'],
+    "Orchestrator: No resources from domain %s were found!" % scan_information['domain'])
         return
-    from VM_OrchestratorApp.src.utils import email_handler
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
     df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'priority', 'exposition', 'asset_value', 'isp', 'asn',
      'country', 'region', 'city', 'org', 'geoloc', 'first_seen', 'last_seen', 'is_alive', 'has_urls', 'approved',
      'scan_type'])
-    email_handler.send_email(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
-    "Orchestrator: Resources found!")
+    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
+    "Orchestrator: Resources from domain %s found!" % scan_information['domain'])
+
+    try:
+        os.remove(ROOT_DIR + '/output.csv')
+    except FileNotFoundError:
+        print('ERROR Output file for resources was not found')
+        pass
+    return
+
+@shared_task
+def send_email_with_all_resources(scan_information):
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    resources = mongo.get_all_resources_for_email()
+    df = pd.DataFrame(resources)
+    if df.empty:
+        return
+
+    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'priority', 'exposition', 'asset_value', 'isp', 'asn',
+     'country', 'region', 'city', 'org', 'geoloc', 'first_seen', 'last_seen', 'is_alive', 'has_urls', 'approved',
+     'scan_type'])
+    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
+    "Orchestrator: Returning all resources")
+
     try:
         os.remove(ROOT_DIR + '/output.csv')
     except FileNotFoundError:
@@ -340,64 +410,34 @@ def add_code_vuln(data):
     return
 
 # ------ PERIODIC TASKS ------ #
-def vulnerability_monitor_task():
-    # We get every vulnerability flagged as closed or resolved.
-    # TODO Get vulns from each collection
-    web_vulns = list()
-    infra_vulns = list()
-
-    # We need to replicate our basic scan_info and call a single scan with only the needed module
-    for web_vuln in web_vulns:
-        # We need a reference to the method that executes the scan
-        function_to_use = utils.get_web_function_by_name(web_vuln)
-        if not function_to_use:
-            return
-        function_to_use.apply_async(args=[], queue='fast_queue')
-        pass
-
-    for infra_vuln in infra_vulns:
-        function_to_use = utils.get_infra_function_by_name(infra_vuln)
-        if not function_to_use:
-            return
-        function_to_use.apply_async(args=[], queue='fast_queue')
-        pass
-
-#@periodic_task(run_every=crontab(hour=settings['PROJECT']['HOUR'], minute=settings['PROJECT']['MINUTE'], day_of_week=settings['PROJECT']['DAY_OF_WEEK']))
-@periodic_task(run_every=crontab(hour=4, minute=0),
+# We monitor assets on our domain database
+@periodic_task(run_every=crontab(hour=settings['PROJECT']['RECON_START_HOUR'], minute=settings['PROJECT']['RECON_START_MINUTE']),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
-    
-    # We first check if the project has started, we return if not
-    today_date = datetime.combine(date.today(), datetime.min.time())
-    if today_date < settings['PROJECT']['START_DATE']:
-        return
-    
     # The idea is similar to the project start, we just need to ge the same information from our database.
-
-    monitor_data = mongo.get_data_for_monitor()
-
+    monitor_data = mongo.get_domains_for_monitor()
+    mongo.add_module_status_log({
+        'module_keyword': "monitor_recon_module",
+        'state': "start",
+        'domain': None, #En los casos de start/stop de genericos, va None
+        'found': None,
+        'arguments': monitor_data
+    })
+    print(monitor_data)
     for data in monitor_data:
         scan_info = data
+        scan_info['is_first_run'] = False
         scan_info['email'] = None
-        scan_info['nessus_scan'] = False
-        scan_info['acunetix_scan'] = False
-        scan_info['burp_scan'] = False
+        scan_info['type'] = 'domain'
         slack.send_notification_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
-            run_recon(scan_info)
-            #run_web_scanners(scan_info)
-            #run_ip_scans(scan_info)
-        #elif scan_info['type'] == 'ip':
-        #    run_ip_scans(scan_info)
-        #elif scan_info['type'] == 'url':
-        #    run_web_scanners(scan_info)
-        #    run_ip_scans(scan_info)
-        
+            run_recon.apply_async(args=[scan_info], queue='fast_queue')
     return
 
 @periodic_task(run_every=crontab(hour=settings['PROJECT']['SCAN_START_HOUR'], minute=settings['PROJECT']['SCAN_START_MINUTE']),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def start_scan_on_approved_resources():
+    slack.send_notification_to_channel('_ Starting scan against approved resources _', '#vm-ondemand')
     resources = mongo.get_data_for_approved_scan()
     print(resources)
     for resource in resources:
@@ -407,10 +447,16 @@ def start_scan_on_approved_resources():
         scan_info['acunetix_scan'] = settings['PROJECT']['ACTIVATE_ACUNETIX']
         scan_info['burp_scan'] = settings['PROJECT']['ACTIVATE_BURP']
         scan_info['invasive_scans'] = settings['PROJECT']['ACTIVATE_INVASIVE_SCANS']
+        mongo.add_module_status_log({
+            'module_keyword': "general_vuln_module",
+            'state': "start",
+            'domain': scan_info['domain'], #En los casos de start/stop de genericos, va None
+            'found': None,
+            'arguments': scan_info
+        })
         if scan_info['type'] == 'domain':
             execution_chord= chord(
                     [
-                        add_scanned_resources.si(scan_info).set(queue='fast_queue'),
                         run_web_scanners.si(scan_info).set(queue='fast_queue'),
                         run_ip_scans.si(scan_info).set(queue='slow_queue')
                     ],
