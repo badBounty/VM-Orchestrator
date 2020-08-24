@@ -46,7 +46,7 @@ def add_vulnerability(vulnerability):
             'state': 'new'
         }
         vuln_id = vulnerabilities.insert_one(resource)
-        resource['_id'] = vuln_id
+        resource['_id'] = str(vuln_id.inserted_id)
         add_found_vulnerability_log(resource, vulnerability)
         add_vuln_to_elastic(resource)
     return
@@ -304,7 +304,7 @@ def add_resource(url_info, scan_info):
         if not scan_info['is_first_run']:
             slack.send_new_resource_found("New resource found! %s" % url_info['subdomain'], '#vm-recon-module')
         resource_id = resources.insert_one(resource)
-        resource['_id'] = resource_id
+        resource['_id'] = str(resource_id.inserted_id)
         module_keyword = 'on_demand_recon_module' if scan_info['is_first_run'] else 'monitor_recon_module'
         add_resource_found_log(resource, module_keyword)
         add_resource_to_elastic(resource)
@@ -707,7 +707,7 @@ def add_resource_found_log(resource, module_keyword):
         "log_resource_module_keyword": module_keyword,
         "log_resource_domain": resource['domain'],
         "log_resource_subdomain": resource['subdomain'],
-        "log_resource_id": resource['_id'],
+        "log_resource_id": str(resource['_id']),
         "log_resource_timestamp": datetime.now()
     }
     log_id = logs.insert_one(log_to_add)
