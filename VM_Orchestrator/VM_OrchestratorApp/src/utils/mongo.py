@@ -28,7 +28,7 @@ def add_vulnerability(vulnerability):
             'last_seen': vulnerability.time,
             'image_string': vulnerability.image_string,
             'file_string': vulnerability.file_string,
-            'state': 'new' if exists['state'] != 'closed' else exists['state']
+            'state': 'new' if exists['state'] != 'rejected' else exists['state']
         }})
     else:
         resource = {
@@ -450,6 +450,10 @@ def add_custom_redmine_issue(redmine_issue):
         vuln_status = 'resolved'
     elif status == 'Cerrada':
         vuln_status = 'closed'
+    elif status == 'Confirmada':
+        vuln_status = 'confirmed'
+    elif status == 'Rechazada':
+        vuln_status = 'rejected'
 
     vuln_to_add = {
         'domain': redmine_issue.custom_fields.get(REDMINE_IDS['DOMAIN']).value,
@@ -495,6 +499,14 @@ def update_issue_if_needed(redmine_issue):
     elif status == 'Cerrada':
         vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'closed' 
+        }})
+    elif status == 'Confirmada':
+        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'confirmed' 
+        }})
+    elif status == 'Rechazada':
+        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'rejected' 
         }})
     return
 
