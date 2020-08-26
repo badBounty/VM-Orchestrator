@@ -87,9 +87,9 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
     description = 'Burp scan completed against %s' % scan_info['target'] +'\n'
-    try:
-        for issue in json_data['issues']['issue']:
-            try:
+    if isinstance(json_data['issues']['issue'], list):
+        try:
+            for issue in json_data['issues']['issue']:
                 if issue['name'] not in BURP_BLACKLIST:
                     name = copy.deepcopy(constants.BURP_SCAN)
                     name['english_name'] = name['english_name'] + issue['name']
@@ -100,13 +100,21 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
                     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
                     redmine.create_new_issue(vulnerability)
                     mongo.add_vulnerability(vulnerability)
-            except TypeError:
-                print('Type error at burp add vulnerability, printing issue')
-                print(str(issue))
-                continue
-    except KeyError:
-        print('Key error at burp add vulnerability')
-        return
+        except KeyError:
+            print('Key error at burp add vulnerability')
+            return
+    else:
+        issue = json_data['issues']
+        if issue['name'] not in BURP_BLACKLIST:
+                name = copy.deepcopy(constants.BURP_SCAN)
+                name['english_name'] = name['english_name'] + issue['name']
+                extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
+                vulnerability = Vulnerability(name, scan_info, description+extra)
+                vulnerability.add_file_string(file_string)
+                vulnerability.add_attachment(file_dir, file_name)
+                slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+                redmine.create_new_issue(vulnerability)
+                mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info):
