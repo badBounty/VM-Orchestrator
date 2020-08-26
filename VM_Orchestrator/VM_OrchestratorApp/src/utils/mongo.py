@@ -584,6 +584,7 @@ def update_elasticsearch():
                 'vulnerability_last_seen': vuln['last_seen'],
                 'vulnerability_language': vuln['language'],
                 'vulnerability_cvss_score': vuln['cvss_score'],
+                'vulnerability_cvss3_severity': resolve_severity(vuln['cvss_score']),
                 'vulnerability_vuln_type': vuln['vuln_type'],
                 'vulnerability_state': vuln['state']
             })
@@ -597,6 +598,18 @@ def update_elasticsearch():
     print('Adding vulnerabilities to elasticsearch')
     for vuln in vulnerabilities_list:
         res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
+
+def resolve_severity(cvss_score):
+    if cvss_score == 0:
+        return 'Informational'
+    elif 0 < cvss_score <= 3.9:
+        return 'Low'
+    elif 3.9 < cvss_score <= 6.9:
+        return 'Medium'
+    elif 6.9 < cvss_score <= 8.9:
+        return 'High'
+    else:
+        return 'Critical'
 
 def update_elasticsearch_logs():
     print('Synchronizing log files')
