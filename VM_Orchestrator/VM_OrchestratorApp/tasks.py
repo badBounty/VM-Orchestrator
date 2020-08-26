@@ -485,6 +485,98 @@ def start_scan_on_approved_resources():
             execution_chord.apply_async(queue='fast_queue', interval=300)
     return
 
+#@periodic_task(run_every=crontab(hour=0, minute=0),
+#queue='slow_queue', options={'queue': 'slow_queue'})
+def monitor_resolved_issues():
+    from VM_OrchestratorApp.src import constants
+    #We first get our local vuln list from constants.
+    nmap_scripts_vulns = [constants.OUTDATED_SOFTWARE_NMAP, constants.HTTP_PASSWD_NMAP, constants.WEB_VERSIONS_NMAP, 
+    constants.ANON_ACCESS_FTP, constants.CRED_ACCESS_FTP, constants.DEFAULT_CREDS, constants.POSSIBLE_ERROR_PAGES]
+
+    nmap_baseline_vulns = [constants.PLAINTEXT_COMUNICATION, constants.UNNECESSARY_SERVICES]
+
+    valid_web_vulns = [constants.INVALID_VALUE_ON_HEADER, constants.HEADER_NOT_FOUND, constants.HOST_HEADER_ATTACK, 
+    constants.UNSECURE_METHOD, constants.SSL_TLS, constants.OUTDATED_3RD_LIBRARIES, constants.CORS, constants.ENDPOINT, 
+    constants.BUCKET, constants.TOKEN_SENSITIVE_INFO, constants.CSS_INJECTION, constants.OPEN_FIREBASE, 
+    constants.IIS_SHORTNAME_MICROSOFT]
+    # We now get all the vulns that are resolved
+    resolved_vulns = mongo.get_resolved_vulnerabilities()
+    # We need to filter out vulnerabilities that come from the same tool. This way we wont run the same scan twice
+    # we will create a sort of "queue" for the scans
+    scan_queue = list()
+    for vulnerability in resolved_vulns:
+        # Only a target and domain is needed.
+        if 'NESSUS' in vulnerability['vulnerability_name']:
+            scan_to_add = {
+                'domain': vulnerability['domain'],
+                'resource': vulnerability['resource'],
+                'function': constants.NESSUS_SCAN['task']
+            }
+            if scan_to_add not in scan_queue:
+                scan_queue.append(scan_to_add)
+        elif 'BURP' in vulnerability['vulnerability_name']:
+            scan_to_add = {
+                'domain': vulnerability['domain'],
+                'resource': vulnerability['resource'],
+                'function': constants.BURP_SCAN['task']
+            }
+            if scan_to_add not in scan_queue:
+                scan_queue.append(scan_to_add)
+        elif 'ACUNETIX' in vulnerability['vulnerability_name']:
+            scan_to_add = {
+                'domain': vulnerability['domain'],
+                'resource': vulnerability['resource'],
+                'function': constants.ACUNETIX_SCAN['task']
+            }
+            if scan_to_add not in scan_queue:
+                scan_queue.append(scan_to_add)
+        # Check the vuln name with nmap lists for nmap scans
+        for nmap_script_vuln in nmap_scripts_vulns:
+            if (vulnerability['vulnerability_name'] == nmap_script_vuln['english_name']) or (vulnerability['vulnerability_name'] == nmap_script_vuln['spanish_name']):
+                scan_to_add = {
+                    'domain': vulnerability['domain'],
+                    'resource': vulnerability['resource'],
+                    'function': nmap_script_vuln['task']
+                }
+                if scan_to_add not in scan_queue:
+                    scan_queue.append(scan_to_add)
+                else:
+                    # This means at least one vuln coming from nmap scripts was found, so we need to re run the scan
+                    break
+        for nmap_baseline_vuln in nmap_baseline_vulns:
+            if (vulnerability['vulnerability_name'] == nmap_baseline_vuln['english_name']) or (vulnerability['vulnerability_name'] == nmap_baseline_vuln['spanish_name']):
+                scan_to_add = {
+                    'domain': vulnerability['domain'],
+                    'resource': vulnerability['resource'],
+                    'function': nmap_baseline_vuln['task']
+                }
+                if scan_to_add not in scan_queue:
+                    scan_queue.append(scan_to_add)
+                else:
+                    # This means at least one vuln coming from nmap scripts was found, so we need to re run the scan
+                    break
+        for web_vuln in valid_web_vulns:
+            if (vulnerability['vulnerability_name'] == web_vuln['english_name']) or (vulnerability['vulnerability_name'] == web_vuln['spanish_name']):
+                scan_to_add = {
+                        'domain': vulnerability['domain'],
+                        'resource': vulnerability['resource'],
+                        'function': nmap_baseline_vuln['task']
+                    }
+                # It should never happen that the same vulnerability repeats itself on our database
+                scan_queue.append(scan_to_add)
+    
+    # We now have a list of scans we need to execute
+    # a json will be created and the scan will start
+    # this will replicate the json needed for a traditional scan
+    for scan in scan_queue:
+        scan_info = {
+            'scan_type': 'target',
+            'target': scan['resource'],
+            'domain': scan['domain']
+        }
+        scan['task'].apply_async(args=[scan_info], queue='fast_queue')
+    return
+
 @periodic_task(run_every=crontab(hour=0, minute=0),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def check_redmine_for_updates():
@@ -498,3 +590,7 @@ def check_redmine_for_updates():
 queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
+
+@shared_task
+def update_elasticsearch_logs():
+    mongo.update_elasticsearch_logs()

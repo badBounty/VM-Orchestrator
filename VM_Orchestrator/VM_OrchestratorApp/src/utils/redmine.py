@@ -18,6 +18,15 @@ def issue_already_exists(vuln):
             vuln.domain == issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value and
             vuln.target == issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value):
             # This means the issue already exists in redmine. We will update the description and last seen
+            # If the status of the issue is set as resolved, we will also send an alert and change the status
+            if issue.status.name == 'Remediada':
+                #TODO ALERT, Remove status id hardcode!!!!!!!
+                #TODO make function that checks if found vuln is flagged as rejected locally
+                redmine_client.issue.update(issue.id, description=vuln.custom_description,status_id=14,
+                custom_fields=[{'id': REDMINE_IDS['DOMAIN'], 'value': vuln.domain},
+                {'id': REDMINE_IDS['RESOURCE'], 'value': vuln.target},
+                {'id': REDMINE_IDS['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))}])
+                return True
             redmine_client.issue.update(issue.id, description=vuln.custom_description,
             custom_fields=[{'id': REDMINE_IDS['WEB_FINDING']['DOMAIN'], 'value': vuln.domain},
             {'id': REDMINE_IDS['WEB_FINDING']['RESOURCE'], 'value': vuln.target},

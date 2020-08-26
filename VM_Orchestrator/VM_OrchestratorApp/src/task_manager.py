@@ -50,10 +50,10 @@ def force_update_elasticsearch():
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
-def force_redmine_sync():
-    slack.send_notification_to_channel('_ Forcing redmine sync... _', '#vm-ondemand')
+def force_update_elasticsearch_logs():
+    slack.send_notification_to_channel('_ Forcing update on elasticsearch... _', '#vm-ondemand')
     execution_chain = chain(
-        tasks.check_redmine_for_updates.si().set(queue='fast_queue')
+        tasks.update_elasticsearch_logs.si().set(queue='fast_queue')
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
@@ -63,6 +63,12 @@ def add_code_vuln(data):
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
+def force_redmine_sync():
+    slack.send_notification_to_channel('_ Forcing redmine sync... _', '#vm-ondemand')
+    execution_chain = chain(
+        tasks.check_redmine_for_updates.si().set(queue='fast_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
 
 def get_all_vulnerabilities(information):
     execution_chain = chain(
