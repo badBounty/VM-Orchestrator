@@ -488,9 +488,12 @@ def update_issue_if_needed(redmine_issue):
         add_custom_redmine_issue(redmine_issue)
         return
 
-    vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'cvss_score': float(cvss_score) 
-        }})
+    print(cvss_score)
+    if cvss_score is not None or cvss_score is not '':
+        print(cvss_score)
+        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+                'cvss_score': float(cvss_score) 
+            }})
 
     if status == 'Remediada':
         vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
