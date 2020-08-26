@@ -573,7 +573,6 @@ def update_elasticsearch():
                     'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
                     'vulnerability_severity': vuln['observation']['severity']
                 }
-        print(vuln)
         vulnerabilities_list.append({
                 'vulnerability_id': str(vuln['_id']),
                 'vulnerability_domain': vuln['domain'],
