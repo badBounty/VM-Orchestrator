@@ -489,7 +489,7 @@ def update_issue_if_needed(redmine_issue):
         return
 
     vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'cvss_score': int(cvss_score) 
+            'cvss_score': float(cvss_score) 
         }})
 
     if status == 'Remediada':
