@@ -614,6 +614,7 @@ def update_issue_if_needed(redmine_issue):
         }})
     return
 
+# TODO Update to use different indexes
 ###### ELASTICSEARCH ######
 def update_elasticsearch():
     new_resources = resources.find()
@@ -757,7 +758,7 @@ def update_elasticsearch():
             'code_vulnerability_first_seen': vuln['first_seen'],
             'code_vulnerability_last_seen': vuln['last_seen'],
             'code_vulnerability_vuln_type': vuln['code'],
-            'code_vulnerability_state': vuln['new']
+            'code_vulnerability_state': vuln['vuln_type']
         }
         vulnerabilities_list.append(vuln_to_add)
 
@@ -901,7 +902,6 @@ def add_module_status_log(info):
     log_id = logs.insert_one(log_to_add)
     log_to_add['log_id'] = str(log_to_add.pop('_id'))
     ELASTIC_CLIENT.index(index='log_module',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
-
 
 # We log if a vuln is found
 def add_found_vulnerability_log(vulnerability, vuln_obj):
