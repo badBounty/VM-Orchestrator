@@ -16,6 +16,7 @@ from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_t
     iis_shortname_scanner, burp_scan, nessus_scan, acunetix_scan
 from VM_Orchestrator.settings import settings
 from VM_OrchestratorApp.src.utils import mongo, slack, redmine
+from VM_OrchestratorApp.src import constants
 
 # ------ RECON ------ #
 @shared_task
@@ -483,7 +484,6 @@ def start_scan_on_approved_resources():
 #@periodic_task(run_every=crontab(hour=0, minute=0),
 #queue='slow_queue', options={'queue': 'slow_queue'})
 def monitor_resolved_issues():
-    from VM_OrchestratorApp.src import constants
     #We first get our local vuln list from constants.
     nmap_scripts_vulns = [constants.OUTDATED_SOFTWARE_NMAP, constants.HTTP_PASSWD_NMAP, constants.WEB_VERSIONS_NMAP, 
     constants.ANON_ACCESS_FTP, constants.CRED_ACCESS_FTP, constants.DEFAULT_CREDS, constants.POSSIBLE_ERROR_PAGES]
@@ -505,7 +505,7 @@ def monitor_resolved_issues():
             scan_to_add = {
                 'domain': vulnerability['domain'],
                 'resource': vulnerability['resource'],
-                'function': constants.NESSUS_SCAN['task']
+                'function': nessus_scan_task
             }
             if scan_to_add not in scan_queue:
                 scan_queue.append(scan_to_add)
@@ -513,7 +513,7 @@ def monitor_resolved_issues():
             scan_to_add = {
                 'domain': vulnerability['domain'],
                 'resource': vulnerability['resource'],
-                'function': constants.BURP_SCAN['task']
+                'function': burp_scan_task
             }
             if scan_to_add not in scan_queue:
                 scan_queue.append(scan_to_add)
@@ -521,7 +521,7 @@ def monitor_resolved_issues():
             scan_to_add = {
                 'domain': vulnerability['domain'],
                 'resource': vulnerability['resource'],
-                'function': constants.ACUNETIX_SCAN['task']
+                'function': acunetix_scan_task
             }
             if scan_to_add not in scan_queue:
                 scan_queue.append(scan_to_add)
@@ -531,7 +531,7 @@ def monitor_resolved_issues():
                 scan_to_add = {
                     'domain': vulnerability['domain'],
                     'resource': vulnerability['resource'],
-                    'function': nmap_script_vuln['task']
+                    'function': nmap_script_scan_task
                 }
                 if scan_to_add not in scan_queue:
                     scan_queue.append(scan_to_add)
@@ -543,7 +543,7 @@ def monitor_resolved_issues():
                 scan_to_add = {
                     'domain': vulnerability['domain'],
                     'resource': vulnerability['resource'],
-                    'function': nmap_baseline_vuln['task']
+                    'function': nmap_script_baseline_task
                 }
                 if scan_to_add not in scan_queue:
                     scan_queue.append(scan_to_add)
@@ -555,7 +555,7 @@ def monitor_resolved_issues():
                 scan_to_add = {
                         'domain': vulnerability['domain'],
                         'resource': vulnerability['resource'],
-                        'function': nmap_baseline_vuln['task']
+                        'function': task_switcher(vulnerability['vulnerability_name'])
                     }
                 # It should never happen that the same vulnerability repeats itself on our database
                 scan_queue.append(scan_to_add)
@@ -571,6 +571,38 @@ def monitor_resolved_issues():
         }
         scan['task'].apply_async(args=[scan_info], queue='fast_queue')
     return
+
+def task_switcher(module_name):
+    switcher = {
+        constants.INVALID_VALUE_ON_HEADER['english_name']: header_scan_task, 
+        constants.HEADER_NOT_FOUND['english_name']: header_scan_task, 
+        constants.HOST_HEADER_ATTACK['english_name']: host_header_attack_scan, 
+        constants.UNSECURE_METHOD['english_name']: http_method_scan_task, 
+        constants.SSL_TLS['english_name']: ssl_tls_scan_task, 
+        constants.OUTDATED_3RD_LIBRARIES['english_name']: libraries_scan_task, 
+        constants.CORS['english_name']: cors_scan_task, 
+        constants.ENDPOINT['english_name']: ffuf_task, 
+        constants.BUCKET['english_name']: bucket_finder_task, 
+        constants.TOKEN_SENSITIVE_INFO['english_name']: token_scan_task, 
+        constants.CSS_INJECTION['english_name']: css_scan_task, 
+        constants.OPEN_FIREBASE['english_name']: firebase_scan_task, 
+        constants.IIS_SHORTNAME_MICROSOFT['english_name']: iis_shortname_scan_task,
+        #
+        constants.INVALID_VALUE_ON_HEADER['spanish_name']: header_scan_task, 
+        constants.HEADER_NOT_FOUND['spanish_name']: header_scan_task, 
+        constants.HOST_HEADER_ATTACK['spanish_name']: host_header_attack_scan, 
+        constants.UNSECURE_METHOD['spanish_name']: http_method_scan_task, 
+        constants.SSL_TLS['spanish_name']: ssl_tls_scan_task, 
+        constants.OUTDATED_3RD_LIBRARIES['spanish_name']: libraries_scan_task, 
+        constants.CORS['spanish_name']: cors_scan_task, 
+        constants.ENDPOINT['spanish_name']: ffuf_task, 
+        constants.BUCKET['spanish_name']: bucket_finder_task, 
+        constants.TOKEN_SENSITIVE_INFO['spanish_name']: token_scan_task, 
+        constants.CSS_INJECTION['spanish_name']: css_scan_task, 
+        constants.OPEN_FIREBASE['spanish_name']: firebase_scan_task, 
+        constants.IIS_SHORTNAME_MICROSOFT['spanish_name']: iis_shortname_scan_task
+    }
+    return switcher.get(module_name)
 
 @periodic_task(run_every=crontab(hour=0, minute=0),
 queue='slow_queue', options={'queue': 'slow_queue'})
