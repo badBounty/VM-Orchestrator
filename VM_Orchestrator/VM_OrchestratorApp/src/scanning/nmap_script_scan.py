@@ -137,20 +137,55 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
 def outdated_software(scan_info, url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     TOOL_DIR = ROOT_DIR + '/tools/nmap/nmap-vulners/vulners.nse'
+    random_filename = uuid.uuid4().hex
+    output_dir = ROOT_DIR + '/tools_output/'+random_filename
 
     outdated_software_process = subprocess.run(
-        ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script=' + TOOL_DIR, url_to_scan], capture_output=True)
-    text = outdated_software_process.stdout.decode()
-    text = text.split('\n')
+        ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script=' + TOOL_DIR,'-oA',output_dir,url_to_scan], capture_output=True)
+    with open(output_dir + '.xml') as xml_file:
+        my_dict = xmltodict.parse(xml_file.read())
+    xml_file.close()
+    json_data = json.dumps(my_dict)
+    json_data = json.loads(json_data)
 
-    extra_info = "Outdated software nmap result: \n"
-    outdated_software_found = False
-    for line in text:
-        if 'CVE' in line:
-            outdated_software_found = True
-            extra_info = extra_info + line
-    if outdated_software_found:
-        add_vuln_to_mongo(scan_info, 'outdated_software', extra_info)
+    try:
+        #If only 1 port exists, we turn it into a list. We also check if port info exists
+	    if not isinstance(json_data['nmaprun']['host']['ports']['port'], list):
+		    json_data['nmaprun']['host']['ports']['port'] = [json_data['nmaprun']['host']['ports']['port']]
+    except KeyError:
+	    return
+    at_least_one_found = False
+    message = ''
+    for port in json_data['nmaprun']['host']['ports']['port']:
+        #Script with no results
+        if 'script' not in port:
+            continue
+        vulners_found = False
+        #Check if scripts is a list or dict
+        if not isinstance(port['script'], list):
+            port['script'] = [port['script']]
+        for result in port['script']:
+            #Vulners result not founc
+            if 'vulners' in result['@id']:
+                at_least_one_found = True
+                vulners_found = True		
+                vulners_message = 'Result: \n'
+                vulners_message += '	ID:%s \n	output:%s\n' % (result['@id'], result['@output'])
+        if not vulners_found:
+            continue
+        message += '---------------\n'
+        message += 'Protocol: %s \n' % port['@protocol']
+        message += 'Port: %s \n' % port['@portid']
+        message += 'State: %s \n' % port['state']['@state']
+        message += 'Service: \n'
+        message += '	Name: %s \n' % port['service']['@name']
+        message += '	Product: %s \n' % port['service']['@product']
+        message += '	Version: %s \n' % port['service']['@version']
+        message += vulners_message
+    if at_least_one_found:
+        img_str = image_creator.create_image_from_file(output_dir + '.nmap')
+        add_vuln_to_mongo(scan_info, 'outdated_software', message, img_str)
+    cleanup(output_dir)
     return
 
 
