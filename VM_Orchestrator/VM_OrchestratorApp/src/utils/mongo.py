@@ -222,7 +222,6 @@ def get_data_for_approved_scan():
             resource = data['domain']
         information.append({
             'is_first_run': False,
-            'invasive_scans': False,
             'language': settings['LANGUAGE'],
             'type': data['type'],
             'priority': data['priority'],
