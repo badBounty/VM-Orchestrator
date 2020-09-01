@@ -35,6 +35,37 @@ def resolver_recon_task(scan_info):
 
 # ------ SCANNING TASKS ------ #
 @shared_task
+def run_specific_module(scan_information):
+    scan_information['scan_type'] = 'target'
+    scan_information['language'] = settings['LANGUAGE']
+    # We need to choose which module to run
+    function_to_run = module_name_switcher(scan_information['module_identifier'])
+    function_to_run(scan_information)
+    return
+
+def module_name_switcher(module_name):
+    switcher = {
+        constants.INVALID_VALUE_ON_HEADER['module_identifier']: header_scan_task,
+        constants.HOST_HEADER_ATTACK['module_identifier']: host_header_attack_scan, 
+        constants.UNSECURE_METHOD['module_identifier']: http_method_scan_task, 
+        constants.SSL_TLS['module_identifier']: ssl_tls_scan_task, 
+        constants.OUTDATED_3RD_LIBRARIES['module_identifier']: libraries_scan_task, 
+        constants.CORS['module_identifier']: cors_scan_task, 
+        constants.ENDPOINT['module_identifier']: ffuf_task, 
+        constants.BUCKET['module_identifier']: bucket_finder_task, 
+        constants.TOKEN_SENSITIVE_INFO['module_identifier']: token_scan_task, 
+        constants.CSS_INJECTION['module_identifier']: css_scan_task, 
+        constants.OPEN_FIREBASE['module_identifier']: firebase_scan_task, 
+        constants.IIS_SHORTNAME_MICROSOFT['module_identifier']: iis_shortname_scan_task,
+        constants.HTTP_PASSWD_NMAP['module_identifier']: nmap_script_scan_task,
+        constants.PLAINTEXT_COMUNICATION['module_identifier']: nmap_script_baseline_task,
+        constants.BURP_SCAN['module_identifier']: burp_scan_task,
+        constants.NESSUS_SCAN['module_identifier']: nessus_scan_task,
+        constants.ACUNETIX_SCAN['module_identifier']: acunetix_scan_task
+    }
+    return switcher.get(module_name)
+
+@shared_task
 def header_scan_task(scan_information):
     if scan_information['scan_type'] == 'single':
         header_scan.handle_single(scan_information)
@@ -90,7 +121,6 @@ def nmap_script_baseline_task(scan_information):
     elif scan_information['scan_type'] == 'target':
         nmap_script_baseline.handle_target(scan_information)
         
-
 @shared_task
 def iis_shortname_scan_task(scan_information):
     if scan_information['scan_type'] == 'single':
@@ -560,7 +590,7 @@ def monitor_resolved_issues():
                 scan_to_add = {
                         'domain': vulnerability['domain'],
                         'resource': vulnerability['resource'],
-                        'function': task_switcher(vulnerability['vulnerability_name'])
+                        'function': task_name_switcher(vulnerability['vulnerability_name'])
                     }
                 # It should never happen that the same vulnerability repeats itself on our database
                 scan_queue.append(scan_to_add)
@@ -577,7 +607,7 @@ def monitor_resolved_issues():
         scan['task'].apply_async(args=[scan_info], queue='fast_queue')
     return
 
-def task_switcher(module_name):
+def task_name_switcher(vulnerability_name):
     switcher = {
         constants.INVALID_VALUE_ON_HEADER['english_name']: header_scan_task, 
         constants.HEADER_NOT_FOUND['english_name']: header_scan_task, 
@@ -607,7 +637,7 @@ def task_switcher(module_name):
         constants.OPEN_FIREBASE['spanish_name']: firebase_scan_task, 
         constants.IIS_SHORTNAME_MICROSOFT['spanish_name']: iis_shortname_scan_task
     }
-    return switcher.get(module_name)
+    return switcher.get(vulnerability_name)
 
 @periodic_task(run_every=crontab(hour=0, minute=0),
 queue='slow_queue', options={'queue': 'slow_queue'})

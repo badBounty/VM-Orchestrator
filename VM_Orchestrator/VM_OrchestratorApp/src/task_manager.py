@@ -77,6 +77,12 @@ def get_all_vulnerabilities(information):
     execution_chain.apply_async(queue='fast_queue', interval=300)
     return
 
+def run_specific_module(information):
+    execution_chain = chain(
+        tasks.run_specific_module.si(information).set(queue='fast_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
+
 def on_demand_scan(information):
 
     information['is_first_run'] = True

@@ -13,6 +13,7 @@ urlpatterns = [
     path('update_elasticsearch_logs/', views.force_update_elasticsearch_logs, name='update_elasticsearch_logs'),
     path('sync_redmine/', views.force_redmine_sync, name='sync_redmine'),
     path('add_code_vulnerability/', views.add_code_vuln, name='add_code_vulnerability'),
+    path('run_module/', views.run_specific_module, name='run_module'),
     path('on_demand_scan/', views.on_demand_scan, name='on_demand_scan'), ## ON DEMAND
     # Views
     path('', views.index, name='index'),
