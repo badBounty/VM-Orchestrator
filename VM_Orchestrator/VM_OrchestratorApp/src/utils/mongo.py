@@ -59,6 +59,7 @@ def add_infra_vuln(vulnerability):
             'state': 'new'
         }
         infra_vulnerabilities.insert_one(resource)
+        add_infra_vuln_to_elastic(resource)
     return
 
 ## Uses web_vulnerabilities collection
@@ -90,6 +91,7 @@ def add_web_vuln(vulnerability):
             'state': 'new'
         }
         web_vulnerabilities.insert_one(resource)
+        add_web_vuln_to_elastic(resource)
     return
 
 '''
@@ -148,6 +150,7 @@ def add_code_vuln(vulnerability):
             'state': 'new'
         }
         code_vulnerabilities.insert_one(vuln_to_add)
+        add_code_vuln_to_elastic(vuln_to_add)
     return
 
 
@@ -615,7 +618,6 @@ def update_issue_if_needed(redmine_issue):
         }})
     return
 
-# TODO Update to use different indexes
 ###### ELASTICSEARCH ######
 def update_elasticsearch():
     new_resources = resources.find()
@@ -656,125 +658,29 @@ def update_elasticsearch():
         })
 
     ### VULNS ###
-    # TODO Define which fields will be needed for each vuln type
-    vulnerabilities_list = list()
-    
     web_vulns = web_vulnerabilities.find()
     infra_vulns = infra_vulnerabilities.find()
     code_vulns = code_vulnerabilities.find()
     
+    print('Adding vulnerabilities to elasticsearch')
     #### Adding web vulns to elastic
     for vuln in web_vulns:
-        if not vuln['observation']:
-            observation_data = {
-                    'web_vulnerability_title': None,
-                    'web_vulnerability_observation_title': None,
-                    'web_vulnerability_observation_note': None,
-                    'web_vulnerability_implication': None,
-                    'web_vulnerability_recommendation_title': None,
-                    'web_vulnerability_recommendation_note': None,
-                    'web_vulnerability_severity': None
-                }
-        else:
-            observation_data = {
-                    'web_vulnerability_title': vuln['observation']['title'],
-                    'web_vulnerability_observation_title': vuln['observation']['observation_title'],
-                    'web_vulnerability_observation_note': vuln['observation']['observation_note'],
-                    'web_vulnerability_implication': vuln['observation']['implication'],
-                    'web_vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
-                    'web_vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
-                    'web_vulnerability_severity': vuln['observation']['severity']
-                }
-        vulnerabilities_list.append({
-                'web_vulnerability_id': str(vuln['_id']),
-                'web_vulnerability_domain': vuln['domain'],
-                'web_vulnerability_subdomain': vuln['resource'],
-                'web_vulnerability_vulnerability_name': vuln['vulnerability_name'],
-                'web_vulnerability_observation': observation_data,
-                'web_vulnerability_extra_info': vuln['extra_info'],
-                'web_vulnerability_date_found': vuln['date_found'],
-                'web_vulnerability_last_seen': vuln['last_seen'],
-                'web_vulnerability_language': vuln['language'],
-                'web_vulnerability_cvss_score': vuln['cvss_score'],
-                'vulnerability_cvss3_severity': resolve_severity(vuln['cvss_score']),
-                'web_vulnerability_vuln_type': vuln['vuln_type'],
-                'web_vulnerability_state': vuln['state']
-            })
+        add_web_vuln_to_elastic(vuln)
 
     #### Adding web vulns to elastic
     for vuln in infra_vulns:
-        if not vuln['observation']:
-            observation_data = {
-                    'infra_vulnerability_title': None,
-                    'infra_vulnerability_observation_title': None,
-                    'infra_vulnerability_observation_note': None,
-                    'infra_vulnerability_implication': None,
-                    'infra_vulnerability_recommendation_title': None,
-                    'infra_vulnerability_recommendation_note': None,
-                    'infra_vulnerability_severity': None
-                }
-        else:
-            observation_data = {
-                    'infra_vulnerability_title': vuln['observation']['title'],
-                    'infra_vulnerability_observation_title': vuln['observation']['observation_title'],
-                    'infra_vulnerability_observation_note': vuln['observation']['observation_note'],
-                    'infra_vulnerability_implication': vuln['observation']['implication'],
-                    'infra_vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
-                    'infra_vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
-                    'infra_vulnerability_severity': vuln['observation']['severity']
-                }
-        vulnerabilities_list.append({
-                'vulnerability_id': str(vuln['_id']),
-                'vulnerability_domain': vuln['domain'],
-                'vulnerability_subdomain': vuln['resource'],
-                'vulnerability_vulnerability_name': vuln['vulnerability_name'],
-                'vulnerability_observation': observation_data,
-                'vulnerability_extra_info': vuln['extra_info'],
-                'vulnerability_date_found': vuln['date_found'],
-                'vulnerability_last_seen': vuln['last_seen'],
-                'vulnerability_language': vuln['language'],
-                'vulnerability_cvss_score': vuln['cvss_score'],
-                'vulnerability_cvss3_severity': resolve_severity(vuln['cvss_score']),
-                'vulnerability_vuln_type': vuln['vuln_type'],
-                'vulnerability_state': vuln['state']
-            })
+        add_infra_vuln_to_elastic(vuln)
 
     ### Add code vulns to elastic
     for vuln in code_vulns:
-        vuln_to_add = {
-            'code_vulnerability_title': vuln['title'],
-            'code_vulnerability_description': vuln['description'],
-            'code_vulnerability_component': vuln['component'],
-            'code_vulnerability_line': vuln['line'],
-            'code_vulnerability_affected_code': vuln['affected_code'],
-            'code_vulnerability_first_commit': vuln['first_commit'],
-            'code_vulnerability_last_commit': vuln['last_commit'],
-            'code_vulnerability_username': vuln['username'],
-            'code_vulnerability_pipeline_name': vuln['pipeline_name'],
-            'code_vulnerability_language': vuln['language'],
-            'code_vulnerability_hash': vuln['hash'],
-            'code_vulnerability_severity_tool': vuln['severity_tool'],
-            'code_vulnerability_severity': vuln['severity'],
-            'code_vulnerability_category': vuln['category'],
-            'code_vulnerability_first_seen': vuln['first_seen'],
-            'code_vulnerability_last_seen': vuln['last_seen'],
-            'code_vulnerability_vuln_type': vuln['code'],
-            'code_vulnerability_state': vuln['vuln_type']
-        }
-        vulnerabilities_list.append(vuln_to_add)
+        add_code_vuln_to_elastic(vuln)
 
-    
-    # Import Elasticsearch package 
-    from VM_OrchestratorApp import ELASTIC_CLIENT
     if ELASTIC_CLIENT is None:
         return 
     # Connect to the elastic cluster
     print('Adding resources to elasticsearch')
     for resource in resources_list:
         res = ELASTIC_CLIENT.index(index='resources',doc_type='_doc',id=resource['resource_id'],body=resource)
-    print('Adding vulnerabilities to elasticsearch')
-    for vuln in vulnerabilities_list:
-        res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
 
 def resolve_severity(cvss_score):
     if cvss_score == 0:
@@ -809,8 +715,7 @@ def update_elasticsearch_logs():
         except KeyError:
             pass
 
-#TODO create add_<type>_vuln_to_elastic so all vulns are updated when found/modified
-def add_vuln_to_elastic(vuln):
+def add_web_vuln_to_elastic(vuln):
     if ELASTIC_CLIENT is None:
         return 
     if not vuln['observation']:
@@ -847,7 +752,73 @@ def add_vuln_to_elastic(vuln):
         'vulnerability_vuln_type': vuln['vuln_type'],
         'vulnerability_state': vuln['state']
     }
-    res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vulnerability_to_add['vulnerability_id'],body=vulnerability_to_add)
+    res = ELASTIC_CLIENT.index(index='web_vulnerabilities',doc_type='_doc',id=vulnerability_to_add['vulnerability_id'],body=vulnerability_to_add)
+    return
+
+def add_infra_vuln_to_elastic(vuln):
+    if ELASTIC_CLIENT is None:
+        return 
+    if not vuln['observation']:
+        observation_data = {
+            'vulnerability_title': None,
+            'vulnerability_observation_title': None,
+            'vulnerability_observation_note': None,
+            'vulnerability_implication': None,
+            'vulnerability_recommendation_title': None,
+            'vulnerability_recommendation_note': None,
+            'vulnerability_severity': None
+        }
+    else:
+        observation_data = {
+            'vulnerability_title': vuln['observation']['title'],
+            'vulnerability_observation_title': vuln['observation']['observation_title'],
+            'vulnerability_observation_note': vuln['observation']['observation_note'],
+            'vulnerability_implication': vuln['observation']['implication'],
+            'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
+            'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
+            'vulnerability_severity': vuln['observation']['severity']
+        }
+    vulnerability_to_add = {
+        'vulnerability_id': str(vuln['_id']),
+        'vulnerability_domain': vuln['domain'],
+        'vulnerability_subdomain': vuln['resource'],
+        'vulnerability_vulnerability_name': vuln['vulnerability_name'],
+        'vulnerability_observation': observation_data,
+        'vulnerability_extra_info': vuln['extra_info'],
+        'vulnerability_date_found': vuln['date_found'],
+        'vulnerability_last_seen': vuln['last_seen'],
+        'vulnerability_language': vuln['language'],
+        'vulnerability_cvss_score': vuln['cvss_score'],
+        'vulnerability_vuln_type': vuln['vuln_type'],
+        'vulnerability_state': vuln['state']
+    }
+    res = ELASTIC_CLIENT.index(index='infra_vulnerabilities',doc_type='_doc',id=vulnerability_to_add['vulnerability_id'],body=vulnerability_to_add)
+    return
+
+def add_code_vuln_to_elastic(vuln):
+    if ELASTIC_CLIENT is None:
+        return 
+    vuln_to_add = {
+        'code_vulnerability_title': vuln['title'],
+        'code_vulnerability_description': vuln['description'],
+        'code_vulnerability_component': vuln['component'],
+        'code_vulnerability_line': vuln['line'],
+        'code_vulnerability_affected_code': vuln['affected_code'],
+        'code_vulnerability_first_commit': vuln['first_commit'],
+        'code_vulnerability_last_commit': vuln['last_commit'],
+        'code_vulnerability_username': vuln['username'],
+        'code_vulnerability_pipeline_name': vuln['pipeline_name'],
+        'code_vulnerability_language': vuln['language'],
+        'code_vulnerability_hash': vuln['hash'],
+        'code_vulnerability_severity_tool': vuln['severity_tool'],
+        'code_vulnerability_severity': vuln['severity'],
+        'code_vulnerability_category': vuln['category'],
+        'code_vulnerability_first_seen': vuln['first_seen'],
+        'code_vulnerability_last_seen': vuln['last_seen'],
+        'code_vulnerability_vuln_type': vuln['code'],
+        'code_vulnerability_state': vuln['vuln_type']
+    }
+    res = ELASTIC_CLIENT.index(index='code_vulnerabilities',doc_type='_doc',id=vuln_to_add['vulnerability_id'],body=vuln_to_add)
     return
 
 def add_resource_to_elastic(resource):
@@ -937,7 +908,6 @@ def add_resource_found_log(resource, module_keyword):
     
 
 # TODO Temporary function for result revision
-# TODO Gather data from all 3 collections
 # start using project id instead of domain
 def get_vulnerabilities_for_email(scan_information):
     return_list = list()
