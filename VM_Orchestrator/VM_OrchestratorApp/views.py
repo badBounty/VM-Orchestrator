@@ -21,12 +21,6 @@ import VM_OrchestratorApp.tasks as tasks
 def index(request):
     return render(request, 'base.html')
 
-def activos(request):
-    return render(request, 'activos.html')
-
-def vulns(request):
-    return render(request, 'vulns.html')
-
 def test_html(request):
     return render(request, 'testbase.html')
 #
