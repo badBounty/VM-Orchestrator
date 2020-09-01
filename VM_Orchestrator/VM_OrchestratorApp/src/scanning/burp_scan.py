@@ -94,6 +94,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
                     name = copy.deepcopy(constants.BURP_SCAN)
                     name['english_name'] = name['english_name'] + issue['name']
                     extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
+                    extra+='Burp Response: \n'+base64.b64decode(issue['requestresponse']['response']['#text']).decode("utf-8")
                     vulnerability = Vulnerability(name, scan_info, description+extra)
                     vulnerability.add_file_string(file_string)
                     vulnerability.add_attachment(file_dir, file_name)
@@ -109,6 +110,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
                 name = copy.deepcopy(constants.BURP_SCAN)
                 name['english_name'] = name['english_name'] + issue['name']
                 extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
+                extra+='Burp Response: \n'+base64.b64decode(issue['requestresponse']['response']['#text']).decode("utf-8")
                 vulnerability = Vulnerability(name, scan_info, description+extra)
                 vulnerability.add_file_string(file_string)
                 vulnerability.add_attachment(file_dir, file_name)
