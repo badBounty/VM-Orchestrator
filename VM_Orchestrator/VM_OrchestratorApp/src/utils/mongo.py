@@ -814,8 +814,8 @@ def add_code_vuln_to_elastic(vuln):
         'code_vulnerability_category': vuln['category'],
         'code_vulnerability_first_seen': vuln['first_seen'],
         'code_vulnerability_last_seen': vuln['last_seen'],
-        'code_vulnerability_vuln_type': vuln['code'],
-        'code_vulnerability_state': vuln['vuln_type']
+        'code_vulnerability_vuln_type': vuln['vuln_type'],
+        'code_vulnerability_state': vuln['state']
     }
     res = ELASTIC_CLIENT.index(index='code_vulnerabilities',doc_type='_doc',id=vuln_to_add['vulnerability_id'],body=vuln_to_add)
     return
