@@ -36,6 +36,7 @@ def resolver_recon_task(scan_info):
 # ------ SCANNING TASKS ------ #
 @shared_task
 def run_specific_module(scan_information):
+    print("run_spec...")
     scan_information['scan_type'] = 'target'
     scan_information['language'] = settings['LANGUAGE']
     # We need to choose which module to run
@@ -639,8 +640,8 @@ def task_name_switcher(vulnerability_name):
     }
     return switcher.get(vulnerability_name)
 
-@periodic_task(run_every=crontab(hour=0, minute=0),
-queue='slow_queue', options={'queue': 'slow_queue'})
+#@periodic_task(run_every=crontab(hour=0, minute=0), 
+#queue='slow_queue', options={'queue': 'slow_queue'})
 def check_redmine_for_updates():
     print('Synchronizing redmine')
     issues = redmine.get_issues_from_project()
@@ -648,8 +649,8 @@ def check_redmine_for_updates():
         mongo.update_issue_if_needed(issue)
     return
 
-@periodic_task(run_every=crontab(minute='0', hour='*/12'),
-queue='fast_queue', options={'queue':'slow_queue'})
+#@periodic_task(run_every=crontab(minute='0', hour='*/12'),
+#queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
 
