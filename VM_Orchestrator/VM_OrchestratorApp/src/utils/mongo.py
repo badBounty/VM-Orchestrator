@@ -814,8 +814,8 @@ def add_code_vuln_to_elastic(vuln):
         'code_vulnerability_category': vuln['category'],
         'code_vulnerability_first_seen': vuln['first_seen'],
         'code_vulnerability_last_seen': vuln['last_seen'],
-        'code_vulnerability_vuln_type': vuln['code'],
-        'code_vulnerability_state': vuln['vuln_type']
+        'code_vulnerability_vuln_type': vuln['vuln_type'],
+        'code_vulnerability_state': vuln['state']
     }
     res = ELASTIC_CLIENT.index(index='code_vulnerabilities',doc_type='_doc',id=vuln_to_add['vulnerability_id'],body=vuln_to_add)
     return
@@ -913,8 +913,29 @@ def get_vulnerabilities_for_email(scan_information):
     found_vulns = web_vulnerabilities.find()
     found_vulns.append(infra_vulnerabilities.find())
     for vuln in found_vulns:
-            return_list.append(vuln)
-    return  return_list
+        return_list.append(vuln)
+    return return_list
+
+def get_all_code_vulnerabilities():
+    return_list = list()
+    found_vulns = code_vulnerabilities.find()
+    for vuln in found_vulns:
+        return_list.append(vuln)
+    return return_list
+
+def get_all_web_vulnerabilities():
+    return_list = list()
+    found_vulns = web_vulnerabilities.find()
+    for vuln in found_vulns:
+        return_list.append(vuln)
+    return return_list
+
+def get_all_infra_vulnerabilities():
+    return_list = list()
+    found_vulns = infra_vulnerabilities.find()
+    for vuln in found_vulns:
+        return_list.append(vuln)
+    return return_list
 
 def get_all_resources_for_email():
     return_list = list()
