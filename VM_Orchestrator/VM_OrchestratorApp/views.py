@@ -115,12 +115,12 @@ def add_code_vuln(request):
 }
 '''
 # Scan to run only one module
+@csrf_exempt
 def run_specific_module(request):
     if request.method == 'POST':
         json_data = json.loads(request.body)
         manager.run_specific_module(json_data)
-        return JsonResponse({'INFO': 'Running module %s against %s from domain %s' % (json_data['module_identifier'],
-        json_data['target'], json_data['domain'])})
+        return JsonResponse({'INFO': 'Running module %s against %s from domain %s' % (json_data['module_identifier'], json_data['target'], json_data['domain'])})
     return JsonResponse({'ERROR': 'Post is required'})
 '''
 Will run web and ip scans against https://example.com

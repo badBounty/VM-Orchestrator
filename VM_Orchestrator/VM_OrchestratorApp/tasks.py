@@ -36,6 +36,7 @@ def resolver_recon_task(scan_info):
 # ------ SCANNING TASKS ------ #
 @shared_task
 def run_specific_module(scan_information):
+    print("run_spec...")
     scan_information['scan_type'] = 'target'
     scan_information['language'] = settings['LANGUAGE']
     # We need to choose which module to run
@@ -442,8 +443,8 @@ def add_code_vuln(data):
 
 # ------ PERIODIC TASKS ------ #
 # We monitor assets on our domain database
-@periodic_task(run_every=crontab(hour=settings['PROJECT']['RECON_START_HOUR'], minute=settings['PROJECT']['RECON_START_MINUTE']),
-queue='slow_queue', options={'queue': 'slow_queue'})
+#@periodic_task(run_every=crontab(hour=settings['PROJECT']['RECON_START_HOUR'], minute=settings['PROJECT']['RECON_START_MINUTE']),
+#queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     # The idea is similar to the project start, we just need to ge the same information from our database.
     monitor_data = mongo.get_domains_for_monitor()
@@ -465,8 +466,8 @@ def project_monitor_task():
             run_recon.apply_async(args=[scan_info], queue='fast_queue')
     return
 
-@periodic_task(run_every=crontab(hour=settings['PROJECT']['SCAN_START_HOUR'], minute=settings['PROJECT']['SCAN_START_MINUTE']),
-queue='slow_queue', options={'queue': 'slow_queue'})
+#@periodic_task(run_every=crontab(hour=settings['PROJECT']['SCAN_START_HOUR'], minute=settings['PROJECT']['SCAN_START_MINUTE']),
+#queue='slow_queue', options={'queue': 'slow_queue'})
 def start_scan_on_approved_resources():
     slack.send_notification_to_channel('_ Starting scan against approved resources _', '#vm-ondemand')
     resources = mongo.get_data_for_approved_scan()
@@ -639,8 +640,8 @@ def task_name_switcher(vulnerability_name):
     }
     return switcher.get(vulnerability_name)
 
-@periodic_task(run_every=crontab(hour=0, minute=0),
-queue='slow_queue', options={'queue': 'slow_queue'})
+#@periodic_task(run_every=crontab(hour=0, minute=0), 
+#queue='slow_queue', options={'queue': 'slow_queue'})
 def check_redmine_for_updates():
     print('Synchronizing redmine')
     issues = redmine.get_issues_from_project()
@@ -648,8 +649,8 @@ def check_redmine_for_updates():
         mongo.update_issue_if_needed(issue)
     return
 
-@periodic_task(run_every=crontab(minute='0', hour='*/12'),
-queue='fast_queue', options={'queue':'slow_queue'})
+#@periodic_task(run_every=crontab(minute='0', hour='*/12'),
+#queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
 

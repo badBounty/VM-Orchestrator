@@ -78,6 +78,7 @@ def get_all_vulnerabilities(information):
     return
 
 def run_specific_module(information):
+    print("before run_specific_module")
     execution_chain = chain(
         tasks.run_specific_module.si(information).set(queue='fast_queue')
     )
