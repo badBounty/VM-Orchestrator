@@ -28,8 +28,19 @@ def current_resources(request):
     return JsonResponse({'order': 'current_resources. TODO'})
 def new_resource(request):
     return JsonResponse({'order': 'new_resource. TODO'})
+
 def current_vulnerabilities(request):
-    return JsonResponse({'order': 'current_vulnerabilities. TODO'})
+    return render(request, 'vulns_type.html')
+def web_vulnerabilities(request):
+    resources = mongo.get_all_web_vulnerabilities()
+    return render(request, 'Vulnerabilities/web_vulns.html', {'object_list': resources})
+def infra_vulnerabilities(request):
+    resources = mongo.get_all_infra_vulnerabilities()
+    return render(request, 'Vulnerabilities/infra_vulns.html', {'object_list': resources})
+def code_vulnerabilities(request):
+    resources = mongo.get_all_code_vulnerabilities()
+    return render(request, 'Vulnerabilities/code_vulns.html', {'object_list': resources})
+
 def new_vulnerability(request):
     return JsonResponse({'order': 'new_vulnerability. TODO'})
 

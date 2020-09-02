@@ -913,8 +913,29 @@ def get_vulnerabilities_for_email(scan_information):
     found_vulns = web_vulnerabilities.find()
     found_vulns.append(infra_vulnerabilities.find())
     for vuln in found_vulns:
-            return_list.append(vuln)
-    return  return_list
+        return_list.append(vuln)
+    return return_list
+
+def get_all_code_vulnerabilities():
+    return_list = list()
+    found_vulns = code_vulnerabilities.find()
+    for vuln in found_vulns:
+        return_list.append(vuln)
+    return return_list
+
+def get_all_web_vulnerabilities():
+    return_list = list()
+    found_vulns = web_vulnerabilities.find()
+    for vuln in found_vulns:
+        return_list.append(vuln)
+    return return_list
+
+def get_all_infra_vulnerabilities():
+    return_list = list()
+    found_vulns = infra_vulnerabilities.find()
+    for vuln in found_vulns:
+        return_list.append(vuln)
+    return return_list
 
 def get_all_resources_for_email():
     return_list = list()
