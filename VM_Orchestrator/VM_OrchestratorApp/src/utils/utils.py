@@ -4,6 +4,8 @@ import math
 import os
 import subprocess
 import traceback
+import pandas as pd
+from django.http import FileResponse
 from urllib.parse import urlparse
 from selenium import webdriver
 
@@ -128,3 +130,41 @@ def get_distinct_urls(url_list):
 
     return final_url_list
 
+def get_vuln_csv_file(resources):
+    resources_for_csv = list()
+    for resource in resources:
+        resources_for_csv.append({
+            'vulnerability_name': resource['vulnerability_name'],
+            'domain': resource['domain'],
+            'resource': resource['resource'],
+            'extra_info': resource['extra_info'],
+            'cvss_score': resource['cvss_score'],
+            'cvss3_severity': resolve_severity(resource['cvss_score']),
+            'state': resource['state'],
+            'kb_title': resource['observation']['title'],
+            'kb_observation_title': resource['observation']['observation_title'],
+            'kb_observation_note': resource['observation']['observation_note'],
+            'kb_implication': resource['observation']['implication'],
+            'kb_recommendation_title': resource['observation']['recommendation_title'],
+            'kb_recommendation_note': resource['observation']['recommendation_note'],
+            'date_found': resource['date_found'],
+            'last_seen': resource['last_seen'],
+            'vuln_type': resource['vuln_type']
+        })
+    df = pd.DataFrame(resources_for_csv)
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    FILE_DIR = ROOT_DIR + '/output/output.csv'
+    df.to_csv(FILE_DIR, index=False)
+    return FileResponse(open(FILE_DIR, 'rb'))
+
+def resolve_severity(cvss_score):
+    if cvss_score == 0:
+        return 'Informational'
+    elif 0 < cvss_score <= 3.9:
+        return 'Low'
+    elif 3.9 < cvss_score <= 6.9:
+        return 'Medium'
+    elif 6.9 < cvss_score <= 8.9:
+        return 'High'
+    else:
+        return 'Critical'

@@ -14,6 +14,7 @@ import json
 from datetime import datetime, date
 
 import VM_OrchestratorApp.src.task_manager as manager
+from VM_OrchestratorApp.src.utils import utils
 
 import VM_OrchestratorApp.tasks as tasks
 
@@ -35,7 +36,12 @@ def current_resources(request):
 def new_resource(request):
     return JsonResponse({'order': 'new_resource. TODO'})
 def current_vulnerabilities(request):
-    return JsonResponse({'order': 'current_vulnerabilities. TODO'})
+    resources = mongo.get_all_vulns()
+    if request.method == 'POST':
+        response = utils.get_vuln_csv_file(resources)
+        return response
+    return render(request, 'database_vulns.html', {'object_list': resources})
+
 def new_vulnerability(request):
     return JsonResponse({'order': 'new_vulnerability. TODO'})
 

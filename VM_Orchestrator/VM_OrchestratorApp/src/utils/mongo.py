@@ -602,6 +602,7 @@ def update_elasticsearch():
     for vuln in vulnerabilities_list:
         res = ELASTIC_CLIENT.index(index='vulnerabilities',doc_type='_doc',id=vuln['vulnerability_id'],body=vuln)
 
+#TODO Usar el que esta en utils.py
 def resolve_severity(cvss_score):
     if cvss_score == 0:
         return 'Informational'
@@ -765,6 +766,13 @@ def add_resource_found_log(resource, module_keyword):
 
 # TODO Temporary function for result revision
 def get_vulnerabilities_for_email(scan_information):
+    return_list = list()
+    found_vulns = vulnerabilities.find()
+    for vuln in found_vulns:
+            return_list.append(vuln)
+    return  return_list
+
+def get_all_vulns():
     return_list = list()
     found_vulns = vulnerabilities.find()
     for vuln in found_vulns:
