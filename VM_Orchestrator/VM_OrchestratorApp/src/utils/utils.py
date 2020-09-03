@@ -7,7 +7,6 @@ import traceback
 import pandas as pd
 from django.http import FileResponse
 from urllib.parse import urlparse
-from selenium import webdriver
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -96,20 +95,6 @@ def get_css_files(url):
             css_files.append(url)
     return css_files
 
-
-def url_screenshot(url):
-    global ROOT_DIR
-    options = webdriver.ChromeOptions()
-    options.add_argument('--no-sandbox') #Sino pongo esto rompe
-    options.add_argument('--headless') #no cargue la ventana (background)
-    driver = webdriver.Chrome(options=options)
-    driver.set_window_size(1920,1080)
-    driver.get(url)
-    name = url.replace("http://","").replace("https://","").split("/")[0]
-    OUTPUT_DIR = ROOT_DIR+'/../security/tools_output'
-    driver.save_screenshot(OUTPUT_DIR+name+".png")
-    driver.quit()
-
 # Receives url_list = [{'url': url}]
 def get_distinct_urls(url_list):
     parsed_urls = list()
@@ -141,12 +126,12 @@ def get_vuln_csv_file(resources):
             'cvss_score': resource['cvss_score'],
             'cvss3_severity': resolve_severity(resource['cvss_score']),
             'state': resource['state'],
-            'kb_title': resource['observation']['title'],
-            'kb_observation_title': resource['observation']['observation_title'],
-            'kb_observation_note': resource['observation']['observation_note'],
-            'kb_implication': resource['observation']['implication'],
-            'kb_recommendation_title': resource['observation']['recommendation_title'],
-            'kb_recommendation_note': resource['observation']['recommendation_note'],
+            'kb_title': resource['observation']['title'] if resource['observation'] is not None else "",
+            'kb_observation_title': resource['observation']['observation_title'] if resource['observation'] is not None else "",
+            'kb_observation_note': resource['observation']['observation_note'] if resource['observation'] is not None else "",
+            'kb_implication': resource['observation']['implication'] if resource['observation'] is not None else "",
+            'kb_recommendation_title': resource['observation']['recommendation_title'] if resource['observation'] is not None else "",
+            'kb_recommendation_note': resource['observation']['recommendation_note'] if resource['observation'] is not None else "",
             'date_found': resource['date_found'],
             'last_seen': resource['last_seen'],
             'vuln_type': resource['vuln_type']
