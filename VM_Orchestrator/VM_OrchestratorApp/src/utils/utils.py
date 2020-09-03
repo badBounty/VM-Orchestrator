@@ -122,7 +122,6 @@ def get_vuln_csv_file(resources):
             'vulnerability_name': resource['vulnerability_name'],
             'domain': resource['domain'],
             'resource': resource['resource'],
-            'extra_info': resource['extra_info'],
             'cvss_score': resource['cvss_score'],
             'cvss3_severity': resolve_severity(resource['cvss_score']),
             'state': resource['state'],
