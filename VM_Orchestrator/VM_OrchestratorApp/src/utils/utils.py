@@ -138,7 +138,52 @@ def get_vuln_csv_file(resources):
     df = pd.DataFrame(resources_for_csv)
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     FILE_DIR = ROOT_DIR + '/output/output.csv'
-    df.to_csv(FILE_DIR, index=False)
+
+    try:
+        os.remove(FILE_DIR)
+    except FileNotFoundError:
+        pass
+
+    df.to_csv(FILE_DIR, index=False, encoding='utf-8')
+    return FileResponse(open(FILE_DIR, 'rb'))
+
+def get_resources_csv_file(resources):
+    resources_for_csv = list()
+    for resource in resources:
+        resources_for_csv.append({
+            'domain': resource['domain'],
+            'subdomain': resource['subdomain'],
+            'url': resource['url'],
+            'ip': resource['ip'],
+            'priority': resource['priority'],
+            'exposition': resource['exposition'],
+            'asset_value': resource['asset_value'],
+            'isp': resource['additional_info']['isp'],
+            'asn': resource['additional_info']['asn'],
+            'country': resource['additional_info']['country'],
+            'region': resource['additional_info']['region'],
+            'city': resource['additional_info']['city'],
+            'org': resource['additional_info']['org'],
+            'geoloc': resource['additional_info']['geoloc'],
+            'approved': resource['approved'],
+            'nmap_information': resource['nmap_information'],
+            'scanned': resource['scanned'],
+            'has_urls': resource['has_urls'],
+            'is_alive': resource['is_alive'],
+            'first_seen': resource['first_seen'],
+            'last_seen': resource['last_seen'],
+            'type': resource['type']
+        })
+    df = pd.DataFrame(resources_for_csv)
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    FILE_DIR = ROOT_DIR + '/output/output.csv'
+
+    try:
+        os.remove(FILE_DIR)
+    except FileNotFoundError:
+        pass
+
+    df.to_csv(FILE_DIR, index=False, encoding='utf-8')
     return FileResponse(open(FILE_DIR, 'rb'))
 
 def resolve_severity(cvss_score):

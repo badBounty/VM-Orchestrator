@@ -839,3 +839,10 @@ def get_resources_for_email(scan_information):
         return_list.append(res)
     
     return return_list
+
+def get_all_resources():
+    return_list = list()
+    found_resources = resources.find()
+    for resource in found_resources:
+        return_list.append(found_resources)
+    return return_list
