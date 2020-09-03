@@ -53,9 +53,14 @@ def create_new_issue(vuln):
     {'id': REDMINE_IDS['WEB_FINDING']['DATE_FOUND'], 'value': str(vuln.time.strftime("%Y-%m-%d"))},
     {'id': REDMINE_IDS['WEB_FINDING']['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))},
     {'id': REDMINE_IDS['WEB_FINDING']['CVSS_SCORE'], 'value': vuln.cvss}]
-    if vuln.attachment_path is not None:
-        issue.uploads = [{'path': vuln.attachment_path,
-                          'filename': vuln.attachment_name}]
+    if vuln.attachments:
+        uploads_list = list()
+        for attachment in vuln.attachments:
+            uploads_list.append({
+                'path': attachment['path'],
+                'filename': attachment['name']
+            })
+        issue.uploads = uploads_list
     try:
         issue.save()
     except Exception as e:
