@@ -102,7 +102,6 @@ def scan_target(scan_info, url_to_scan):
                 vulnerability = Vulnerability(constants.IIS_SHORTNAME_MICROSOFT, scan_info,
                                               "IIS Microsoft files and directories enumeration found")
 
-                vulnerability.add_image_string(img_str)
                 vulnerability.add_attachment(output_dir, 'IIS-Result.png')
                 slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
                 redmine.create_new_issue(vulnerability)

@@ -118,7 +118,6 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
         vuln_name = constants.UNNECESSARY_SERVICES
 
     vulnerability = Vulnerability(vuln_name, scan_info, description)
-    vulnerability.add_image_string(img_str)
 
     if img_str:
         ROOT_DIR = os.path.dirname(os.path.abspath(__file__))

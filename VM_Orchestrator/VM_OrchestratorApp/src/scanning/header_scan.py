@@ -98,7 +98,6 @@ def get_response(url):
 
 def add_header_value_vulnerability(scan_info, img_string, description):
     vulnerability = Vulnerability(constants.INVALID_VALUE_ON_HEADER, scan_info, description)
-    vulnerability.add_image_string(img_string)
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     random_filename = uuid.uuid4().hex
@@ -116,7 +115,6 @@ def add_header_value_vulnerability(scan_info, img_string, description):
 
 def add_header_missing_vulnerability(scan_info, img_string, description):
     vulnerability = Vulnerability(constants.HEADER_NOT_FOUND, scan_info, description)
-    vulnerability.add_image_string(img_string)
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     random_filename = uuid.uuid4().hex
