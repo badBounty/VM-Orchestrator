@@ -49,25 +49,25 @@
     <ul>
         {% for resource in object_list %}
             <tr>
-                <td>resource.domain</td>
-                <td>resource.subdomain</td>
-                <td>resource.url</td>
-                <td>resource.ip</td>
-                <td>resource.priority</td>
-                <td>resource.exposition</td>
-                <td>resource.asset_value</td>
-                <td>resource.additional_info.isp</td>
-                <td>resource.additional_info.asn</td>
-                <td>resource.additional_info.country</td>
-                <td>resource.additional_info.region</td>
-                <td>resource.additional_info.city</td>
-                <td>resource.additional_info.org</td>
-                <td>resource.additional_info.geoloc</td>
-                <td>resource.approved</td>
-                <td>resource.scanned</td>
-                <td>resource.is_alive</td>
-                <td>resource.first_seen</td>
-                <td>resource.last_seen</td>
+                <td>{{resource.domain}}</td>
+                <td>{{resource.subdomain}}</td>
+                <td>{{resource.url}}</td>
+                <td>{{resource.ip}}</td>
+                <td>{{resource.priority}}</td>
+                <td>{{resource.exposition}}</td>
+                <td>{{resource.asset_value}}</td>
+                <td>{{resource.additional_info.isp}}</td>
+                <td>{{resource.additional_info.asn}}</td>
+                <td>{{resource.additional_info.country}}</td>
+                <td>{{resource.additional_info.region}}</td>
+                <td>{{resource.additional_info.city}}</td>
+                <td>{{resource.additional_info.org}}</td>
+                <td>{{resource.additional_info.geoloc}}</td>
+                <td>{{resource.approved}}</td>
+                <td>{{resource.scanned}}</td>
+                <td>{{resource.is_alive}}</td>
+                <td>{{resource.first_seen}}</td>
+                <td>{{resource.last_seen}}</td>
             </tr>
         {% endfor %}
     </ul>
