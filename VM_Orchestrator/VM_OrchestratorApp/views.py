@@ -36,11 +36,11 @@ def current_resources(request):
     if request.method == 'POST':
         response = utils.get_resources_csv_file(resources)
         return response
-    return render(request, 'database_vulns.html', {'object_list': resources})
+    return render(request, 'database_resources.html', {'object_list': resources})
 
 def new_resource(request):
     return JsonResponse({'order': 'new_resource. TODO'})
-    
+
 def current_vulnerabilities(request):
     resources = mongo.get_all_vulns()
     if request.method == 'POST':
