@@ -604,7 +604,7 @@ def task_switcher(module_name):
     }
     return switcher.get(module_name)
 
-@periodic_task(run_every=crontab(hour=0, minute=0),
+@periodic_task(run_every=crontab(hour=0, minute=10),
 queue='slow_queue', options={'queue': 'slow_queue'})
 def check_redmine_for_updates():
     print('Synchronizing redmine')
@@ -613,7 +613,7 @@ def check_redmine_for_updates():
         mongo.update_issue_if_needed(issue)
     return
 
-@periodic_task(run_every=crontab(minute='0', hour='*/12'),
+@periodic_task(run_every=crontab(minute=0, hour=11),
 queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
