@@ -456,12 +456,12 @@ def project_monitor_task():
         'arguments': monitor_data
     })
     print(monitor_data)
+    slack.send_notification_to_channel('Starting monitor against %s' % str(monitor_data), '#vm-monitor')
     for data in monitor_data:
         scan_info = data
         scan_info['is_first_run'] = False
         scan_info['email'] = None
         scan_info['type'] = 'domain'
-        slack.send_notification_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
             run_recon.apply_async(args=[scan_info], queue='fast_queue')
     return

@@ -681,6 +681,7 @@ def update_elasticsearch():
     for resource in resources_list:
         res = ELASTIC_CLIENT.index(index='resources',doc_type='_doc',id=resource['resource_id'],body=resource)
 
+#TODO Usar el que esta en utils.py
 def resolve_severity(cvss_score):
     if cvss_score == 0:
         return 'Informational'
@@ -937,6 +938,13 @@ def get_all_infra_vulnerabilities():
         return_list.append(vuln)
     return return_list
 
+def get_all_vulns():
+    return_list = list()
+    found_vulns = vulnerabilities.find()
+    for vuln in found_vulns:
+            return_list.append(vuln)
+    return  return_list
+
 def get_all_resources_for_email():
     return_list = list()
     found_resources = resources.find()
@@ -996,4 +1004,11 @@ def get_resources_for_email(scan_information):
         }
         return_list.append(res)
     
+    return return_list
+
+def get_all_resources():
+    return_list = list()
+    found_resources = resources.find()
+    for resource in found_resources:
+        return_list.append(resource)
     return return_list

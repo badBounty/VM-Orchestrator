@@ -9,7 +9,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def get_issues_from_project():
     if redmine_client is None:
         return []
-    return redmine_client.issue.filter(project_id=settings['REDMINE']['project_name'])
+    return redmine_client.issue.filter(project_id=settings['REDMINE']['project_name'], status_id='*')
 
 def issue_already_exists(vuln):
     issues = redmine_client.issue.filter(project_id=settings['REDMINE']['project_name'])

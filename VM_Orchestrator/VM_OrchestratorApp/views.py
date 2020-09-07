@@ -14,6 +14,7 @@ import json
 from datetime import datetime, date
 
 import VM_OrchestratorApp.src.task_manager as manager
+from VM_OrchestratorApp.src.utils import utils
 
 import VM_OrchestratorApp.tasks as tasks
 
@@ -25,7 +26,12 @@ def test_html(request):
     return render(request, 'testbase.html')
 #
 def current_resources(request):
-    return JsonResponse({'order': 'current_resources. TODO'})
+    resources = mongo.get_all_resources()
+    if request.method == 'POST':
+        response = utils.get_resources_csv_file(resources)
+        return response
+    return render(request, 'database_resources.html', {'object_list': resources})
+
 def new_resource(request):
     return JsonResponse({'order': 'new_resource. TODO'})
 

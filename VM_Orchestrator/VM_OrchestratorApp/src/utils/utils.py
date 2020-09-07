@@ -5,10 +5,9 @@ import math
 import os
 import subprocess
 import traceback
+import pandas as pd
+from django.http import FileResponse
 from urllib.parse import urlparse
-import VM_OrchestratorApp.src.constants as c
-from VM_Orchestrator.settings import settings
-from selenium import webdriver
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -97,20 +96,6 @@ def get_css_files(url):
             css_files.append(url)
     return css_files
 
-
-def url_screenshot(url):
-    global ROOT_DIR
-    options = webdriver.ChromeOptions()
-    options.add_argument('--no-sandbox') #Sino pongo esto rompe
-    options.add_argument('--headless') #no cargue la ventana (background)
-    driver = webdriver.Chrome(options=options)
-    driver.set_window_size(1920,1080)
-    driver.get(url)
-    name = url.replace("http://","").replace("https://","").split("/")[0]
-    OUTPUT_DIR = ROOT_DIR+'/../security/tools_output'
-    driver.save_screenshot(OUTPUT_DIR+name+".png")
-    driver.quit()
-
 # Receives url_list = [{'url': url}]
 def get_distinct_urls(url_list):
     parsed_urls = list()
@@ -131,33 +116,85 @@ def get_distinct_urls(url_list):
 
     return final_url_list
 
-def get_web_function_by_name(web_vuln):
-    # We will create a list with all our valid web vulns dictionaries for comparisson
-    # c is our constants file. We will not re-run vulns that require verification for now
-    vuln_names = [c.INVALID_VALUE_ON_HEADER, c.HEADER_NOT_FOUND,
-    c.HOST_HEADER_ATTACK, c.UNSECURE_METHOD, c.SSL_TLS, c.OUTDATED_3RD_LIBRARIES,
-    c.CORS, c.ENDPOINT, c.BUCKET, c.TOKEN_SENSITIVE_INFO, c.CSS_INJECTION,
-    c.OPEN_FIREBASE, c.IIS_SHORTNAME_MICROSOFT, c.POSSIBLE_ERROR_PAGES]
+def get_vuln_csv_file(resources):
+    resources_for_csv = list()
+    for resource in resources:
+        resources_for_csv.append({
+            'vulnerability_name': resource['vulnerability_name'],
+            'domain': resource['domain'],
+            'resource': resource['resource'],
+            'cvss_score': resource['cvss_score'],
+            'cvss3_severity': resolve_severity(resource['cvss_score']),
+            'state': resource['state'],
+            'kb_title': resource['observation']['title'] if resource['observation'] is not None else "",
+            'kb_observation_title': resource['observation']['observation_title'] if resource['observation'] is not None else "",
+            'kb_observation_note': resource['observation']['observation_note'] if resource['observation'] is not None else "",
+            'kb_implication': resource['observation']['implication'] if resource['observation'] is not None else "",
+            'kb_recommendation_title': resource['observation']['recommendation_title'] if resource['observation'] is not None else "",
+            'kb_recommendation_note': resource['observation']['recommendation_note'] if resource['observation'] is not None else "",
+            'date_found': resource['date_found'],
+            'last_seen': resource['last_seen'],
+            'vuln_type': resource['vuln_type']
+        })
+    df = pd.DataFrame(resources_for_csv)
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    FILE_DIR = ROOT_DIR + '/output/output.csv'
 
-    language_key = 'english_name'
-    if settings['LANGUAGE'] == 'spa':
-        language_key = 'spanish_name'
+    try:
+        os.remove(FILE_DIR)
+    except FileNotFoundError:
+        pass
 
-    for name in vuln_names:
-        if web_vuln['vulnerability_name'] == name[language_key]:
-            return name['task']
-    return None
+    df.to_csv(FILE_DIR, index=False, encoding='utf-8')
+    return FileResponse(open(FILE_DIR, 'rb'))
 
-def get_infra_function_by_name(infra_vuln):
-    vuln_names = [c.OUTDATED_SOFTWARE_NMAP, c.HTTP_PASSWD_NMAP, c.WEB_VERSIONS_NMAP, c.ANON_ACCESS_FTP, 
-    c.CRED_ACCESS_FTP, c.DEFAULT_CREDS, c.PLAINTEXT_COMUNICATION, c.UNNECESSARY_SERVICES]
-    
-    language_key = 'english_name'
-    if settings['LANGUAGE'] == 'spa':
-        language_key = 'spanish_name'
+def get_resources_csv_file(resources):
+    resources_for_csv = list()
+    for resource in resources:
+        resources_for_csv.append({
+            'domain': resource['domain'],
+            'subdomain': resource['subdomain'],
+            'url': resource['url'],
+            'ip': resource['ip'],
+            'priority': resource['priority'],
+            'exposition': resource['exposition'],
+            'asset_value': resource['asset_value'],
+            'isp': resource['additional_info']['isp'],
+            'asn': resource['additional_info']['asn'],
+            'country': resource['additional_info']['country'],
+            'region': resource['additional_info']['region'],
+            'city': resource['additional_info']['city'],
+            'org': resource['additional_info']['org'],
+            'geoloc': resource['additional_info']['geoloc'],
+            'approved': resource['approved'],
+            'nmap_information': resource['nmap_information'],
+            'scanned': resource['scanned'],
+            'has_urls': resource['has_urls'],
+            'is_alive': resource['is_alive'],
+            'first_seen': resource['first_seen'],
+            'last_seen': resource['last_seen'],
+            'type': resource['type']
+        })
+    df = pd.DataFrame(resources_for_csv)
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    FILE_DIR = ROOT_DIR + '/output/output.csv'
 
-    for name in vuln_names:
-        if infra_vuln['vulnerability_name'] == name[language_key]:
-            return name['task']
-    return None
+    try:
+        os.remove(FILE_DIR)
+    except FileNotFoundError:
+        pass
 
+    df.to_csv(FILE_DIR, index=False, encoding='utf-8')
+    return FileResponse(open(FILE_DIR, 'rb'))
+
+def resolve_severity(cvss_score):
+    if cvss_score == 0:
+        return 'Informational'
+    elif 0 < cvss_score <= 3.9:
+        return 'Low'
+    elif 3.9 < cvss_score <= 6.9:
+        return 'Medium'
+    elif 6.9 < cvss_score <= 8.9:
+        return 'High'
+    else:
+        return 'Critical'
