@@ -104,8 +104,8 @@ def scan_target(scan_info, url_to_scan):
 
                 vulnerability.add_attachment(output_dir, 'IIS-Result.png')
                 slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+                vulnerability.id = mongo.add_vulnerability(vulnerability)
                 redmine.create_new_issue(vulnerability)
-                mongo.add_vulnerability(vulnerability)
                 os.remove(output_dir)
     except KeyError:
         pass

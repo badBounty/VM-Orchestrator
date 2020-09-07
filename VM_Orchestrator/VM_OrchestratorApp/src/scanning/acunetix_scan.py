@@ -129,8 +129,8 @@ def add_vulnerability(scan_info,scan_id,vulns):
             description = 'Acunetix scan completed against %s' % info['target'] +'\n Affecteds URLS>'
             vulnerability = Vulnerability(name, info, description+affected_urls)
             slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+            vulnerability.id = mongo.add_vulnerability(vulnerability)
             redmine.create_new_issue(vulnerability)
-            mongo.add_vulnerability(vulnerability)
     return
 
 def start_acu_scan(scan_info,headers,session):

@@ -10,12 +10,21 @@ class Observation:
 
     def __init__(self, vuln_name, language):
 
-        info = load_information(vuln_name, language)
         self.language = language
-        self.title = info['TITLE']
-        self.observation_title = info['OBSERVATION']['TITLE']
-        self.observation_note = info['OBSERVATION']['NOTE']
-        self.implication = info['IMPLICATION']
-        self.recommendation_title = info['RECOMMENDATION']['TITLE']
-        self.recommendation_urls = info['RECOMMENDATION']['URLS']
-        self.severity = info['SEVERITY']
+        if vuln_name is not None:
+            info = load_information(vuln_name, language)
+            self.title = info['TITLE']
+            self.observation_title = info['OBSERVATION']['TITLE']
+            self.observation_note = info['OBSERVATION']['NOTE']
+            self.implication = info['IMPLICATION']
+            self.recommendation_title = info['RECOMMENDATION']['TITLE']
+            self.recommendation_urls = info['RECOMMENDATION']['URLS']
+            self.severity = info['SEVERITY']
+        else:
+            self.title = None
+            self.observation_title = None
+            self.observation_note = None
+            self.implication = None
+            self.recommendation_title = None
+            self.recommendation_urls = None
+            self.severity = None

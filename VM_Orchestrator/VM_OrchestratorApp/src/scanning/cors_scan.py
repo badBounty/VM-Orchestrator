@@ -89,8 +89,8 @@ def add_vulnerability(scan_info, vuln):
     specific_info = copy.deepcopy(scan_info)
     vulnerability = Vulnerability(constants.CORS, specific_info, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info, file_name):

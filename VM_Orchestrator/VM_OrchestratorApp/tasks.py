@@ -438,7 +438,19 @@ def add_scanned_resources(scan_info):
 
 @shared_task
 def add_code_vuln(data):
-    mongo.add_code_vuln(data)
+    data['vuln_type'] = 'code'
+    data['observation'] = {
+            'title': None,
+            'observation_title': None,
+            'observation_note': None,
+            'implication': None,
+            'recommendation_title': None,
+            'recommendation_note': None,
+            'severity': data['Severity_tool']
+    }
+    data['cvss_score'] = 0
+    data['_id'] = mongo.add_code_vuln(data)
+    redmine.create_new_code_issue(data)
     return
 
 # ------ PERIODIC TASKS ------ #
@@ -642,6 +654,7 @@ def task_name_switcher(vulnerability_name):
 
 #@periodic_task(run_every=crontab(hour=0, minute=0), 
 #queue='slow_queue', options={'queue': 'slow_queue'})
+@shared_task
 def check_redmine_for_updates():
     print('Synchronizing redmine')
     issues = redmine.get_issues_from_project()
@@ -651,6 +664,7 @@ def check_redmine_for_updates():
 
 #@periodic_task(run_every=crontab(minute='0', hour='*/12'),
 #queue='fast_queue', options={'queue':'slow_queue'})
+@shared_task
 def update_elasticsearch():
     mongo.update_elasticsearch()
 

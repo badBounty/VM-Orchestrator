@@ -129,8 +129,8 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
         os.remove(output_dir)
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
     return
 
 def outdated_software(scan_info, url_to_scan):

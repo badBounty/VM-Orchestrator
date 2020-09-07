@@ -109,8 +109,8 @@ def add_vulnerability_to_mongo(scanned_url, finding_name, bucket_name, descripti
     vuln_name = constants.BUCKET
     vulnerability = Vulnerability(vuln_name, scan_info, description)
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
     return
 
 

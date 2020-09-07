@@ -108,9 +108,9 @@ def add_header_value_vulnerability(scan_info, img_string, description):
     vulnerability.add_attachment(output_dir, 'headers-result.png')
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
     os.remove(output_dir)
-    mongo.add_vulnerability(vulnerability)
 
 
 def add_header_missing_vulnerability(scan_info, img_string, description):
@@ -125,9 +125,9 @@ def add_header_missing_vulnerability(scan_info, img_string, description):
     vulnerability.add_attachment(output_dir, 'headers-result.png')
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
     os.remove(output_dir)
-    mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info, url_to_scan):

@@ -135,8 +135,8 @@ def add_vulnerability(scan_info,json_data,header):
                 description = 'Nessus scan completed against %s' % scan_info['target'] +'\n'
                 vulnerability = Vulnerability(name, scan_info, description+extra)
                 slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+                vulnerability.id = mongo.add_vulnerability(vulnerability)
                 redmine.create_new_issue(vulnerability)
-                mongo.add_vulnerability(vulnerability)
 
 def scan_target(scan_info):
     scan_name = settings['PROJECT']['NAME']+'-'+uuid.uuid4().hex

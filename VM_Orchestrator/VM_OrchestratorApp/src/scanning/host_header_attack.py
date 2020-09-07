@@ -61,8 +61,8 @@ def add_vulnerability_to_mongo(scan_info):
     vulnerability = Vulnerability(constants.HOST_HEADER_ATTACK, scan_info, "Host header attack possible")
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
     return
 
 def get_response(url):

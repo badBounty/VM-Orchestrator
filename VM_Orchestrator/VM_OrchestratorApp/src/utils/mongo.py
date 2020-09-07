@@ -10,6 +10,7 @@ from datetime import datetime
 import json
 import ast
 import urllib3
+from bson.objectid import ObjectId
 
 domains = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['DOMAINS_COLLECTION']]
 logs = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['LOGS_COLLECTION']]
@@ -25,9 +26,9 @@ code_vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['CODE_VUL
 def add_vulnerability(vulnerability):
     # Each vuln has its fields
     if vulnerability.vuln_type == 'ip':
-        add_infra_vuln(vulnerability)
+        return add_infra_vuln(vulnerability)
     elif vulnerability.vuln_type == 'web':
-        add_web_vuln(vulnerability)
+        return add_web_vuln(vulnerability)
 
 ## Uses infra_vulnerabilities collection
 def add_infra_vuln(vulnerability):
@@ -42,6 +43,7 @@ def add_infra_vuln(vulnerability):
             'file_string': vulnerability.file_string,
             'state': 'new' if exists['state'] != 'rejected' else exists['state']
         }})
+        return str(exists.get('_id'))
     else:
         resource = {
             'domain': vulnerability.domain,
@@ -58,9 +60,10 @@ def add_infra_vuln(vulnerability):
             'vuln_type': vulnerability.vuln_type,
             'state': 'new'
         }
-        infra_vulnerabilities.insert_one(resource)
+        vuln_id = infra_vulnerabilities.insert_one(resource)
+        resource['_id'] = str(vuln_id.inserted_id)
         add_infra_vuln_to_elastic(resource)
-    return
+        return str(resource.get('_id'))
 
 ## Uses web_vulnerabilities collection
 def add_web_vuln(vulnerability):
@@ -74,6 +77,7 @@ def add_web_vuln(vulnerability):
             'image_string': vulnerability.image_string,
             'file_string': vulnerability.file_string
         }})
+        return str(exists.get('_id'))
     else:
         resource = {
             'domain': vulnerability.domain,
@@ -90,9 +94,10 @@ def add_web_vuln(vulnerability):
             'vuln_type': vulnerability.vuln_type,
             'state': 'new'
         }
-        web_vulnerabilities.insert_one(resource)
+        vuln_id = web_vulnerabilities.insert_one(resource)
+        resource['_id'] = str(vuln_id.inserted_id)
         add_web_vuln_to_elastic(resource)
-    return
+        return str(resource.get('_id'))
 
 '''
 {
@@ -128,6 +133,7 @@ def add_code_vuln(vulnerability):
             'line': vulnerability['Line'],
             'hash': vulnerability['Hash']
         }})
+        return str(exists.get('_id'))
     else:
         vuln_to_add = {
             'title': vulnerability['Title'],
@@ -142,16 +148,17 @@ def add_code_vuln(vulnerability):
             'language': vulnerability['Language'],
             'hash': vulnerability['Hash'],
             'severity_tool': vulnerability['Severity_tool'],
-            'severity': None, #Future KB Value
-            'category': None, #Future KB Value
-            'first_seen': timestamp,
+            'observation': vulnerability['observation'],
+            'date_found': timestamp,
             'last_seen': timestamp,
-            'vuln_type': 'code',
+            'cvss_score': vulnerability['cvss_score'],
+            'vuln_type': vulnerability['vuln_type'],
             'state': 'new'
         }
-        code_vulnerabilities.insert_one(vuln_to_add)
+        vuln_id = code_vulnerabilities.insert_one(vuln_to_add)
+        vuln_to_add['_id'] = str(vuln_id.inserted_id)
         add_code_vuln_to_elastic(vuln_to_add)
-    return
+        return str(vuln_to_add.get('_id'))
 
 
 # For flagging resources as "scanned"
@@ -574,24 +581,24 @@ def add_custom_redmine_issue(redmine_issue):
     #vulnerabilities.insert_one(vuln_to_add)
     return
 
-
-# TODO same as above, we will need to know the issue type
+### Redmine update sequences ###
+#TODO: Update several fields
 def update_issue_if_needed(redmine_issue):
-    target = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value
-    vuln_name = redmine_issue.subject
-    scanned_url = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value
+    # We receive an issue, we will first check out the tracker
+    if redmine_issue.tracker.id == REDMINE_IDS['WEB_FINDING']['FINDING_TRACKER']:
+        # Web case
+        update_web_finding(redmine_issue)
+    elif redmine_issue.tracker.id == REDMINE_IDS['INFRA_FINDING']['FINDING_TRACKER']:
+        #Infra case
+        update_infra_finding(redmine_issue)
+    elif redmine_issue.tracker.id == REDMINE_IDS['CODE_FINDING']['FINDING_TRACKER']:
+        #Code case    
+        update_code_finding(redmine_issue)
+
+def update_web_finding(redmine_issue):
     cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['CVSS_SCORE']).value
     status = redmine_issue.status.name
-
-    #vulnerability = vulnerabilities.find_one({'vulnerability_name': vuln_name,
-    #'domain': target, 'resource': scanned_url})
-
-    # This means the vuln is in redmine but not on our local database
-    vulnerability = None
-    if not vulnerability:
-        add_custom_redmine_issue(redmine_issue)
-        return
-
+    vulnerability = web_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['IDENTIFIER']).value)})
     try:
         web_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
                 'cvss_score': float(cvss_score) 
@@ -613,6 +620,64 @@ def update_issue_if_needed(redmine_issue):
         }})
     elif status == 'Rechazada':
         web_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'rejected' 
+        }})
+    return
+
+def update_infra_finding(redmine_issue):
+    cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['CVSS_SCORE']).value
+    status = redmine_issue.status.name
+    vulnerability = infra_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['IDENTIFIER']).value)})
+    try:
+        infra_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+                'cvss_score': float(cvss_score) 
+            }})
+    except ValueError:
+        pass
+
+    if status == 'Remediada':
+        infra_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'resolved' 
+        }})
+    elif status == 'Cerrada':
+        infra_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'closed' 
+        }})
+    elif status == 'Confirmada':
+        infra_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'confirmed' 
+        }})
+    elif status == 'Rechazada':
+        infra_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'rejected' 
+        }})
+    return
+
+def update_code_finding(redmine_issue):
+    cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['CVSS_SCORE']).value
+    status = redmine_issue.status.name
+    vulnerability = code_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['IDENTIFIER']).value)})
+    try:
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+                'cvss_score': float(cvss_score) 
+            }})
+    except ValueError:
+        pass
+
+    if status == 'Remediada':
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'resolved' 
+        }})
+    elif status == 'Cerrada':
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'closed' 
+        }})
+    elif status == 'Confirmada':
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'confirmed' 
+        }})
+    elif status == 'Rechazada':
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'rejected' 
         }})
     return
@@ -717,27 +782,15 @@ def update_elasticsearch_logs():
 
 def add_web_vuln_to_elastic(vuln):
     if ELASTIC_CLIENT is None:
-        return 
-    if not vuln['observation']:
-        observation_data = {
-            'vulnerability_title': None,
-            'vulnerability_observation_title': None,
-            'vulnerability_observation_note': None,
-            'vulnerability_implication': None,
-            'vulnerability_recommendation_title': None,
-            'vulnerability_recommendation_note': None,
-            'vulnerability_severity': None
-        }
-    else:
-        observation_data = {
-            'vulnerability_title': vuln['observation']['title'],
-            'vulnerability_observation_title': vuln['observation']['observation_title'],
-            'vulnerability_observation_note': vuln['observation']['observation_note'],
-            'vulnerability_implication': vuln['observation']['implication'],
-            'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
-            'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
-            'vulnerability_severity': vuln['observation']['severity']
-        }
+        return
+    observation_data = {
+        'vulnerability_observation_title': vuln['observation']['observation_title'],
+        'vulnerability_observation_note': vuln['observation']['observation_note'],
+        'vulnerability_implication': vuln['observation']['implication'],
+        'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
+        'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
+        'vulnerability_severity': vuln['observation']['severity']
+    }
     vulnerability_to_add = {
         'vulnerability_id': str(vuln['_id']),
         'vulnerability_domain': vuln['domain'],
@@ -757,27 +810,15 @@ def add_web_vuln_to_elastic(vuln):
 
 def add_infra_vuln_to_elastic(vuln):
     if ELASTIC_CLIENT is None:
-        return 
-    if not vuln['observation']:
-        observation_data = {
-            'vulnerability_title': None,
-            'vulnerability_observation_title': None,
-            'vulnerability_observation_note': None,
-            'vulnerability_implication': None,
-            'vulnerability_recommendation_title': None,
-            'vulnerability_recommendation_note': None,
-            'vulnerability_severity': None
-        }
-    else:
-        observation_data = {
-            'vulnerability_title': vuln['observation']['title'],
-            'vulnerability_observation_title': vuln['observation']['observation_title'],
-            'vulnerability_observation_note': vuln['observation']['observation_note'],
-            'vulnerability_implication': vuln['observation']['implication'],
-            'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
-            'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
-            'vulnerability_severity': vuln['observation']['severity']
-        }
+        return
+    observation_data = {
+        'vulnerability_observation_title': vuln['observation']['observation_title'],
+        'vulnerability_observation_note': vuln['observation']['observation_note'],
+        'vulnerability_implication': vuln['observation']['implication'],
+        'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
+        'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
+        'vulnerability_severity': vuln['observation']['severity']
+    }
     vulnerability_to_add = {
         'vulnerability_id': str(vuln['_id']),
         'vulnerability_domain': vuln['domain'],
@@ -797,26 +838,35 @@ def add_infra_vuln_to_elastic(vuln):
 
 def add_code_vuln_to_elastic(vuln):
     if ELASTIC_CLIENT is None:
-        return 
+        return
+    observation_data = {
+        'vulnerability_observation_title': vuln['observation']['observation_title'],
+        'vulnerability_observation_note': vuln['observation']['observation_note'],
+        'vulnerability_implication': vuln['observation']['implication'],
+        'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
+        'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
+        'vulnerability_severity': vuln['observation']['severity']
+    } 
     vuln_to_add = {
-        'code_vulnerability_title': vuln['title'],
-        'code_vulnerability_description': vuln['description'],
-        'code_vulnerability_component': vuln['component'],
-        'code_vulnerability_line': vuln['line'],
-        'code_vulnerability_affected_code': vuln['affected_code'],
-        'code_vulnerability_first_commit': vuln['first_commit'],
-        'code_vulnerability_last_commit': vuln['last_commit'],
-        'code_vulnerability_username': vuln['username'],
-        'code_vulnerability_pipeline_name': vuln['pipeline_name'],
-        'code_vulnerability_language': vuln['language'],
-        'code_vulnerability_hash': vuln['hash'],
-        'code_vulnerability_severity_tool': vuln['severity_tool'],
-        'code_vulnerability_severity': vuln['severity'],
-        'code_vulnerability_category': vuln['category'],
-        'code_vulnerability_first_seen': vuln['first_seen'],
-        'code_vulnerability_last_seen': vuln['last_seen'],
-        'code_vulnerability_vuln_type': vuln['vuln_type'],
-        'code_vulnerability_state': vuln['state']
+        'vulnerability_id': str(vuln['_id']),
+        'vulnerability_title': vuln['title'],
+        'vulnerability_description': vuln['description'],
+        'vulnerability_component': vuln['component'],
+        'vulnerability_line': vuln['line'],
+        'vulnerability_affected_code': vuln['affected_code'],
+        'vulnerability_first_commit': vuln['first_commit'],
+        'vulnerability_last_commit': vuln['last_commit'],
+        'vulnerability_username': vuln['username'],
+        'vulnerability_pipeline_name': vuln['pipeline_name'],
+        'vulnerability_language': vuln['language'],
+        'vulnerability_hash': vuln['hash'],
+        'vulnerability_severity_tool': vuln['severity_tool'],
+        'vulnerability_severity': vuln['observation']['severity'],
+        'vulnerability_observation': observation_data,
+        'vulnerability_first_seen': vuln['date_found'],
+        'vulnerability_last_seen': vuln['last_seen'],
+        'vulnerability_vuln_type': vuln['vuln_type'],
+        'vulnerability_state': vuln['state']
     }
     res = ELASTIC_CLIENT.index(index='code_vulnerabilities',doc_type='_doc',id=vuln_to_add['vulnerability_id'],body=vuln_to_add)
     return
@@ -937,13 +987,6 @@ def get_all_infra_vulnerabilities():
     for vuln in found_vulns:
         return_list.append(vuln)
     return return_list
-
-def get_all_vulns():
-    return_list = list()
-    found_vulns = vulnerabilities.find()
-    for vuln in found_vulns:
-            return_list.append(vuln)
-    return  return_list
 
 def get_all_resources_for_email():
     return_list = list()

@@ -63,8 +63,8 @@ def add_token_found_vuln(scan_info, message):
     vulnerability = Vulnerability(constants.TOKEN_SENSITIVE_INFO, scan_info, message)
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info, url_for_scanning):

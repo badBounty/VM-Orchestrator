@@ -863,8 +863,8 @@ def add_vulnerability(scan_info, message):
     print("Encontrado:\nscan_info: " + str(scan_info) + "\nmessage: " + str(message))
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
 
 
 # In cases where single url is provided, port will default to 80 or 443 in most cases
