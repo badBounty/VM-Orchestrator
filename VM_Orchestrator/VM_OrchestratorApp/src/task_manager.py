@@ -9,12 +9,6 @@ import copy
 import pandas as pd
 from VM_Orchestrator.settings import settings
 
-def get_resources_from_target(information):
-    execution_chain = chain(
-        tasks.send_email_with_all_resources.si(information).set(queue='slow_queue')
-    )
-    execution_chain.apply_async(queue='fast_queue', interval=300)
-
 def recon_against_target(information):
     information['is_first_run'] = True
     information['type'] = 'domain'
@@ -69,13 +63,6 @@ def force_redmine_sync():
         tasks.check_redmine_for_updates.si().set(queue='fast_queue')
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
-
-def get_all_vulnerabilities(information):
-    execution_chain = chain(
-        tasks.get_all_vulnerabilities.si(information).set(queue='fast_queue')
-    )
-    execution_chain.apply_async(queue='fast_queue', interval=300)
-    return
 
 def run_specific_module(information):
     print("before run_specific_module")

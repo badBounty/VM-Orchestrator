@@ -88,7 +88,6 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
         vuln_name = constants.UNNECESSARY_SERVICES
 
     vulnerability = Vulnerability(vuln_name, scan_info, description)
-    vulnerability.add_image_string(img_str)
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     random_filename = uuid.uuid4().hex
@@ -97,8 +96,8 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
     im.save(output_dir, 'PNG')
     vulnerability.add_attachment(output_dir, 'nmap-result.png')
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
     os.remove(output_dir)
     return
 

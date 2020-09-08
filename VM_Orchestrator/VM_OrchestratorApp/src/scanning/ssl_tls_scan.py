@@ -594,8 +594,8 @@ def add_vulnerability(scan_info, message, isCipherVuln=False, isCertVuln=False, 
 
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
     
     # Borro los archivos temporales...
     for i in range(len(outputFiles)):

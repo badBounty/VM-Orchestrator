@@ -215,7 +215,6 @@ def run_recon(scan_information):
     subdomain_recon_task(scan_information)
     # We resolve to get http/https urls
     resolver_recon_task(scan_information)
-    send_email_with_resources_for_verification(scan_information)
 
     mongo.add_module_status_log({
         'module_keyword': "recon_module",
@@ -350,78 +349,10 @@ def recon_finished(scan_information):
     print('Recon finished!')
     return
 
-# ------ EMAIL NOTIFICATIONS ------
-@shared_task
-def get_all_vulnerabilities(information):
-    if information['email'] is None:
-        return
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    vulnerabilities = mongo.get_vulnerabilities_for_email(information)
-    df = pd.DataFrame(vulnerabilities)
-    if df.empty:
-        return
-    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'resource', 'vulnerability_name', 'observation',
-    'extra_info', 'date_found', 'last_seen', 'language', 'cvss_score', 'vuln_type', 'state'])
-    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
-    "Orchestrator: Vulnerabilities found!")
-    
-    try:
-        os.remove(ROOT_DIR + '/output.csv')
-    except FileNotFoundError:
-        print('ERROR Output file for resources was not found')
-        pass
-    return
-
-@shared_task
-def send_email_with_resources_for_verification(scan_information):
-    if scan_information['email'] is None:
-        return
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    resources = mongo.get_resources_for_email(scan_information)
-    df = pd.DataFrame(resources)
-    if df.empty:
-        print('No resources found at %s!' % scan_information['domain'])
-        email_handler.send_email_message_only(scan_information['email'], "No resources found at %s" % scan_information['domain'],
-    "Orchestrator: No resources from domain %s were found!" % scan_information['domain'])
-        return
-
-    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'priority', 'exposition', 'asset_value', 'isp', 'asn',
-     'country', 'region', 'city', 'org', 'geoloc', 'first_seen', 'last_seen', 'is_alive', 'has_urls', 'approved',
-     'scan_type'])
-    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
-    "Orchestrator: Resources from domain %s found!" % scan_information['domain'])
-
-    try:
-        os.remove(ROOT_DIR + '/output.csv')
-    except FileNotFoundError:
-        print('ERROR Output file for resources was not found')
-        pass
-    return
-
-@shared_task
-def send_email_with_all_resources(scan_information):
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    resources = mongo.get_all_resources_for_email()
-    df = pd.DataFrame(resources)
-    if df.empty:
-        return
-
-    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'subdomain', 'url', 'ip', 'priority', 'exposition', 'asset_value', 'isp', 'asn',
-     'country', 'region', 'city', 'org', 'geoloc', 'first_seen', 'last_seen', 'is_alive', 'has_urls', 'approved',
-     'scan_type'])
-    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', scan_information['email'], "CSV with resources attached to email",
-    "Orchestrator: Returning all resources")
-
-    try:
-        os.remove(ROOT_DIR + '/output.csv')
-    except FileNotFoundError:
-        print('ERROR Output file for resources was not found')
-        pass
-    return
-
 # ------ MONITOR TOOLS ------ #
 @shared_task
 def add_scanned_resources(scan_info):
+    #Here we flag the resource as 'scanned'
     if scan_info['type'] == 'domain':
         scan_info['scan_type'] = 'target'
         subdomains_plain = mongo.get_alive_subdomains_from_target(scan_info['domain'])
@@ -438,7 +369,20 @@ def add_scanned_resources(scan_info):
 
 @shared_task
 def add_code_vuln(data):
-    mongo.add_code_vuln(data)
+    # We add some extra info, this will probably come in the request in the future
+    data['vuln_type'] = 'code'
+    data['observation'] = {
+            'title': None,
+            'observation_title': None,
+            'observation_note': None,
+            'implication': None,
+            'recommendation_title': None,
+            'recommendation_note': None,
+            'severity': data['Severity_tool']
+    }
+    data['cvss_score'] = 0
+    data['_id'] = mongo.add_code_vuln(data)
+    redmine.create_new_code_issue(data)
     return
 
 # ------ PERIODIC TASKS ------ #
@@ -446,7 +390,6 @@ def add_code_vuln(data):
 #@periodic_task(run_every=crontab(hour=settings['PROJECT']['RECON_START_HOUR'], minute=settings['PROJECT']['RECON_START_MINUTE']),
 #queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
-    # The idea is similar to the project start, we just need to ge the same information from our database.
     monitor_data = mongo.get_domains_for_monitor()
     mongo.add_module_status_log({
         'module_keyword': "monitor_recon_module",
@@ -456,12 +399,12 @@ def project_monitor_task():
         'arguments': monitor_data
     })
     print(monitor_data)
+    slack.send_notification_to_channel('Starting monitor against %s' % str(monitor_data), '#vm-monitor')
     for data in monitor_data:
         scan_info = data
         scan_info['is_first_run'] = False
         scan_info['email'] = None
         scan_info['type'] = 'domain'
-        slack.send_notification_to_channel('Starting monitor against %s' % scan_info['domain'], '#vm-monitor')
         if scan_info['type'] == 'domain':
             run_recon.apply_async(args=[scan_info], queue='fast_queue')
     return
@@ -642,6 +585,7 @@ def task_name_switcher(vulnerability_name):
 
 #@periodic_task(run_every=crontab(hour=0, minute=0), 
 #queue='slow_queue', options={'queue': 'slow_queue'})
+@shared_task
 def check_redmine_for_updates():
     print('Synchronizing redmine')
     issues = redmine.get_issues_from_project()
@@ -651,6 +595,7 @@ def check_redmine_for_updates():
 
 #@periodic_task(run_every=crontab(minute='0', hour='*/12'),
 #queue='fast_queue', options={'queue':'slow_queue'})
+@shared_task
 def update_elasticsearch():
     mongo.update_elasticsearch()
 

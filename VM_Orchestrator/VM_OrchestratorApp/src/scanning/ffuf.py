@@ -69,8 +69,8 @@ def add_vulnerability(scan_info, affected_resource, description):
     vulnerability = Vulnerability(constants.ENDPOINT, scan_info, description)
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info, url_with_http):

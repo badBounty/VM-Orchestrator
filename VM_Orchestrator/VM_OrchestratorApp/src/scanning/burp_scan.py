@@ -99,8 +99,8 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
                     vulnerability.add_file_string(file_string)
                     vulnerability.add_attachment(file_dir, file_name)
                     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+                    vulnerability.id = mongo.add_vulnerability(vulnerability)
                     redmine.create_new_issue(vulnerability)
-                    mongo.add_vulnerability(vulnerability)
         except KeyError:
             print('Key error at burp add vulnerability')
             return
@@ -115,8 +115,8 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
                 vulnerability.add_file_string(file_string)
                 vulnerability.add_attachment(file_dir, file_name)
                 slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+                vulnerability.id = mongo.add_vulnerability(vulnerability)
                 redmine.create_new_issue(vulnerability)
-                mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info):

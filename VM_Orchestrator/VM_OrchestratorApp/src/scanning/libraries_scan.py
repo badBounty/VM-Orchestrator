@@ -62,8 +62,8 @@ def get_cves_and_last_version(librarie):
 def add_libraries_vulnerability(scan_info, message):
     vulnerability = Vulnerability(constants.OUTDATED_3RD_LIBRARIES, scan_info, message)
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
 
 
 def fastPrint(libraries):

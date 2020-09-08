@@ -59,8 +59,8 @@ def add_vulnerability(scan_info, firebase_name):
     vulnerability = Vulnerability(constants.OPEN_FIREBASE, scan_info, 'Found open firebase %s' % (firebase_name))
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
+    vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
 
 def get_response(url):
     try:
