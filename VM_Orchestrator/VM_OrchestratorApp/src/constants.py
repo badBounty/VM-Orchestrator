@@ -63,9 +63,16 @@ UNSECURE_METHOD = {
     'scan_type': 'web',
     'module_identifier': 'httpmethod_module'
 }
-SSL_TLS = {
+SSL_TLS_CIPHERS = {
     'english_name': 'Weak transport layer security (TLS) configuration',
     'spanish_name': 'Inadecuada configuración de seguridad de capa de transporte (TLS)',
+    'status': REDMINE_IDS['STATUS_NEW'],
+    'scan_type': 'web',
+    'module_identifier': 'tls_module'
+}
+SSL_TLS_CERTIFICATE = {
+    'english_name': 'Untrusted SSL / TLS certificate',
+    'spanish_name': 'Certificado SSL invalido',
     'status': REDMINE_IDS['STATUS_NEW'],
     'scan_type': 'web',
     'module_identifier': 'tls_module'

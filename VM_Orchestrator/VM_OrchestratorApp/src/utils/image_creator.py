@@ -5,7 +5,7 @@ from PIL import ImageFont
 from io import BytesIO
 
 font_size = 12
-font = ImageFont.truetype("DejaVuSansMono.ttf", font_size) #Font sacada de la terminal del kali
+font = ImageFont.truetype("DejaVuSansMono.ttf", font_size) # Font sacada de la terminal del kali
 black = (0,0,0)
 small = (640,480)
 normal = (800,600)
@@ -14,9 +14,9 @@ image_format = "PNG"
 
 def create_image_from_file(path_filename):
     global font_size,font,black,image_format
-    num_lines = sum(1 for line in open(path_filename)) #Cantidad de lineas que tiene el archivo
-    #Ancho y alto para la imagen, no hay problema si tiene mucho ancho ya que se cropea la imagen
-    extraL = (1080,num_lines*font_size*2)
+    num_lines = sum(1 for line in open(path_filename)) # Cantidad de lineas que tiene el archivo
+    # Ancho y alto para la imagen, no hay problema si tiene mucho ancho ya que se cropea la imagen
+    extraL = (1080, num_lines*16)
     img = Image.new('RGB', extraL, (255, 255, 255))
     d = ImageDraw.Draw(img)
     with open(path_filename,"r+") as file:

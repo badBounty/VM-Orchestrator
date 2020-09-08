@@ -35,10 +35,8 @@ def issue_already_exists(vuln):
     return False
 
 def create_new_issue(vuln):
-    if redmine_client is None:
-        return
-    if issue_already_exists(vuln):
-        return
+    if redmine_client is None: return
+    if issue_already_exists(vuln): return
     issue = redmine_client.issue.new()
     issue.project_id = settings['REDMINE']['project_name']
     issue.subject = vuln.vulnerability_name
@@ -53,11 +51,13 @@ def create_new_issue(vuln):
     {'id': REDMINE_IDS['WEB_FINDING']['DATE_FOUND'], 'value': str(vuln.time.strftime("%Y-%m-%d"))},
     {'id': REDMINE_IDS['WEB_FINDING']['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))},
     {'id': REDMINE_IDS['WEB_FINDING']['CVSS_SCORE'], 'value': vuln.cvss}]
-    if vuln.attachment_path is not None:
-        issue.uploads = [{'path': vuln.attachment_path,
-                          'filename': vuln.attachment_name}]
+    filesToUpload = []
+    if vuln.attachment_path is not None:  filesToUpload.append({'path': vuln.attachment_path,  'filename': vuln.attachment_name})
+    if vuln.attachment_path2 is not None: filesToUpload.append({'path': vuln.attachment_path2, 'filename': vuln.attachment_name2})
+    if vuln.attachment_path3 is not None: filesToUpload.append({'path': vuln.attachment_path3, 'filename': vuln.attachment_name3})
+    if filesToUpload: issue.uploads = filesToUpload
+
     try:
         issue.save()
     except Exception as e:
         print("Redmine error" + str(e))
-        pass

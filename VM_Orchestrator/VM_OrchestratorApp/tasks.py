@@ -44,12 +44,12 @@ def run_specific_module(scan_information):
     function_to_run(scan_information)
     return
 
-def module_name_switcher(module_name):
+def module_name_switcher(module_name): # Si hay varios para un identifier poner uno solo (ejemplo "SSL_TLS_CIPHERS")
     switcher = {
         constants.INVALID_VALUE_ON_HEADER['module_identifier']: header_scan_task,
         constants.HOST_HEADER_ATTACK['module_identifier']: host_header_attack_scan, 
         constants.UNSECURE_METHOD['module_identifier']: http_method_scan_task, 
-        constants.SSL_TLS['module_identifier']: ssl_tls_scan_task, 
+        constants.SSL_TLS_CIPHERS['module_identifier']: ssl_tls_scan_task, 
         constants.OUTDATED_3RD_LIBRARIES['module_identifier']: libraries_scan_task, 
         constants.CORS['module_identifier']: cors_scan_task, 
         constants.ENDPOINT['module_identifier']: ffuf_task, 
@@ -527,7 +527,7 @@ def monitor_resolved_issues():
     nmap_baseline_vulns = [constants.PLAINTEXT_COMUNICATION, constants.UNNECESSARY_SERVICES]
 
     valid_web_vulns = [constants.INVALID_VALUE_ON_HEADER, constants.HEADER_NOT_FOUND, constants.HOST_HEADER_ATTACK, 
-    constants.UNSECURE_METHOD, constants.SSL_TLS, constants.OUTDATED_3RD_LIBRARIES, constants.CORS, constants.ENDPOINT, 
+    constants.UNSECURE_METHOD, constants.SSL_TLS_CIPHERS, constants.SSL_TLS_CERTIFICATE, constants.OUTDATED_3RD_LIBRARIES, constants.CORS, constants.ENDPOINT, 
     constants.BUCKET, constants.TOKEN_SENSITIVE_INFO, constants.CSS_INJECTION, constants.OPEN_FIREBASE, 
     constants.IIS_SHORTNAME_MICROSOFT]
     # We now get all the vulns that are resolved
@@ -614,7 +614,7 @@ def task_name_switcher(vulnerability_name):
         constants.HEADER_NOT_FOUND['english_name']: header_scan_task, 
         constants.HOST_HEADER_ATTACK['english_name']: host_header_attack_scan, 
         constants.UNSECURE_METHOD['english_name']: http_method_scan_task, 
-        constants.SSL_TLS['english_name']: ssl_tls_scan_task, 
+        constants.SSL_TLS_CIPHERS['english_name']: ssl_tls_scan_task, 
         constants.OUTDATED_3RD_LIBRARIES['english_name']: libraries_scan_task, 
         constants.CORS['english_name']: cors_scan_task, 
         constants.ENDPOINT['english_name']: ffuf_task, 
@@ -628,7 +628,7 @@ def task_name_switcher(vulnerability_name):
         constants.HEADER_NOT_FOUND['spanish_name']: header_scan_task, 
         constants.HOST_HEADER_ATTACK['spanish_name']: host_header_attack_scan, 
         constants.UNSECURE_METHOD['spanish_name']: http_method_scan_task, 
-        constants.SSL_TLS['spanish_name']: ssl_tls_scan_task, 
+        constants.SSL_TLS_CIPHERS['spanish_name']: ssl_tls_scan_task, 
         constants.OUTDATED_3RD_LIBRARIES['spanish_name']: libraries_scan_task, 
         constants.CORS['spanish_name']: cors_scan_task, 
         constants.ENDPOINT['spanish_name']: ffuf_task, 
