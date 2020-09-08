@@ -6,8 +6,6 @@ app_name = 'VM_OrchestratorApp'
 urlpatterns = [
     # API
     path('start_recon/', views.run_recon_against_target, name='start_recon'),
-    path('get_resources/', views.get_all_resources, name='get_resources'),
-    path('get_vulnerabilities/', views.get_all_vulnerabilities, name='get_vulnerabilities'),
     path('approve_resources/', views.approve_resources, name='approved_scan'),
     path('update_elasticsearch/', views.force_update_elasticsearch, name='update_elasticsearch'),
     path('update_elasticsearch_logs/', views.force_update_elasticsearch_logs, name='update_elasticsearch_logs'),
