@@ -24,7 +24,7 @@ def index(request):
 
 def test_html(request):
     return render(request, 'testbase.html')
-#
+
 def current_resources(request):
     resources = mongo.get_all_resources()
     if request.method == 'POST':
@@ -32,19 +32,38 @@ def current_resources(request):
         return response
     return render(request, 'database_resources.html', {'object_list': resources})
 
+def current_observations(request):
+    resources = mongo.get_all_observations()
+    if request.method == 'POST':
+        response = utils.get_observations_csv_file(resources)
+        return response
+    return render(request, 'observations.html', {'object_list': resources})
+
 def new_resource(request):
     return JsonResponse({'order': 'new_resource. TODO'})
 
 def current_vulnerabilities(request):
     return render(request, 'vulns_type.html')
+
 def web_vulnerabilities(request):
     resources = mongo.get_all_web_vulnerabilities()
+    if request.method == 'POST':
+        response = utils.get_web_vulnerabilities_csv_file(resources)
+        return response
     return render(request, 'Vulnerabilities/web_vulns.html', {'object_list': resources})
+
 def infra_vulnerabilities(request):
     resources = mongo.get_all_infra_vulnerabilities()
+    if request.method == 'POST':
+        response = utils.get_infra_vulnerabilities_csv_file(resources)
+        return response
     return render(request, 'Vulnerabilities/infra_vulns.html', {'object_list': resources})
+    
 def code_vulnerabilities(request):
     resources = mongo.get_all_code_vulnerabilities()
+    if request.method == 'POST':
+        response = utils.get_code_vulnerabilities_csv_file(resources)
+        return response
     return render(request, 'Vulnerabilities/code_vulns.html', {'object_list': resources})
 
 def new_vulnerability(request):

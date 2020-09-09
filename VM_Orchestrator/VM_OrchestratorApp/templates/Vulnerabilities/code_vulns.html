@@ -7,20 +7,25 @@
 <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-teal.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css">
 <body>
+<form method="POST" class="post-form">{% csrf_token %}
+	<div class="w3-container">
+		<button class="w3-btn w3-theme" type="submit">Download csv file</button>
+	</div>
+</form>
 <div class="w3-responsive w3-card-4">
 <table class="w3-table w3-striped w3-bordered">
 <thead>
 <tr class="w3-theme">
-        <th>Title</th>
-        <th>Description</th>
-        <th>Component</th>
-        <th>Line</th>
-        <th>Affected Code</th>
-        <th>Username</th>
-        <th>Pipeline name</th>
-        <th>State</th>
-        <th>First Commit Seen</th>
-        <th>Last Commit Seen</th>
+	<th>Title</th>
+	<th>Description</th>
+	<th>Component</th>
+	<th>Line</th>
+	<th>Affected Code</th>
+	<th>Username</th>
+	<th>Pipeline name</th>
+	<th>State</th>
+	<th>First Commit Seen</th>
+	<th>Last Commit Seen</th>
 </tr>
 </thead>
 <tbody>

@@ -187,6 +187,140 @@ def get_resources_csv_file(resources):
     df.to_csv(FILE_DIR, index=False, encoding='utf-8')
     return FileResponse(open(FILE_DIR, 'rb'))
 
+def get_observations_csv_file(resources):
+    resources_for_csv = list()
+    for resource in resources:
+        resources_for_csv.append({
+            'Language': resource['LANGUAGE'],
+            'Title': resource['TITLE'],
+            'Observation Title': resource['OBSERVATION']['TITLE'],
+            'Observation Note': resource['OBSERVATION']['NOTE'],
+            'Implication': resource['IMPLICATION'],
+            'Recommendation Title': resource['RECOMMENDATION']['TITLE'],
+            'Recommendation URLs': resource['RECOMMENDATION']['URLS'],
+            'Recommendation Severity': resource['SEVERITY']
+        })
+    df = pd.DataFrame(resources_for_csv)
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    FILE_DIR = ROOT_DIR + '/output/output.csv'
+
+    try:
+        os.remove(FILE_DIR)
+    except FileNotFoundError:
+        pass
+
+    df.to_csv(FILE_DIR, index=False, encoding='utf-8')
+    return FileResponse(open(FILE_DIR, 'rb'))
+
+
+def get_web_vulnerabilities_csv_file(resources):
+    resources_for_csv = list()
+    for resource in resources:
+        resources_for_csv.append({
+            'Domain': resource['domain'],
+            'Resource': resource['resource'],
+            'Vulnerability Name': resource['vulnerability_name'],
+            'Observation Title': resource['observation']['title'],
+            'Observation observation_title': resource['observation']['observation_title'],
+            'Observation observation_note': resource['observation']['observation_note'],
+            'Observation Implication': resource['observation']['implication'],
+            'Observation recommendation_title': resource['observation']['recommendation_title'],
+            'Observation recommendation_note': resource['observation']['recommendation_note'],
+            'Observation severity': resource['observation']['severity'],
+            'Extra info': resource['extra_info'],
+            'File String': resource['file_string'],
+            'Date found': resource['date_found'],
+            'Last seen': resource['last_seen'],
+            'Language': resource['language'],
+            'CVSS Score': resource['cvss_score'],
+            'Vuln Type': resource['vuln_type'],
+            'State': resource['state']
+        })
+    df = pd.DataFrame(resources_for_csv)
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    FILE_DIR = ROOT_DIR + '/output/output.csv'
+
+    try:
+        os.remove(FILE_DIR)
+    except FileNotFoundError:
+        pass
+
+    df.to_csv(FILE_DIR, index=False, encoding='utf-8')
+    return FileResponse(open(FILE_DIR, 'rb'))
+
+
+def get_infra_vulnerabilities_csv_file(resources):
+    resources_for_csv = list()
+    for resource in resources:
+        resources_for_csv.append({
+            'Domain': resource['domain'],
+            'Resource': resource['resource'],
+            'Vulnerability Name': resource['vulnerability_name'],
+            'Observation Title': resource['observation']['title'],
+            'Observation observation_title': resource['observation']['observation_title'],
+            'Observation observation_note': resource['observation']['observation_note'],
+            'Observation Implication': resource['observation']['implication'],
+            'Observation recommendation_title': resource['observation']['recommendation_title'],
+            'Observation recommendation_note': resource['observation']['recommendation_note'],
+            'Observation severity': resource['observation']['severity'],
+            'Extra info': resource['extra_info'],
+            'File String': resource['file_string'],
+            'Date found': resource['date_found'],
+            'Last seen': resource['last_seen'],
+            'Language': resource['language'],
+            'CVSS Score': resource['cvss_score'],
+            'Vuln Type': resource['vuln_type'],
+            'State': resource['state']
+        })
+    df = pd.DataFrame(resources_for_csv)
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    FILE_DIR = ROOT_DIR + '/output/output.csv'
+
+    try:
+        os.remove(FILE_DIR)
+    except FileNotFoundError:
+        pass
+
+    df.to_csv(FILE_DIR, index=False, encoding='utf-8')
+    return FileResponse(open(FILE_DIR, 'rb'))
+
+
+def get_code_vulnerabilities_csv_file(resources):
+    resources_for_csv = list()
+    for resource in resources:
+        resources_for_csv.append({
+            'Domain': resource['domain'],
+            'Resource': resource['resource'],
+            'Vulnerability Name': resource['vulnerability_name'],
+            'Observation Title': resource['observation']['title'],
+            'Observation observation_title': resource['observation']['observation_title'],
+            'Observation observation_note': resource['observation']['observation_note'],
+            'Observation Implication': resource['observation']['implication'],
+            'Observation recommendation_title': resource['observation']['recommendation_title'],
+            'Observation recommendation_note': resource['observation']['recommendation_note'],
+            'Observation severity': resource['observation']['severity'],
+            'Extra info': resource['extra_info'],
+            'File String': resource['file_string'],
+            'Date found': resource['date_found'],
+            'Last seen': resource['last_seen'],
+            'Language': resource['language'],
+            'CVSS Score': resource['cvss_score'],
+            'Vuln Type': resource['vuln_type'],
+            'State': resource['state']
+        })
+    df = pd.DataFrame(resources_for_csv)
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    FILE_DIR = ROOT_DIR + '/output/output.csv'
+
+    try:
+        os.remove(FILE_DIR)
+    except FileNotFoundError:
+        pass
+
+    df.to_csv(FILE_DIR, index=False, encoding='utf-8')
+    return FileResponse(open(FILE_DIR, 'rb'))
+
+
 def resolve_severity(cvss_score):
     if cvss_score == 0:
         return 'Informational'

@@ -1015,7 +1015,13 @@ def get_all_resources_for_email():
             'asset_value': resource['asset_value']
         }
         return_list.append(res)
- 
+    return return_list
+
+def get_all_observations():
+    return_list = list()
+    found_observations = observations.find({})
+    for value in found_observations:
+        return_list.append(value)
     return return_list
 
 # TODO Temporary function for result revision
