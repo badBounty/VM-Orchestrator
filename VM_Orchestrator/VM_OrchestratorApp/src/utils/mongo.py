@@ -21,6 +21,7 @@ web_vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['WEB_VULNE
 infra_vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['INFRA_VULNERABILITIES_COLLECTION']]
 code_vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['CODE_VULNERABILITIES_COLLECTION']]
 
+# -------------------- VULNERABILITIES --------------------
 ### Handles vuln add. Vulns will go to different collections depending on its type.
 ### Each vuln will have its custom fields, so differenciation is needed
 def add_vulnerability(vulnerability):
@@ -62,6 +63,7 @@ def add_infra_vuln(vulnerability):
         }
         vuln_id = infra_vulnerabilities.insert_one(resource)
         resource['_id'] = str(vuln_id.inserted_id)
+        add_found_vulnerability_log(resource, vulnerability)
         add_infra_vuln_to_elastic(resource)
         return str(resource.get('_id'))
 
@@ -96,6 +98,7 @@ def add_web_vuln(vulnerability):
         }
         vuln_id = web_vulnerabilities.insert_one(resource)
         resource['_id'] = str(vuln_id.inserted_id)
+        add_found_vulnerability_log(resource, vulnerability)
         add_web_vuln_to_elastic(resource)
         return str(resource.get('_id'))
 
@@ -157,216 +160,13 @@ def add_code_vuln(vulnerability):
         }
         vuln_id = code_vulnerabilities.insert_one(vuln_to_add)
         vuln_to_add['_id'] = str(vuln_id.inserted_id)
+        add_found_vulnerability_log(vuln_to_add)
         add_code_vuln_to_elastic(vuln_to_add)
         return str(vuln_to_add.get('_id'))
 
 
-# For flagging resources as "scanned"
-def add_scanned_resources(scan_information_received):
-    if scan_information_received['type'] == 'domain':
-        for url in scan_information_received['target']:
-            resource = resources.find_one({'domain': scan_information_received['domain'], 'subdomain': url, 'scanned': False, 'type': scan_information_received['type']})
-            if resource is not None:
-                resources.update_one({'_id': resource.get('_id')},
-                {'$set': 
-                    {
-                    'scanned': True
-                    }})
-    else:
-        if scan_information_received['type'] == 'url':
-            #Url case, we search for url from mongo
-            resource = resources.find_one({'domain': scan_information_received['domain'], 'url': scan_information_received['target'], 'scanned': False, 'type': scan_information_received['type']})
-        else:
-            #IP case, we will search for ip here instead of url
-            resource = resources.find_one({'domain': scan_information_received['domain'], 'ip': scan_information_received['target'], 'scanned': False, 'type': scan_information_received['type']})
-        if resource is not None:
-            resources.update_one({'_id': resource.get('_id')},
-            {'$set': 
-                {
-                'scanned': True
-                }})
 
-# Removing the scanned flag on all resources
-def remove_scanned_flag():
-    cursor = resources.find({})
-    for document in cursor:
-        resources.update_one({'_id': document.get('_id')}, {'$set': {
-            'scanned': False
-        }})
-
-# This will return every url with http/https
-def get_responsive_http_resources(target):
-    subdomains = resources.find({'domain': target, 'has_urls': True, 'scanned': False, 'approved': True, 'is_alive': 'True'})
-    subdomain_list = list()
-    for subdomain in subdomains:
-        valid_urls_found = utils.get_distinct_urls(subdomain['url'])
-        for url_with_http in valid_urls_found:
-            if url_with_http:
-                current_subdomain = {
-                    'domain': subdomain['domain'],
-                    'ip': subdomain['ip'],
-                    'subdomain': subdomain['subdomain'],
-                    'url': url_with_http
-                }
-                subdomain_list.append(current_subdomain)
-    return subdomain_list
-
-# Searches for vulnerability information in observations collection
-def get_observation_for_object(vuln_name,language):
-    finding_kb = observations.find_one({'TITLE': vuln_name, 'LANGUAGE': language})
-    return finding_kb
-
-# Gets every approved resource for scanning
-def get_data_for_approved_scan():
-    all_data = resources.find({'approved': True, 'scanned': False})
-    information = list()
-    for data in all_data:
-        if data['type'] == 'url':
-            resource = data['url']
-        elif data['type'] == 'ip':
-            resource = data['ip']
-        else:
-            resource = data['domain']
-        information.append({
-            'is_first_run': False,
-            'language': settings['LANGUAGE'],
-            'type': data['type'],
-            'priority': data['priority'],
-            'exposition': data['exposition'],
-            'domain': data['domain'],
-            'resource': resource
-        })
-    import pandas as pd
-    info_to_return = pd.DataFrame(information).drop_duplicates().to_dict('records')
-
-    return info_to_return
-
-def find_last_version_of_librarie(name):
-    librarie = libraries_versions.find({'name':name})
-    if librarie.count() != 0:
-        return librarie[0]['version']
-    else:
-        return ''
-
-def approve_resources(info):
-    for resource in info['data']:
-        exists = resources.find_one({'domain': resource['domain'], 'subdomain': resource['subdomain'], 'type':resource['type']})
-        if not exists:
-            print('RESOURCE %s FROM %s WAS IN THE CSV BUT NOT IN OUR DATABASE. ADDING' % (resource['subdomain'], resource['domain']))
-            new_resource = {
-                'domain': resource['domain'],
-                'subdomain': resource['subdomain'],
-                'url': ast.literal_eval(resource['url']),
-                'ip': resource['ip'],
-                'additional_info':{
-                    'isp': resource['isp'],
-                    'asn': resource['asn'],
-                    'country': resource['country'],
-                    'region': resource['region'],
-                    'city': resource['city'],
-                    'org': resource['org'],
-                    'geoloc': resource['geoloc']
-                },
-                'first_seen': datetime.now(),
-                'last_seen': datetime.now(),
-                'is_alive': resource['is_alive'],
-                'has_urls': resource['has_urls'],
-                'approved': resource['approved'],
-                'type': resource['type'],
-                'priority': resource['priority'],
-                'exposition': resource['exposition'],
-                'asset_value': resource['asset_value'],
-                'nmap_information': None,
-                'scanned': False
-            }
-            resources.insert_one(new_resource)
-            continue
-        resources.update_one({'_id': exists.get('_id')},
-         {'$set': 
-            {
-            'approved': resource['approved'],
-            'priority': resource['priority'],
-            'exposition': resource['exposition'],
-            'asset_value': resource['asset_value']
-            }})
-
-# ------------------- RECON -------------------
-def add_simple_url_resource(scan_info):
-    exists = resources.find_one({'domain': scan_info['domain'], 'url': scan_info['resource']})
-    timestamp = datetime.now()
-    if not exists:
-        resource ={
-                'domain': scan_info['domain'],
-                'subdomain': None,
-                'url': [{'url': scan_info['resource']}],
-                'ip': None,
-                'is_alive': True,
-                'additional_info':{
-                    'isp': None,
-                    'asn': None,
-                    'country': None,
-                    'region': None,
-                    'city': None,
-                    'org': None,
-                    'geoloc': '0 , 0'
-                },
-                'first_seen': timestamp,
-                'last_seen': timestamp,
-                'scanned': False,
-                'type': scan_info['type'],
-                'priority': scan_info['priority'],
-                'exposition': scan_info['exposition'],
-                'asset_value': None,
-                'has_urls': False,
-                'nmap_information': None,
-                'approved': False,
-        }
-        resources.insert_one(resource)
-    else:
-        resources.update_one({'_id': exists.get('_id')},
-         {'$set': 
-            {
-            'last_seen': timestamp
-            }})
-
-def add_simple_ip_resource(scan_info):
-    exists = resources.find_one({'domain': scan_info['domain'], 'ip': scan_info['resource']})
-    timestamp = datetime.now()
-    if not exists:
-        resource ={
-                'domain': scan_info['domain'],
-                'subdomain': None,
-                'url': None,
-                'ip': scan_info['resource'],
-                'is_alive': True,
-                'additional_info':{
-                    'isp': None,
-                    'asn': None,
-                    'country': None,
-                    'region': None,
-                    'city': None,
-                    'org': None,
-                    'geoloc': '0 , 0'
-                },
-                'first_seen': timestamp,
-                'last_seen': timestamp,
-                'scanned': False,
-                'type': scan_info['type'],
-                'priority': scan_info['priority'],
-                'exposition': scan_info['exposition'],
-                'asset_value': None,
-                'has_urls': False,
-                'nmap_information': None,
-                'approved': False,
-        }
-        resources.insert_one(resource)
-    else:
-        resources.update_one({'_id': exists.get('_id')},
-         {'$set': 
-            {
-            'last_seen': timestamp
-            }})
-
+# -------------------- RECON AND RESOURCES METHODS --------------------
 def add_resource(url_info, scan_info):
     # This makes it so only subdomains containing the domain will be added
     domain_with_dot = '.'+url_info['domain']
@@ -411,9 +211,17 @@ def add_resource(url_info, scan_info):
         resource_id = resources.insert_one(resource)
         resource['_id'] = str(resource_id.inserted_id)
         module_keyword = 'on_demand_recon_module' if scan_info['is_first_run'] else 'monitor_recon_module'
-        add_resource_found_log(resource, module_keyword)
+        add_resource_log(resource, module_keyword, 'found')
         add_resource_to_elastic(resource)
     else:
+        if exists['is_alive'] and not url_info['is_alive']:
+            resource = {
+                '_id': exists.get('_id'),
+                'domain': exists.get('domain'),
+                'subdomain': exists.get('subdomain')
+            }
+            module_keyword = 'on_demand_recon_module' if scan_info['is_first_run'] else 'monitor_recon_module'
+            add_resource_log(resource, module_keyword, 'found')
         resources.update_one({'_id': exists.get('_id')},
          {'$set': 
             {
@@ -432,64 +240,25 @@ def add_resource(url_info, scan_info):
             }})
     return
 
-#Returns resolved vulnerabilities
-def get_resolved_vulnerabilities():
-    vulns = web_vulnerabilities.find({'state': 'resolved'})
-    vulns.append(infra_vulnerabilities.find({'state': 'resolved'}))
-    vulns.append(code_vulnerabilities.find({'state': 'resolved'}))
-    return vulns
+def add_domain(scan_info, for_recon):
+    exists = domains.find_one({'domain': scan_info['domain']})
+    if not exists:
+        domains.insert_one({'domain': scan_info['domain'], 'for_recon':for_recon})
+    else:
+        domains.update_one({'_id': exists.get('_id')},
+         {'$set': 
+            {
+                'for_recon': for_recon
+            }})
 
 # Returns a list similar to the one generated by the start csv file
 def get_domains_for_monitor():
     found = domains.find()
     return_list = list()
     for domain in found:
-        return_list.append({'domain': domain['domain']})
+        if domain['for_recon']:
+            return_list.append({'domain': domain['domain']})
     return return_list
-
-def add_domain(scan_info):
-    exists = domains.find_one({'domain': scan_info['domain']})
-    if not exists:
-        domains.insert_one({'domain': scan_info['domain']})
-
-def get_alive_subdomains_from_target(target):
-    subdomains = resources.find({'domain': target, 'is_alive': 'True', 'scanned': False, 'approved': True})
-    subdomain_list = list()
-    for subdomain in subdomains:
-        current_subdomain = {
-            'domain': subdomain['domain'],
-            'subdomain': subdomain['subdomain']
-        }
-        subdomain_list.append(current_subdomain)
-    return subdomain_list
-
-def get_alive_subdomains_for_resolve(target):
-    subdomains = resources.find({'domain': target, 'is_alive': 'True', 'scanned': False})
-    subdomain_list = list()
-    for subdomain in subdomains:
-        current_subdomain = {
-            'domain': subdomain['domain'],
-            'subdomain': subdomain['subdomain']
-        }
-        subdomain_list.append(current_subdomain)
-    return subdomain_list
-
-def get_nmap_web_interfaces(scan_info):
-    resource = resources.find_one({'domain': scan_info['domain'], 'ip': scan_info['resource'], 'type': scan_info['type']})
-    to_send = list()
-    if type(resource['nmap_information']) != list:
-        if resource['nmap_information']['@portid'] == '80':
-            to_send.append('http://'+scan_info['resource'])
-        if resource['nmap_information']['@portid'] == '443':
-            to_send.append('https://'+scan_info['resource'])
-        return to_send
-    else:
-        for information in resource['nmap_information']:
-            if information['@portid'] == '80':
-                to_send.append('http://'+scan_info['resource'])
-            if information['@portid'] == '443':
-                to_send.append('https://'+scan_info['resource'])
-    return to_send
 
 def add_urls_from_aquatone(subdomain, has_urls, url_list):
     subdomain = resources.find_one({'subdomain': subdomain})
@@ -543,6 +312,52 @@ def add_nmap_information_to_subdomain(scan_information, nmap_json):
     add_resource_to_elastic(resource_to_update_elastic)
     return
 
+def approve_resources(info):
+    for resource in info['data']:
+        exists = resources.find_one({'domain': resource['domain'], 'subdomain': resource['subdomain'], 'type':resource['type']})
+        if not exists:
+            print('RESOURCE %s FROM %s WAS IN THE CSV BUT NOT IN OUR DATABASE. ADDING' % (resource['subdomain'], resource['domain']))
+            new_resource = {
+                'domain': resource['domain'],
+                'subdomain': resource['subdomain'],
+                'url': ast.literal_eval(resource['url']),
+                'ip': resource['ip'],
+                'additional_info':{
+                    'isp': resource['isp'],
+                    'asn': resource['asn'],
+                    'country': resource['country'],
+                    'region': resource['region'],
+                    'city': resource['city'],
+                    'org': resource['org'],
+                    'geoloc': resource['geoloc']
+                },
+                'first_seen': datetime.now(),
+                'last_seen': datetime.now(),
+                'is_alive': resource['is_alive'],
+                'has_urls': resource['has_urls'],
+                'approved': resource['approved'],
+                'type': resource['type'],
+                'priority': resource['priority'],
+                'exposition': resource['exposition'],
+                'asset_value': resource['asset_value'],
+                'nmap_information': None,
+                'scanned': False
+            }
+            resources.insert_one(new_resource)
+            continue
+        resources.update_one({'_id': exists.get('_id')},
+         {'$set': 
+            {
+            'approved': resource['approved'],
+            'priority': resource['priority'],
+            'exposition': resource['exposition'],
+            'asset_value': resource['asset_value']
+            }})
+
+
+
+# -------------------- REDMINE --------------------
+#TODO Update this for several trackers
 def add_custom_redmine_issue(redmine_issue):
     #We are going to suppose the resource exists on our local database
     #We will check first and send an exception if its not found
@@ -580,8 +395,6 @@ def add_custom_redmine_issue(redmine_issue):
     # TODO add redmine dropdown in which the user can choose the issue type, this will define the fields used
     #vulnerabilities.insert_one(vuln_to_add)
     return
-
-### Redmine update sequences ###
 #TODO: Update several fields
 def update_issue_if_needed(redmine_issue):
     # We receive an issue, we will first check out the tracker
@@ -682,7 +495,9 @@ def update_code_finding(redmine_issue):
         }})
     return
 
-###### ELASTICSEARCH ######
+
+
+# -------------------- ELASTICSEARCH --------------------
 def update_elasticsearch():
     new_resources = resources.find()
     resources_list = list()
@@ -746,19 +561,6 @@ def update_elasticsearch():
     for resource in resources_list:
         res = ELASTIC_CLIENT.index(index='resources',doc_type='_doc',id=resource['resource_id'],body=resource)
 
-#TODO Usar el que esta en utils.py
-def resolve_severity(cvss_score):
-    if cvss_score == 0:
-        return 'Informational'
-    elif 0 < cvss_score <= 3.9:
-        return 'Low'
-    elif 3.9 < cvss_score <= 6.9:
-        return 'Medium'
-    elif 6.9 < cvss_score <= 8.9:
-        return 'High'
-    else:
-        return 'Critical'
-
 def update_elasticsearch_logs():
     print('Synchronizing log files')
     logs_found = logs.find()
@@ -802,6 +604,7 @@ def add_web_vuln_to_elastic(vuln):
         'vulnerability_last_seen': vuln['last_seen'],
         'vulnerability_language': vuln['language'],
         'vulnerability_cvss_score': vuln['cvss_score'],
+        'vulnerability_cvss3_severity': utils.resolve_severity(vuln['cvss_score']),
         'vulnerability_vuln_type': vuln['vuln_type'],
         'vulnerability_state': vuln['state']
     }
@@ -830,6 +633,7 @@ def add_infra_vuln_to_elastic(vuln):
         'vulnerability_last_seen': vuln['last_seen'],
         'vulnerability_language': vuln['language'],
         'vulnerability_cvss_score': vuln['cvss_score'],
+        'vulnerability_cvss3_severity': utils.resolve_severity(vuln['cvss_score']),
         'vulnerability_vuln_type': vuln['vuln_type'],
         'vulnerability_state': vuln['state']
     }
@@ -926,9 +730,10 @@ def add_module_status_log(info):
     ELASTIC_CLIENT.index(index='log_module',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
 # We log if a vuln is found
-def add_found_vulnerability_log(vulnerability, vuln_obj):
+def add_found_vulnerability_log(vulnerability, vuln_obj=None):
+    module_keyword = 'code' if vuln_obj is None else vuln_obj.module_identifier
     log_to_add = {
-        "log_vulnerability_module_keyword": vuln_obj.module_identifier,
+        "log_vulnerability_module_keyword": module_keyword,
         "log_vulnerability_found": True,
         "log_vulnerability_id": str(vulnerability['_id']),
         "log_vulnerability_name": vulnerability['vulnerability_name'],
@@ -944,29 +749,103 @@ def add_not_found_vulnerability_log(vulnerability):
     #res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
 # We log if a resource is found. IT can be from a recon or a monitor
-def add_resource_found_log(resource, module_keyword):
+def add_resource_log(resource, module_keyword, state):
     log_to_add = {
         "log_resource_module_keyword": module_keyword,
         "log_resource_domain": resource['domain'],
         "log_resource_subdomain": resource['subdomain'],
         "log_resource_id": str(resource['_id']),
+        "log_resource_state": state,
         "log_resource_timestamp": datetime.now()
     }
     log_id = logs.insert_one(log_to_add)
     log_to_add['log_id'] = str(log_to_add.pop('_id'))
     res = ELASTIC_CLIENT.index(index='log_resource',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
-    
 
-# TODO Temporary function for result revision
-# start using project id instead of domain
-def get_vulnerabilities_for_email(scan_information):
-    return_list = list()
-    found_vulns = web_vulnerabilities.find()
-    found_vulns.append(infra_vulnerabilities.find())
-    for vuln in found_vulns:
-        return_list.append(vuln)
-    return return_list
+# -------------------- GETTERS FOR SCANNERS --------------------
+#Returns resolved vulnerabilities
+def get_resolved_vulnerabilities():
+    vulns = web_vulnerabilities.find({'state': 'resolved'})
+    vulns.append(infra_vulnerabilities.find({'state': 'resolved'}))
+    vulns.append(code_vulnerabilities.find({'state': 'resolved'}))
+    return vulns
 
+def get_alive_subdomains_from_target(target):
+    subdomains = resources.find({'domain': target, 'is_alive': 'True', 'scanned': False, 'approved': True})
+    subdomain_list = list()
+    for subdomain in subdomains:
+        current_subdomain = {
+            'domain': subdomain['domain'],
+            'subdomain': subdomain['subdomain']
+        }
+        subdomain_list.append(current_subdomain)
+    return subdomain_list
+
+def get_alive_subdomains_for_resolve(target):
+    subdomains = resources.find({'domain': target, 'is_alive': 'True', 'scanned': False})
+    subdomain_list = list()
+    for subdomain in subdomains:
+        current_subdomain = {
+            'domain': subdomain['domain'],
+            'subdomain': subdomain['subdomain']
+        }
+        subdomain_list.append(current_subdomain)
+    return subdomain_list
+
+def get_nmap_web_interfaces(scan_info):
+    resource = resources.find_one({'domain': scan_info['domain'], 'ip': scan_info['resource'], 'type': scan_info['type']})
+    to_send = list()
+    if type(resource['nmap_information']) != list:
+        if resource['nmap_information']['@portid'] == '80':
+            to_send.append('http://'+scan_info['resource'])
+        if resource['nmap_information']['@portid'] == '443':
+            to_send.append('https://'+scan_info['resource'])
+        return to_send
+    else:
+        for information in resource['nmap_information']:
+            if information['@portid'] == '80':
+                to_send.append('http://'+scan_info['resource'])
+            if information['@portid'] == '443':
+                to_send.append('https://'+scan_info['resource'])
+    return to_send
+
+# Gets every approved resource for scanning
+def get_data_for_approved_scan():
+    all_data = resources.find({'approved': True, 'scanned': False})
+    information = list()
+    for data in all_data:
+        information.append({
+            'is_first_run': False,
+            'language': settings['LANGUAGE'],
+            'type': data['type'],
+            'priority': data['priority'],
+            'exposition': data['exposition'],
+            'domain': data['domain']
+        })
+    import pandas as pd
+    info_to_return = pd.DataFrame(information).drop_duplicates().to_dict('records')
+    return info_to_return
+
+# This will return every url with http/https
+def get_responsive_http_resources(target):
+    subdomains = resources.find({'domain': target, 'has_urls': True, 'scanned': False, 'approved': True, 'is_alive': 'True'})
+    subdomain_list = list()
+    for subdomain in subdomains:
+        valid_urls_found = utils.get_distinct_urls(subdomain['url'])
+        for url_with_http in valid_urls_found:
+            if url_with_http:
+                current_subdomain = {
+                    'domain': subdomain['domain'],
+                    'ip': subdomain['ip'],
+                    'subdomain': subdomain['subdomain'],
+                    'url': url_with_http
+                }
+                subdomain_list.append(current_subdomain)
+    return subdomain_list
+
+
+
+# -------------------- VIEWS GETTERS --------------------
 def get_all_code_vulnerabilities():
     return_list = list()
     found_vulns = code_vulnerabilities.find()
@@ -988,71 +867,11 @@ def get_all_infra_vulnerabilities():
         return_list.append(vuln)
     return return_list
 
-def get_all_resources_for_email():
-    return_list = list()
-    found_resources = resources.find()
-    for resource in found_resources:
-        res = {
-            'domain': resource['domain'],
-            'subdomain': resource['subdomain'],
-            'url': resource['url'],
-            'ip': resource['ip'],
-            'isp': resource['additional_info']['isp'],
-            'asn': resource['additional_info']['asn'],
-            'country': resource['additional_info']['country'],
-            'region': resource['additional_info']['region'],
-            'city': resource['additional_info']['city'],
-            'org': resource['additional_info']['org'],
-            'geoloc': resource['additional_info']['geoloc'],
-            'first_seen': resource['first_seen'],
-            'last_seen': resource['last_seen'],
-            'is_alive': resource['is_alive'],
-            'has_urls': resource['has_urls'],
-            'approved': resource['approved'],
-            'scan_type': resource['type'],
-            'priority': resource['priority'],
-            'exposition': resource['exposition'],
-            'asset_value': resource['asset_value']
-        }
-        return_list.append(res)
-    return return_list
-
 def get_all_observations():
     return_list = list()
     found_observations = observations.find({})
     for value in found_observations:
         return_list.append(value)
-    return return_list
-
-# TODO Temporary function for result revision
-def get_resources_for_email(scan_information):
-    return_list = list()
-    found_resources = resources.find({'domain': scan_information['domain']})
-    for resource in found_resources:
-        res = {
-            'domain': resource['domain'],
-            'subdomain': resource['subdomain'],
-            'url': resource['url'],
-            'ip': resource['ip'],
-            'isp': resource['additional_info']['isp'],
-            'asn': resource['additional_info']['asn'],
-            'country': resource['additional_info']['country'],
-            'region': resource['additional_info']['region'],
-            'city': resource['additional_info']['city'],
-            'org': resource['additional_info']['org'],
-            'geoloc': resource['additional_info']['geoloc'],
-            'first_seen': resource['first_seen'],
-            'last_seen': resource['last_seen'],
-            'is_alive': resource['is_alive'],
-            'has_urls': resource['has_urls'],
-            'approved': resource['approved'],
-            'scan_type': resource['type'],
-            'priority': resource['priority'],
-            'exposition': resource['exposition'],
-            'asset_value': resource['asset_value']
-        }
-        return_list.append(res)
-    
     return return_list
 
 def get_all_resources():
@@ -1061,3 +880,52 @@ def get_all_resources():
     for resource in found_resources:
         return_list.append(resource)
     return return_list
+
+
+
+# -------------------- OTHER METHODS --------------------
+# For flagging resources as "scanned"
+def add_scanned_resources(scan_information_received):
+    if scan_information_received['type'] == 'domain':
+        for url in scan_information_received['target']:
+            resource = resources.find_one({'domain': scan_information_received['domain'], 'subdomain': url, 'scanned': False, 'type': scan_information_received['type']})
+            if resource is not None:
+                resources.update_one({'_id': resource.get('_id')},
+                {'$set': 
+                    {
+                    'scanned': True
+                    }})
+    else:
+        if scan_information_received['type'] == 'url':
+            #Url case, we search for url from mongo
+            resource = resources.find_one({'domain': scan_information_received['domain'], 'url': scan_information_received['target'], 'scanned': False, 'type': scan_information_received['type']})
+        else:
+            #IP case, we will search for ip here instead of url
+            resource = resources.find_one({'domain': scan_information_received['domain'], 'ip': scan_information_received['target'], 'scanned': False, 'type': scan_information_received['type']})
+        if resource is not None:
+            resources.update_one({'_id': resource.get('_id')},
+            {'$set': 
+                {
+                'scanned': True
+                }})
+
+# Removing the scanned flag on all resources
+def remove_scanned_flag():
+    cursor = resources.find({})
+    for document in cursor:
+        resources.update_one({'_id': document.get('_id')}, {'$set': {
+            'scanned': False
+        }})
+
+# Searches for vulnerability information in observations collection
+def get_observation_for_object(vuln_name,language):
+    finding_kb = observations.find_one({'TITLE': vuln_name, 'LANGUAGE': language})
+    return finding_kb
+
+# Searches libraries_versions collection for latest version of libraries found
+def find_last_version_of_librarie(name):
+    librarie = libraries_versions.find({'name':name})
+    if librarie.count() != 0:
+        return librarie[0]['version']
+    else:
+        return ''

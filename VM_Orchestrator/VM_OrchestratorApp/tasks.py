@@ -18,7 +18,9 @@ from VM_Orchestrator.settings import settings
 from VM_OrchestratorApp.src.utils import mongo, slack, redmine
 from VM_OrchestratorApp.src import constants
 
-# ------ RECON ------ #
+
+
+# -------------------- RECON -------------------- #
 @shared_task
 def subdomain_recon_task(scan_info):
     initial_recon.run_recon(scan_info)
@@ -33,7 +35,9 @@ def resolver_recon_task(scan_info):
     httprobe.start_httprobe(subdomains, scan_info)
     return
 
-# ------ SCANNING TASKS ------ #
+
+
+# -------------------- SCANNING TASKS -------------------- #
 @shared_task
 def run_specific_module(scan_information):
     print("run_spec...")
@@ -185,19 +189,9 @@ def acunetix_scan_task(scan_information):
     elif scan_information['scan_type'] == 'target':
         acunetix_scan.handle_target(scan_information)
 
-@shared_task
-def web_scan_from_nmap_results(scan_information):
-    if scan_information['scan_type'] == 'single' and scan_information['type'] == 'ip':
-        resources = mongo.get_nmap_web_interfaces(scan_information)
-        for resource in resources:
-            new_scan_info = copy.deepcopy(scan_information)
-            new_scan_info['type'] = 'url'
-            new_scan_info['resource'] = resource
-            run_web_scanners(new_scan_info)
-            pass
 
 
-# ------ PREDEFINED TASKS ------ #
+# -------------------- PREDEFINED TASKS -------------------- #
 @shared_task
 def run_recon(scan_information):
     slack.send_notification_to_channel('Starting recon against %s' % scan_information['domain'], '#vm-recon-module')
@@ -210,7 +204,7 @@ def run_recon(scan_information):
     })
 
     #We add the domain to our domain database
-    mongo.add_domain(scan_information)
+    mongo.add_domain(scan_information, True)
     # Scanning for subdomains
     subdomain_recon_task(scan_information)
     # We resolve to get http/https urls
@@ -226,7 +220,6 @@ def run_recon(scan_information):
     recon_finished(scan_information)
     return
 
-### WEB SCANS ###
 @shared_task
 def run_web_scanners(scan_information):
     # Deep copy just in case
@@ -240,11 +233,6 @@ def run_web_scanners(scan_information):
         for subdomain in subdomains_http:
             only_urls.append(subdomain['url'])
         web_information['target'] = only_urls
-    # Single url case
-    else:
-        web_information['scan_type'] = 'single'
-        web_information['target'] = web_information['resource']
-        mongo.add_simple_url_resource(web_information)
 
     # Chain is defined
     # We flag the scanned resources as 'scanned'
@@ -272,7 +260,6 @@ def run_web_scanners(scan_information):
     execution_chord.apply_async(queue='fast_queue', interval=60)
     return
 
-### IP SCANS ###
 @shared_task
 def run_ip_scans(scan_information):
     # Deepcopy just in case
@@ -286,9 +273,6 @@ def run_ip_scans(scan_information):
         for subdomain in subdomains_plain:
             only_subdomains.append(subdomain['subdomain'])
         ip_information['target'] = only_subdomains
-    else:
-        ip_information['scan_type'] = 'single'
-        ip_information['target'] = ip_information['resource']
 
     # We will flag the resource as scanned here, mainly because all alive resources will reach this point
     execution_chord = chord(
@@ -306,50 +290,6 @@ def run_ip_scans(scan_information):
 def approve_resources(information):
     mongo.approve_resources(information)
 
-# ------ END ALERTS ------ #
-@shared_task
-def on_demand_scan_finished(results, information):
-    add_scanned_resources(information)
-    if information['email'] is None:
-        return
-    # TODO REMOVE Send email with scan results
-    vulnerabilities = mongo.get_vulnerabilities_for_email(information)
-    df = pd.DataFrame(vulnerabilities)
-    if df.empty:
-        print('No vulns found! Canceling email')
-        return
-    from VM_OrchestratorApp.src.utils import email_handler
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    df.to_csv(ROOT_DIR + '/output.csv', index=False, columns=['domain', 'resource', 'vulnerability_name', 'extra_info',
-    'date_found', 'last_seen', 'language', 'state'])
-    email_handler.send_email_with_attachment(ROOT_DIR+'/output.csv', information['email'], "CSV with vulnerabilities attached to email",
-    "Orchestrator: Vulnerabilities found!")
-    try:
-        os.remove(ROOT_DIR + '/output.csv')
-    except FileNotFoundError:
-        print('ERROR:Output for on demand scan was not found')
-        pass
-    slack.send_notification_to_channel('_ On demand scan against %s finished! _' % information['resource'], '#vm-ondemand')
-    return
-
-@shared_task
-def web_security_scan_finished(results):
-    print('Web security scan finished!')
-    return
-
-@shared_task
-def ip_security_scan_finished(results, info):
-    web_scan_from_nmap_results(info)
-    print('IP security scan finished!')
-    return
-
-@shared_task
-def recon_finished(scan_information):
-    slack.send_notification_to_channel('_ Recon against %s finished _' % scan_information['domain'], '#vm-recon-module')
-    print('Recon finished!')
-    return
-
-# ------ MONITOR TOOLS ------ #
 @shared_task
 def add_scanned_resources(scan_info):
     #Here we flag the resource as 'scanned'
@@ -384,6 +324,32 @@ def add_code_vuln(data):
     data['_id'] = mongo.add_code_vuln(data)
     redmine.create_new_code_issue(data)
     return
+
+
+
+# -------------------- TASK CALLBACKS -------------------- #
+@shared_task
+def on_demand_scan_finished(results, information):
+    add_scanned_resources(information)
+    slack.send_notification_to_channel('_ On demand scan against %s finished! _' % information['resource'], '#vm-ondemand')
+    return
+
+@shared_task
+def web_security_scan_finished(results):
+    print('Web security scan finished!')
+    return
+
+@shared_task
+def ip_security_scan_finished(results, info):
+    print('IP security scan finished!')
+    return
+
+@shared_task
+def recon_finished(scan_information):
+    slack.send_notification_to_channel('_ Recon against %s finished _' % scan_information['domain'], '#vm-recon-module')
+    print('Recon finished!')
+    return
+
 
 # ------ PERIODIC TASKS ------ #
 # We monitor assets on our domain database
