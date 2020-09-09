@@ -1,0 +1,151 @@
+{
+    "SECRET_KEY": "",
+    "DEBUG": true,
+    "LANGUAGE": "spa",
+    "ALLOWED_HOSTS" : ["127.0.0.1", "localhost"],
+    "PROJECT":{
+        "NAME": "Project",
+        "SCAN_START_HOUR": "0",
+        "SCAN_START_MINUTE": "0",
+        "RECON_START_HOUR": "0",
+        "RECON_START_MINUTE": "0",
+        "ACTIVATE_NESSUS": false,
+        "ACTIVATE_ACUNETIX": false,
+        "ACTIVATE_BURP": false,
+        "ACTIVATE_INVASIVE_SCANS": false
+    },
+    "CELERY":{
+        "BROKER_URL": "",
+        "C_FORCE_ROOT": "true"
+    },
+    "WAPPALIZE_KEY": "",
+    "SLACK":{
+        "INTERNAL_SLACK_KEY" : "",
+        "INTERNAL_SLACK_CHANNEL" : ""
+    },
+    "MONGO":{
+        "CLIENT_URL": "mongodb://localhost:27017/",
+        "DATABASE": "Project",
+        "DOMAINS_COLLECTION": "domains",
+        "LOGS_COLLECTION": "logs",
+        "OBSERVATIONS_COLLECTION": "observations",
+        "LIBRARIES_COLLECTION": "libraries_versions",
+        "RESOURCES_COLLECTION": "resources",
+        "WEB_VULNERABILITIES_COLLECTION": "web_vulnerabilities",
+        "INFRA_VULNERABILITIES_COLLECTION": "infra_vulnerabilities",
+        "CODE_VULNERABILITIES_COLLECTION": "code_vulnerabilities"
+    },
+    "BURP":{
+        "bash_folder":"",
+        "blacklist_findings": ["Strict transport security not enforced","Frameable response (potential Clickjacking)","Content type incorrectly stated","Unencrypted communications"]
+        },
+    "ELASTIC":{
+        "IP": "localhost",
+        "PORT": 9200
+    },
+    "WORDLIST":{
+        "ssh_ftp_user": "<PATH>/VM-Orchestrator/VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/usernames-shortlist.txt",
+        "ssh_ftp_pass": "<PATH>/VM-Orchestrator/VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/default-pass.txt",
+        "ffuf_list": "<PATH>/VM-Orchestrator/VM_Orchestrator/VM_OrchestratorApp/src/scanning/tools/ffuf_wordlist.txt"
+    },
+    "REDMINE":{
+        "url": "",
+        "user": "",
+        "password": "",
+        "project_name": "",
+        "IDENTIFICATORS":{
+            "ASSIGNED_USER": 1,
+            "WATCHERS": [1],
+            "STATUS_NEW": 1,
+            "STATUS_NEW_VERIFY": 7,
+            "STATUS_REOPENED": 8,
+            "STATUS_SOLVED": 3,
+            "WEB_FINDING":{
+                "FINDING_TRACKER": 4,
+                "IDENTIFIER":2,
+                "DOMAIN": 3,
+                "RESOURCE": 4,
+                "DATE_FOUND": 5,
+                "LAST_SEEN": 6,
+                "CVSS_SCORE": 7,
+                "KB_DESCRIPTION":8,
+                "KB_DESCRIPTION_NOTES":9,
+                "KB_IMPLICATION":10,
+                "KB_RECOMMENDATION":11,
+                "KB_RECOMMENDATION_NOTES":12
+            },
+            "INFRA_FINDING":{
+                "FINDING_TRACKER": 5,
+                "IDENTIFIER":2,
+                "DOMAIN": 3,
+                "RESOURCE": 4,
+                "DATE_FOUND": 5,
+                "LAST_SEEN": 6,
+                "CVSS_SCORE": 7,
+                "KB_DESCRIPTION":8,
+                "KB_DESCRIPTION_NOTES":9,
+                "KB_IMPLICATION":10,
+                "KB_RECOMMENDATION":11,
+                "KB_RECOMMENDATION_NOTES":12
+            },
+            "CODE_FINDING":{
+                "FINDING_TRACKER": 6,
+                "IDENTIFIER":2,
+                "COMPONENT":13,
+                "LINE":14,
+                "AFFECTED_CODE":15,
+                "FIRST_COMMIT":16,
+                "LAST_COMMIT":17,
+                "USERNAME":18,
+                "PIPELINE_NAME":19,
+                "TOOL_SEVERITY":20,
+                "DATE_FOUND": 5,
+                "LAST_SEEN": 6,
+                "CVSS_SCORE": 7,
+                "KB_DESCRIPTION":8,
+                "KB_DESCRIPTION_NOTES":9,
+                "KB_IMPLICATION":10,
+                "KB_RECOMMENDATION":11,
+                "KB_RECOMMENDATION_NOTES":12
+            },
+            "SEVERITY":{
+                "INFORMATIONAL": 10,
+                "LOW": 1,
+                "MEDIUM": 11,
+                "HIGH": 3,
+                "CRITICAL": 12
+            }
+        }
+    },
+    "EMAIL":{
+        "BACKEND": "",
+        "USE_TLS" : true,
+        "HOST" : "",
+        "HOST_USER" : "",
+        "HOST_PASSWORD": "",
+        "PORT" : 0
+    },
+    "NESSUS":{
+        "URL":"",
+        "USER":"",
+        "PASSWORD":"",
+        "API":"",
+        "SCAN_TEMPLATE":"a",
+        "FOLDER_ID":"",
+        "WHITE_LIST_SEVERITY":2,
+        "BLACK_LIST":["SSL Version 2 and 3 Protocol Detection"]
+    },
+    "ACUNETIX":{
+        "URL":"",
+        "USER":"",
+        "PASSWORD_HASH":"",
+        "LOGOUT_PREVIOUS":true,
+        "REMEMBER_ME":false,
+        "SCAN_PROFILE":"",
+        "UI_SESSION_ID":"",
+        "WHITE_LIST_SEVERITY" : 1,
+        "BLACK_LIST":["TLS 1.0 enabled","Cookie(s) without HttpOnly flag set","Vulnerable Javascript library","SSL 2.0 deprecated protocol","CORS (Cross-Origin Resource Sharing) origin validation failure","The DROWN attack (SSLv2 supported)","Clickjacking: X-Frame-Options header missing","Cookie(s) without Secure flag set","Your SSL certificate is about to expire"],
+        "MAX_SCANS_POSSIBLE": 5
+    }
+
+}
