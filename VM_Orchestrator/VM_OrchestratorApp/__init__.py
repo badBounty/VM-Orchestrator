@@ -9,4 +9,7 @@ ELASTIC_CLIENT = None
 if settings['ELASTIC']['IP'] != '':
     ELASTIC_CLIENT = Elasticsearch([{'host':settings['ELASTIC']['IP'],'port':settings['ELASTIC']['PORT']}])
 MONGO_CLIENT = pymongo.MongoClient(MONGO_INFO['CLIENT_URL'], connect=False)
-INTERNAL_SLACK_WEB_CLIENT = WebClient(settings['SLACK']['INTERNAL_SLACK_KEY'])
+if settings['SLACK']['INTERNAL_SLACK_KEY'] != '':
+    INTERNAL_SLACK_WEB_CLIENT = WebClient(settings['SLACK']['INTERNAL_SLACK_KEY'])
+else:
+    INTERNAL_SLACK_WEB_CLIENT = None

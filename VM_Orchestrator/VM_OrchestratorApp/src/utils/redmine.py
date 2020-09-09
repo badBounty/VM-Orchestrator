@@ -1,6 +1,7 @@
 # pylint: disable=import-error
 from VM_Orchestrator.settings import settings, redmine_client
 from VM_Orchestrator.settings import REDMINE_IDS
+from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 
 import urllib3
 from datetime import datetime
@@ -15,10 +16,15 @@ def get_issues_from_project():
 def issue_already_exists(vuln):
     timestamp = datetime.now()
     issues = redmine_client.issue.filter(project_id=settings['REDMINE']['project_name'], status_id='*')
+    if isinstance(vuln, Vulnerability):
+        id_to_use = vuln.id
+    else:
+        id_to_use = vuln['_id']
+
     for issue in issues:
         #Web case
         if issue.tracker.id == REDMINE_IDS['WEB_FINDING']['FINDING_TRACKER']:
-            if(vuln.id == issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['IDENTIFIER']).value):
+            if(id_to_use == issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['IDENTIFIER']).value):
                 # This means the issue already exists in redmine. We will update the description and last seen
                 # If the status of the issue is set as resolved, we will also send an alert and change the status
                 if issue.status.id == REDMINE_IDS['STATUS_SOLVED']:
@@ -38,7 +44,7 @@ def issue_already_exists(vuln):
                 return True
         #Infra case
         elif issue.tracker.id == REDMINE_IDS['INFRA_FINDING']['FINDING_TRACKER']:
-            if(vuln.id == issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['IDENTIFIER']).value):
+            if(id_to_use == issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['IDENTIFIER']).value):
                 if issue.status.id == REDMINE_IDS['STATUS_SOLVED']:
                     redmine_client.issue.update(issue.id, description=vuln.custom_description,status_id=REDMINE_IDS['STATUS_NEW'],
                     custom_fields=[
@@ -56,7 +62,7 @@ def issue_already_exists(vuln):
                 return True
         #Code case
         elif issue.tracker.id == REDMINE_IDS['CODE_FINDING']['FINDING_TRACKER']:
-            if(vuln['_id'] == issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['IDENTIFIER']).value):
+            if(id_to_use == issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['IDENTIFIER']).value):
                 if issue.status.id == REDMINE_IDS['STATUS_SOLVED']:
                     redmine_client.issue.update(issue.id, description=vuln['Description'],status_id=REDMINE_IDS['STATUS_NEW'],
                     custom_fields=[
@@ -101,11 +107,11 @@ def create_new_web_issue(vuln):
     {'id': REDMINE_IDS['WEB_FINDING']['DATE_FOUND'], 'value': str(vuln.time.strftime("%Y-%m-%d"))},
     {'id': REDMINE_IDS['WEB_FINDING']['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))},
     {'id': REDMINE_IDS['WEB_FINDING']['CVSS_SCORE'], 'value': vuln.cvss},
-    {'id': REDMINE_IDS['WEB_FINDING']['KB_DESCRIPTION'], 'value': vuln.observation.observation_title},
-    {'id': REDMINE_IDS['WEB_FINDING']['KB_DESCRIPTION_NOTES'], 'value': vuln.observation.observation_note},
-    {'id': REDMINE_IDS['WEB_FINDING']['KB_IMPLICATION'], 'value': vuln.observation.implication},
-    {'id': REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION'], 'value': vuln.observation.recommendation_title},
-    {'id': REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION_NOTES'], 'value': vuln.observation.recommendation_urls}
+    {'id': REDMINE_IDS['WEB_FINDING']['KB_DESCRIPTION'], 'value': str(vuln.observation.observation_title)},
+    {'id': REDMINE_IDS['WEB_FINDING']['KB_DESCRIPTION_NOTES'], 'value': str(vuln.observation.observation_note)},
+    {'id': REDMINE_IDS['WEB_FINDING']['KB_IMPLICATION'], 'value': str(vuln.observation.implication)},
+    {'id': REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION'], 'value': str(vuln.observation.recommendation_title)},
+    {'id': REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION_NOTES'], 'value': str(vuln.observation.recommendation_urls)}
     ]
     filesToUpload = []
     if vuln.attachment_path is not None:  filesToUpload.append({'path': vuln.attachment_path,  'filename': vuln.attachment_name})
@@ -138,11 +144,11 @@ def create_new_infra_issue(vuln):
     {'id': REDMINE_IDS['INFRA_FINDING']['DATE_FOUND'], 'value': str(vuln.time.strftime("%Y-%m-%d"))},
     {'id': REDMINE_IDS['INFRA_FINDING']['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))},
     {'id': REDMINE_IDS['INFRA_FINDING']['CVSS_SCORE'], 'value': vuln.cvss},
-    {'id': REDMINE_IDS['INFRA_FINDING']['KB_DESCRIPTION'], 'value': vuln.observation.observation_title},
-    {'id': REDMINE_IDS['INFRA_FINDING']['KB_DESCRIPTION_NOTES'], 'value': vuln.observation.observation_note},
-    {'id': REDMINE_IDS['INFRA_FINDING']['KB_IMPLICATION'], 'value': vuln.observation.implication},
-    {'id': REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION'], 'value': vuln.observation.recommendation_title},
-    {'id': REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION_NOTES'], 'value': vuln.observation.recommendation_urls}
+    {'id': REDMINE_IDS['INFRA_FINDING']['KB_DESCRIPTION'], 'value': str(vuln.observation.observation_title)},
+    {'id': REDMINE_IDS['INFRA_FINDING']['KB_DESCRIPTION_NOTES'], 'value': str(vuln.observation.observation_note)},
+    {'id': REDMINE_IDS['INFRA_FINDING']['KB_IMPLICATION'], 'value': str(vuln.observation.implication)},
+    {'id': REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION'], 'value': str(vuln.observation.recommendation_title)},
+    {'id': REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION_NOTES'], 'value': str(vuln.observation.recommendation_urls)}
     ]
     filesToUpload = []
     if vuln.attachment_path is not None:  filesToUpload.append({'path': vuln.attachment_path,  'filename': vuln.attachment_name})
