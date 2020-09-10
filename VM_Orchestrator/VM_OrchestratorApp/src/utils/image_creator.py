@@ -29,6 +29,19 @@ def create_image_from_file(path_filename):
 
 
 def create_image_from_string(message):
+    global font_size,font,black,image_format
+    listString = message.splitlines()
+    extraL = (1080, len(listString)*16 + 24) # Le sumo un renglon y medio.
+    img = Image.new('RGB', extraL, (255, 255, 255))
+    d = ImageDraw.Draw(img)
+    d.text((6, 12), message, fill=black,font=font)
+    buffered = BytesIO()
+    img.save(buffered, format=image_format)
+    img_str = base64.b64encode(buffered.getvalue())
+    return img_str.decode('utf-8')
+
+'''
+def create_image_from_string(message):
     global font_size,font,black,extraL,image_format
     img = Image.new('RGB', small, (255, 255, 255))
     d = ImageDraw.Draw(img)
@@ -36,4 +49,4 @@ def create_image_from_string(message):
     buffered = BytesIO()
     img.save(buffered, format=image_format)
     img_str = base64.b64encode(buffered.getvalue())
-    return img_str.decode('utf-8')
+    return img_str.decode('utf-8')'''

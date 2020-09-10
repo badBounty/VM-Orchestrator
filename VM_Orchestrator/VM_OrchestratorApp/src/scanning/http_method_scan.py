@@ -1,11 +1,24 @@
 # pylint: disable=import-error
-from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine
+from VM_OrchestratorApp.src.utils import slack, utils, mongo, redmine, image_creator
 from VM_OrchestratorApp.src import constants
 from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 
 import requests
+import json
+import xmltodict
+import uuid
+import xml
 import copy
+from datetime import datetime
+import subprocess
 import traceback
+import os
+import re
+import base64
+from os.path import isdir, isfile, join
+from PIL import Image
+from io import BytesIO
+from contextlib import suppress
 
 MODULE_NAME = 'HTTP method module'
 MODULE_IDENTIFIER = 'httpmethod_module'
@@ -118,27 +131,62 @@ def delete_response(url):
         return None
     return response
 
-def add_vulnerability(scan_info, message):
+def add_vulnerability(scan_info, data, message):
     vulnerability = Vulnerability(constants.UNSECURE_METHOD, scan_info, message)
+
+    img_str = image_creator.create_image_from_string(data)
+    vulnerability.add_image_string(img_str)
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    output_dir = ROOT_DIR+'/tools_output/' + str(uuid.uuid4().hex) + '.png'
+    im = Image.open(BytesIO(base64.b64decode(img_str)))
+    im.save(output_dir, 'PNG')
+    vulnerability.add_attachment(output_dir, 'NMAP-result.png')
 
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
+    with suppress(Exception):
+        os.remove(output_dir)
 
 
-def scan_target(scan_info, url_to_scan):
-    responses = list()
-    response_put = put_response(url_to_scan)
-    if response_put is not None:
-        responses.append({'method': 'PUT', 'response': response_put})
+def scan_target(scan_info, url_with_port):
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    OUTPUT_FULL_NAME = ROOT_DIR + '/tools_output/' + str(uuid.uuid4().hex) + '.txt'
+    
+    sp = subprocess.run(['nmap', '-Pn', '--script', 'http-methods,http-trace', '--script-args', 'http-methods.test-all=true', url_with_port], capture_output=True, timeout=500)
+    data = sp.stdout.decode()
+    
+    with open(OUTPUT_FULL_NAME, "w") as f: f.write(data)
 
-    response_delete = delete_response(url_to_scan)
-    if response_delete is not None:
-        responses.append({'method': 'DELETE', 'response': response_delete})  
+    dataList = data.splitlines()
+    
+    listVulnerablePorts = []
 
-    response_options = options_response(url_to_scan)
-    if response_options is not None:
-        responses.append({'method': 'OPTIONS', 'response': response_options})
+    for i in range(len(dataList)):
+        match = re.search("([0-9]{1,5})/tcp|udp.*open", dataList[i])
+        if match:
+            portStr = str(match.group(1))
+            cnt = i + 1
+            while dataList[cnt].startswith("| ") or dataList[cnt].startswith("|_ "):
+                if dataList[cnt].startswith("|_ "):
+                    if " methods: " in dataList[cnt]:
+                        listVulnerablePorts.append([portStr, str(dataList[cnt])[str(dataList[cnt]).find(" methods: ")+10:].replace("\t", " ").replace("  ", " ")]); break
+                else: cnt += 1
+    if listVulnerablePorts:
+        message = "Potentially vulnerable HTTP methods were found in the target:\n\n"
+        for i in range(len(listVulnerablePorts)):
+            message += "* On port " + listVulnerablePorts[i][0] + " the following HTTP methods were found: " + listVulnerablePorts[i][1].strip().replace(" ", ", ") + "\n\n"
+        add_vulnerability(scan_info, data, message)
+    else:
+        print("No vulnerable HTTP methods were found.")
+
+    return
+
+    '''is_sslscan = re.search(re_is_sslscan, data)
+        ip = is_sslscan.group(1)
+        if re.search(re_domain, is_sslscan.group(2)): hostname = is_sslscan.group(2)
+        else:                                         hostname = None
+        port = is_sslscan.group(3)'''
 
     extensive_methods = False
     message = "Found extended HTTP Methods:" + '\n'
