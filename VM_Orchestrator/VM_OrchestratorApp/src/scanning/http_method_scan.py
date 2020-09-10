@@ -42,7 +42,11 @@ def handle_target(info):
     
     for url in info['target']:
         sub_info = copy.deepcopy(info)
-        sub_info['target'] = url
+        split_url = url.split('/')
+        try: final_url = split_url[2] 
+        except IndexError: final_url = url
+        sub_info['target'] = final_url
+        print(sub_info['target'])
         scan_target(sub_info, sub_info['target'])
 
     print('Module HTTP Method Scan finished against %s' % info['domain'])
@@ -149,12 +153,13 @@ def add_vulnerability(scan_info, data, message):
         os.remove(output_dir)
 
 
-def scan_target(scan_info, url_with_port):
+def scan_target(scan_info, url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     OUTPUT_FULL_NAME = ROOT_DIR + '/tools_output/' + str(uuid.uuid4().hex) + '.txt'
     
-    sp = subprocess.run(['nmap', '-Pn', '--script', 'http-methods,http-trace', '--script-args', 'http-methods.test-all=true', url_with_port], capture_output=True, timeout=500)
+    sp = subprocess.run(['nmap', '-Pn', '--script', 'http-methods,http-trace', '--script-args', 'http-methods.test-all=true', url_to_scan], capture_output=True, timeout=500)
     data = sp.stdout.decode()
+    print(data)
     
     with open(OUTPUT_FULL_NAME, "w") as f: f.write(data)
 
@@ -179,22 +184,3 @@ def scan_target(scan_info, url_with_port):
         add_vulnerability(scan_info, data, message)
     else:
         print("No vulnerable HTTP methods were found.")
-
-    return
-
-    '''is_sslscan = re.search(re_is_sslscan, data)
-        ip = is_sslscan.group(1)
-        if re.search(re_domain, is_sslscan.group(2)): hostname = is_sslscan.group(2)
-        else:                                         hostname = None
-        port = is_sslscan.group(3)'''
-
-    extensive_methods = False
-    message = "Found extended HTTP Methods:" + '\n'
-    if not responses:
-        return
-    for response in responses:
-        if response['response'].status_code == 200:
-            extensive_methods = True
-            message = message + "Method " + response['method'] + " found." + "\n"
-    if extensive_methods:
-        add_vulnerability(scan_info, message)

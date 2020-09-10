@@ -134,7 +134,7 @@ def scan_target(scan_info, url_to_scan):
     response = get_response(url_to_scan)
     if response is None:
         return
-    message = 'Response Headers From: ' + url_to_scan+'\n'
+    message = 'Response Headers From: ' + url_to_scan+'\n\n'
     for h in response.headers:
         message += h + " : " + response.headers[h]+'\n'
     img_b64 = image_creator.create_image_from_string(message)
