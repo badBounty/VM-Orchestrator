@@ -5,6 +5,7 @@ from VM_OrchestratorApp.src.objects.vulnerability import Vulnerability
 
 import urllib3
 from datetime import datetime
+from contextlib import suppress
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -35,7 +36,12 @@ def issue_already_exists(vuln):
                     {'id': REDMINE_IDS['WEB_FINDING']['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))}
                     ])
                     return True
+                # Delete attachments so we can add new ones
+                with suppress(Exception):
+                    for attachment in issue.attachments:
+                        redmine_client.attachment.delete(attachment.id)
                 redmine_client.issue.update(issue.id, description=vuln.custom_description,
+                uploads=vuln.attachments,
                 custom_fields=[
                 {'id': REDMINE_IDS['WEB_FINDING']['DOMAIN'], 'value': vuln.domain},
                 {'id': REDMINE_IDS['WEB_FINDING']['RESOURCE'], 'value': vuln.target},
@@ -53,7 +59,11 @@ def issue_already_exists(vuln):
                     {'id': REDMINE_IDS['INFRA_FINDING']['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))}
                     ])
                     return True
+                with suppress(Exception):
+                    for attachment in issue.attachments:
+                        redmine_client.attachment.delete(attachment.id)
                 redmine_client.issue.update(issue.id, description=vuln.custom_description,
+                uploads=vuln.attachments,
                 custom_fields=[
                 {'id': REDMINE_IDS['INFRA_FINDING']['DOMAIN'], 'value': vuln.domain},
                 {'id': REDMINE_IDS['INFRA_FINDING']['RESOURCE'], 'value': vuln.target},
@@ -113,11 +123,12 @@ def create_new_web_issue(vuln):
     {'id': REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION'], 'value': str(vuln.observation.recommendation_title)},
     {'id': REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION_NOTES'], 'value': str(vuln.observation.recommendation_urls)}
     ]
-    filesToUpload = []
-    if vuln.attachment_path is not None:  filesToUpload.append({'path': vuln.attachment_path,  'filename': vuln.attachment_name})
-    if vuln.attachment_path2 is not None: filesToUpload.append({'path': vuln.attachment_path2, 'filename': vuln.attachment_name2})
-    if vuln.attachment_path3 is not None: filesToUpload.append({'path': vuln.attachment_path3, 'filename': vuln.attachment_name3})
-    if filesToUpload: issue.uploads = filesToUpload
+    #filesToUpload = []
+    #if vuln.attachment_path is not None:  filesToUpload.append({'path': vuln.attachment_path,  'filename': vuln.attachment_name})
+    #if vuln.attachment_path2 is not None: filesToUpload.append({'path': vuln.attachment_path2, 'filename': vuln.attachment_name2})
+    #if vuln.attachment_path3 is not None: filesToUpload.append({'path': vuln.attachment_path3, 'filename': vuln.attachment_name3})
+    #if filesToUpload: issue.uploads = filesToUpload
+    issue.uploads = vuln.attachments
     try:
         issue.save()
     except Exception as e:
@@ -151,10 +162,11 @@ def create_new_infra_issue(vuln):
     {'id': REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION_NOTES'], 'value': str(vuln.observation.recommendation_urls)}
     ]
     filesToUpload = []
-    if vuln.attachment_path is not None:  filesToUpload.append({'path': vuln.attachment_path,  'filename': vuln.attachment_name})
-    if vuln.attachment_path2 is not None: filesToUpload.append({'path': vuln.attachment_path2, 'filename': vuln.attachment_name2})
-    if vuln.attachment_path3 is not None: filesToUpload.append({'path': vuln.attachment_path3, 'filename': vuln.attachment_name3})
-    if filesToUpload: issue.uploads = filesToUpload
+    #if vuln.attachment_path is not None:  filesToUpload.append({'path': vuln.attachment_path,  'filename': vuln.attachment_name})
+    #if vuln.attachment_path2 is not None: filesToUpload.append({'path': vuln.attachment_path2, 'filename': vuln.attachment_name2})
+    #if vuln.attachment_path3 is not None: filesToUpload.append({'path': vuln.attachment_path3, 'filename': vuln.attachment_name3})
+    #if filesToUpload: issue.uploads = filesToUpload
+    issue.uploads = vuln.attachments
     try:
         issue.save()
     except Exception as e:

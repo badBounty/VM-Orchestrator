@@ -395,6 +395,7 @@ def add_custom_redmine_issue(redmine_issue):
     # TODO add redmine dropdown in which the user can choose the issue type, this will define the fields used
     #vulnerabilities.insert_one(vuln_to_add)
     return
+
 #TODO: Update several fields
 def update_issue_if_needed(redmine_issue):
     # We receive an issue, we will first check out the tracker
@@ -410,7 +411,7 @@ def update_issue_if_needed(redmine_issue):
 
 def update_web_finding(redmine_issue):
     cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['CVSS_SCORE']).value
-    status = redmine_issue.status.name
+    status_id = redmine_issue.status.id
     vulnerability = web_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['IDENTIFIER']).value)})
     try:
         web_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
@@ -419,19 +420,19 @@ def update_web_finding(redmine_issue):
     except ValueError:
         pass
 
-    if status == 'Remediada':
+    if status_id == REDMINE_IDS['STATUS_SOLVED']:
         web_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'resolved' 
         }})
-    elif status == 'Cerrada':
+    elif status_id == REDMINE_IDS['STATUS_CLOSED']:
         web_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'closed' 
         }})
-    elif status == 'Confirmada':
+    elif status_id == REDMINE_IDS['STATUS_CONFIRMED']:
         web_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'confirmed' 
         }})
-    elif status == 'Rechazada':
+    elif status_id == REDMINE_IDS['STATUS_REJECTED']:
         web_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'rejected' 
         }})
@@ -761,6 +762,8 @@ def add_resource_log(resource, module_keyword, state):
     log_id = logs.insert_one(log_to_add)
     log_to_add['log_id'] = str(log_to_add.pop('_id'))
     res = ELASTIC_CLIENT.index(index='log_resource',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
+
+
 
 # -------------------- GETTERS FOR SCANNERS --------------------
 #Returns resolved vulnerabilities

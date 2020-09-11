@@ -42,7 +42,11 @@ def handle_target(info):
     
     for url in info['target']:
         sub_info = copy.deepcopy(info)
-        sub_info['target'] = url
+        split_url = url.split('/')
+        try: final_url = split_url[2] 
+        except IndexError: final_url = url
+        sub_info['target'] = final_url
+        print(sub_info['target'])
         scan_target(sub_info, sub_info['target'])
 
     print('Module HTTP Method Scan finished against %s' % info['domain'])
@@ -149,12 +153,13 @@ def add_vulnerability(scan_info, data, message):
         os.remove(output_dir)
 
 
-def scan_target(scan_info, url_with_port):
+def scan_target(scan_info, url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     OUTPUT_FULL_NAME = ROOT_DIR + '/tools_output/' + str(uuid.uuid4().hex) + '.txt'
     
-    sp = subprocess.run(['nmap', '-Pn', '--script', 'http-methods,http-trace', '--script-args', 'http-methods.test-all=true', url_with_port], capture_output=True, timeout=500)
+    sp = subprocess.run(['nmap', '-Pn', '--script', 'http-methods,http-trace', '--script-args', 'http-methods.test-all=true', url_to_scan], capture_output=True, timeout=500)
     data = sp.stdout.decode()
+    print(data)
     
     with open(OUTPUT_FULL_NAME, "w") as f: f.write(data)
 
