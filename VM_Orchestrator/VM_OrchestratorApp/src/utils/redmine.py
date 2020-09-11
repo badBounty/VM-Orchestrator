@@ -123,11 +123,6 @@ def create_new_web_issue(vuln):
     {'id': REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION'], 'value': str(vuln.observation.recommendation_title)},
     {'id': REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION_NOTES'], 'value': str(vuln.observation.recommendation_urls)}
     ]
-    #filesToUpload = []
-    #if vuln.attachment_path is not None:  filesToUpload.append({'path': vuln.attachment_path,  'filename': vuln.attachment_name})
-    #if vuln.attachment_path2 is not None: filesToUpload.append({'path': vuln.attachment_path2, 'filename': vuln.attachment_name2})
-    #if vuln.attachment_path3 is not None: filesToUpload.append({'path': vuln.attachment_path3, 'filename': vuln.attachment_name3})
-    #if filesToUpload: issue.uploads = filesToUpload
     issue.uploads = vuln.attachments
     try:
         issue.save()
@@ -161,17 +156,11 @@ def create_new_infra_issue(vuln):
     {'id': REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION'], 'value': str(vuln.observation.recommendation_title)},
     {'id': REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION_NOTES'], 'value': str(vuln.observation.recommendation_urls)}
     ]
-    filesToUpload = []
-    #if vuln.attachment_path is not None:  filesToUpload.append({'path': vuln.attachment_path,  'filename': vuln.attachment_name})
-    #if vuln.attachment_path2 is not None: filesToUpload.append({'path': vuln.attachment_path2, 'filename': vuln.attachment_name2})
-    #if vuln.attachment_path3 is not None: filesToUpload.append({'path': vuln.attachment_path3, 'filename': vuln.attachment_name3})
-    #if filesToUpload: issue.uploads = filesToUpload
     issue.uploads = vuln.attachments
     try:
         issue.save()
     except Exception as e:
         print("Redmine error" + str(e))
-        pass
 
 def create_new_code_issue(vuln):
     if redmine_client is None:
@@ -215,4 +204,3 @@ def create_new_code_issue(vuln):
         issue.save()
     except Exception as e:
         print("Redmine error" + str(e))
-        pass

@@ -46,7 +46,6 @@ def handle_target(info):
         try: final_url = split_url[2] 
         except IndexError: final_url = url
         sub_info['target'] = final_url
-        print(sub_info['target'])
         scan_target(sub_info, sub_info['target'])
 
     print('Module HTTP Method Scan finished against %s' % info['domain'])
@@ -159,7 +158,6 @@ def scan_target(scan_info, url_to_scan):
     
     sp = subprocess.run(['nmap', '-Pn', '--script', 'http-methods,http-trace', '--script-args', 'http-methods.test-all=true', url_to_scan], capture_output=True, timeout=500)
     data = sp.stdout.decode()
-    print(data)
     
     with open(OUTPUT_FULL_NAME, "w") as f: f.write(data)
 

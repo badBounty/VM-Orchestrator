@@ -88,8 +88,6 @@ def handle_single(info):
 
 
 def runCipherParsing(scan_info, url_with_port, data, evidence):
-    cipherParsingVerboseMode = False
-
     # Declaro las strings de SELF-SIGNED
     self_issuer_list = "(\*|Server CA Test 1|Server CA Production 2|Server CA Production 1|nsng10406pap Intermediate CA|nldn11519pap Intermediate CA|Intermediate CA|UBS Server CA Test 3|Rohan Machado|Rohan_Machado|CROOT|SERVER|UBSIB_CA_PTE|a302-2831-4763.stm.swissbank.com)"
     # Defino headers...
@@ -598,11 +596,12 @@ def add_vulnerability(scan_info, message, isCipherVuln=False, isCertVuln=False, 
     redmine.create_new_issue(vulnerability)
     
     # Borro los archivos temporales...
-    for i in range(len(outputFiles)):
-        with suppress(Exception): os.remove(outputFiles[i])
-    with suppress(Exception): os.remove('SSLSCAN-result.png')
-    with suppress(Exception): os.remove('TestSSL-result.png')
-    with suppress(Exception): os.remove('SSLYZE-result.png')
+    if False:
+        for i in range(len(outputFiles)):
+            with suppress(Exception): os.remove(outputFiles[i])
+        with suppress(Exception): os.remove('SSLSCAN-result.png')
+        with suppress(Exception): os.remove('TestSSL-result.png')
+        with suppress(Exception): os.remove('SSLYZE-result.png')
 
 
 # In cases where single url is provided, port will default to 80 or 443 in most cases
@@ -620,16 +619,15 @@ def scan_target(scan_info, url, url_with_port):
     for i in range(3):
         random_filename = uuid.uuid4().hex
         OUTPUT_FULL_NAME = ROOT_DIR + '/tools_output/' + random_filename + '.txt'
-        #cleanup(OUTPUT_FULL_NAME)
 
         # We first run the subprocess that creates the xml output file
-        if i == 0: sp = subprocess.run(['sslscan', '--no-failed', '--no-colour', url_with_port], capture_output=True, timeout=500)
-        if i == 1: sp = subprocess.run([TOOL_DIR, '--fast', '--color', '0', '--warnings=off', url_with_port], capture_output=True, timeout=500)
-        if i == 2: sp = subprocess.run(['sslyze', '--reneg', '--robot', '--sslv2', '--sslv3', str(url_with_port)], capture_output=True, timeout=300)
-        
-        data = sp.stdout.decode()
-
-        #with open(ROOT_DIR + "/tools_output/" + tool + ".txt", "r") as f: data = f.read()
+        with suppress(Exception): # In case one of these times out it does not escape the "scan target" without any results from any tool...
+            if i == 0: sp = subprocess.run(['sslscan', '--no-failed', '--no-colour', url_with_port], capture_output=True, timeout=500)
+            if i == 1: sp = subprocess.run([TOOL_DIR, '--fast', '--color', '0', '--warnings=off', url_with_port], capture_output=True, timeout=500)
+            if i == 2: sp = subprocess.run(['sslyze', '--reneg', '--robot', '--sslv2', '--sslv3', str(url_with_port)], capture_output=True, timeout=500)
+            # Grab the data...
+            data = sp.stdout.decode()
+            if not data: continue # To avoid a possible Exception in the following lines if a timeout was raised...
 
         # Despues borrar esta parte de guardado de archivo (no usada)...
         #with open(ROOT_DIR + "/tools_output/" + tool + ".txt", "w") as f: f.write(data)
@@ -671,7 +669,7 @@ def scan_target(scan_info, url, url_with_port):
     if "PERFECT_FORWARD_SECRECY_DISABLED" in listAllVulnsFound: observation += "* Perfect Forward Secrecy not supported / Inadequate Perfect Forward Secrecy support (DH enabled cipher-suites are not preferred).\n\n"
     if "SSL2_DROWN_ATACK" in listAllVulnsFound: observation += "* DROWN attack vulnerability (CVE-2016-0800).\n\n"
     # Implication...
-    if "SSL_VERSION_2_ENABLED" in listAllVulnsFound or "SSL_VERSION_3_ENABLED":
+    if "SSL_VERSION_2_ENABLED" in listAllVulnsFound or "SSL_VERSION_3_ENABLED" in listAllVulnsFound:
         if "it-has-CBC-ciphers" in list_notes: implication += "* Security issues in the SSLv2 and SSLv3 protocols may allow a malicious individual to perform man-in-the-middle attacks. By forcing communication to a less secure level and then attempting to break the weak encryption, it may provide an opportunity to gain unauthorized access to data in transmission.\nFor reference, please see the following link: https://www.openssl.org/~bodo/ssl-poodle.pdf.\n"
         else:                                  implication += "* Security issues in the SSLv2 and SSLv3 protocols may allow a malicious individual to perform man-in-the-middle attacks. By forcing communication to a less secure level and then attempting to break the weak encryption, it may provide an opportunity to gain unauthorized access to data in transmission.\n"
     if "TLS_VERSION_1.0_ENABLED" in listAllVulnsFound or "TLS_VERSION_1.1_ENABLED" in listAllVulnsFound: implication += "* Security issues in the TLSv1.1 and earlier protocols may allow a malicious individual, who perform a man-in-the-middle attack, to predict the initialization vector blocks used to mask data prior to encryption.\n"
@@ -700,6 +698,23 @@ def scan_target(scan_info, url, url_with_port):
     # Strategic Recommendation...
     recommendation += "\nStrategic Recommendation:\n\n* Management should consider reviewing their system configuration standards to ensure that TLS configurations are in line with organizational policies and ensure that TLS related configurations are consistent with all Internet-facing applications within the organization.\nFor additional information, please refer to the following link: https://cwe.mitre.org/data/definitions/326.html.\n"
 
+    # Ordeno para que se reporte primero SSLv2 -> SSLv3 -> TLSv1.0 -> TLSv1.1
+    listFoundCipherVulnsTmp = []
+    # Step 1/3 (Ordeno primero SSLv2 -> SSLv3 -> TLSv1.0 -> TLSv1.1 y las pongo en lista temporal)
+    for i in range(4):
+        for j in range(len(listFoundCipherVulns)):
+            if (i == 0 and listFoundCipherVulns[j][3] == "SSL_VERSION_2_ENABLED") or \
+                (i == 1 and listFoundCipherVulns[j][3] == "SSL_VERSION_3_ENABLED") or \
+                    (i == 2 and listFoundCipherVulns[j][3] == "TLS_VERSION_1.0_ENABLED") or \
+                        (i == 3 and listFoundCipherVulns[j][3] == "TLS_VERSION_1.1_ENABLED"):
+                            listFoundCipherVulnsTmp.append(listFoundCipherVulns[j])
+    # Step 2/3 (Relleno esa lista temporal luego con todos los demas issues)
+    for i in range(len(listFoundCipherVulns)):
+        if listFoundCipherVulns[i] not in listFoundCipherVulnsTmp:
+            listFoundCipherVulnsTmp.append(listFoundCipherVulns[i])
+    # Step 3/3 (Vuelvo a poner todo en la lista original)
+    listFoundCipherVulns = listFoundCipherVulnsTmp
+    
     # Ahora retorno todo lo encontrado en CIPHERS...    
     strMessage = "Cipher vulnerabilities were found.\n\n\n" + observation + "\n\n" + implication + "\n\n" + recommendation + "\n\n*Detection of issues*:\n\n"
     vulnsAlreadyReported = []
@@ -730,11 +745,11 @@ def scan_target(scan_info, url, url_with_port):
             val = listFoundCertificateVulns[i][2]; break
     if val and "EXPIRED_SSL_CERTIFICATE" in listAllVulnsFound:
         if "Not valid after: " in val: observation += "The SSL / TLS certificate in use has been expired since " + val.replace("Not valid after: ", "") + ". "
-        elif "expired" in val and "--> " in val and ")" in val: observation += "The SSL / TLS certificate in use has been expired since " + val[val.rfind("-->")+4:-1] + ". "
-    elif "EXPIRED_SSL_CERTIFICATE" in listAllVulnsFound:        observation += "The SSL / TLS certificate in use has been expired since <Please check manually>. "
-    if "X.509_CERTIFICATE_SHA1_SIGNATURE_COLLISION" in listAllVulnsFound:  observation += "It was signed using a signature algorithm that is not secure. In particular, the affected target is using SHA1 based certificates. "
-    elif "X.509_CERTIFICATE_MD5_SIGNATURE_COLLISION" in listAllVulnsFound: observation += "It was signed using a signature algorithm that is not secure. In particular, the affected target is using MD5 based certificates. "
-    if "SERVER_PUBLIC_KEY_TOO_SMALL" in listAllVulnsFound: observation += "Its RSA Key is weak (less than 2048-bit key). "
+        elif "expired" in val and "--> " in val and ")" in val: observation += "the SSL / TLS certificate in use has been expired since " + val[val.rfind("-->")+4:-1] + ". "
+    elif "EXPIRED_SSL_CERTIFICATE" in listAllVulnsFound:        observation += "the SSL / TLS certificate in use has been expired since <Please check manually>. "
+    if "X.509_CERTIFICATE_SHA1_SIGNATURE_COLLISION" in listAllVulnsFound:  observation += "it was signed using a signature algorithm that is not secure. In particular, the affected target is using SHA1 based certificates. "
+    elif "X.509_CERTIFICATE_MD5_SIGNATURE_COLLISION" in listAllVulnsFound: observation += "it was signed using a signature algorithm that is not secure. In particular, the affected target is using MD5 based certificates. "
+    if "SERVER_PUBLIC_KEY_TOO_SMALL" in listAllVulnsFound: observation += "its RSA Key is weak (less than 2048-bit key). "
     if "TLS_ROBOT_ATTACK" in listAllVulnsFound and "TLS_RENEGOTIATION_VULNERABILITY" in listAllVulnsFound: observation += "Furthermore, the target is vulnerable to the TLS ROBOT Attack and TLS Renegotiation vulnerabilities. "
     elif "TLS_ROBOT_ATTACK" in listAllVulnsFound: observation += "Furthermore, the target is vulnerable to the TLS ROBOT Attack vulnerability."
     elif "TLS_RENEGOTIATION_VULNERABILITY" in listAllVulnsFound: observation += "Furthermore, the target is vulnerable to the TLS Renegotiation vulnerability."

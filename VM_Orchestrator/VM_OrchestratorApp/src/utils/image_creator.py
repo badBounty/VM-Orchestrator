@@ -16,7 +16,7 @@ def create_image_from_file(path_filename):
     global font_size,font,black,image_format
     num_lines = sum(1 for line in open(path_filename)) # Cantidad de lineas que tiene el archivo
     # Ancho y alto para la imagen, no hay problema si tiene mucho ancho ya que se cropea la imagen
-    extraL = (1080, num_lines*16)
+    extraL = (1080, num_lines*16 + 24) # Le sumo un renglon y medio.
     img = Image.new('RGB', extraL, (255, 255, 255))
     d = ImageDraw.Draw(img)
     with open(path_filename,"r+") as file:
