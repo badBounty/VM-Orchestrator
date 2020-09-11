@@ -179,22 +179,3 @@ def scan_target(scan_info, url_with_port):
         add_vulnerability(scan_info, data, message)
     else:
         print("No vulnerable HTTP methods were found.")
-
-    return
-
-    '''is_sslscan = re.search(re_is_sslscan, data)
-        ip = is_sslscan.group(1)
-        if re.search(re_domain, is_sslscan.group(2)): hostname = is_sslscan.group(2)
-        else:                                         hostname = None
-        port = is_sslscan.group(3)'''
-
-    extensive_methods = False
-    message = "Found extended HTTP Methods:" + '\n'
-    if not responses:
-        return
-    for response in responses:
-        if response['response'].status_code == 200:
-            extensive_methods = True
-            message = message + "Method " + response['method'] + " found." + "\n"
-    if extensive_methods:
-        add_vulnerability(scan_info, message)
