@@ -285,11 +285,19 @@ def runCipherParsing(scan_info, url_with_port, data, evidence):
             details = "SSLv3 " + testssl_sslv3.group(1)
             add_issues(ip, port, "TCP", hostname, "SSL_VERSION_3_ENABLED", "CVE-2014-3566", details, "TestSSL", evidence, url_with_port, data, listFoundCipherVulns, listFoundCertificateVulns)
         # TLS_VERSION_1.0_ENABLED
-        re_testssl_tls10 = "TLS 1 .*(offered.*(?: \(deprecated\))?|supported but couldn't detect a cipher \(may need debugging\))"
+        re_testssl_tls10 = "TLS 1\s.*(offered.*(?: \(deprecated\))?|supported but couldn't detect a cipher \(may need debugging\))"
         if re.search(re_testssl_tls10, data):
             testssl_tls10 = re.search(re_testssl_tls10, data)
-            details = "TLS 1.0 " + testssl_tls10.group(1).replace("\x1b[m","")
-            add_issues(ip, port, "TCP", hostname, "TLS_VERSION_1.0_ENABLED", None, details, "TestSSL", evidence, url_with_port, data, listFoundCipherVulns, listFoundCertificateVulns)
+            if "not offered" not in str(testssl_tls10).lower():
+                details = "TLS 1.0 " + testssl_tls10.group(1)
+                add_issues(ip, port, "TCP", hostname, "TLS_VERSION_1.0_ENABLED", None, details, "TestSSL", evidence, url_with_port, data, listFoundCipherVulns, listFoundCertificateVulns)
+        # TLS_VERSION_1.1_ENABLED
+        re_testssl_tls11 = "TLS 1.1 .*(offered.*(?: \(deprecated\))?|supported but couldn't detect a cipher \(may need debugging\))"
+        if re.search(re_testssl_tls11, data):
+            re_testssl_tls11 = re.search(re_testssl_tls11, data)
+            if "not offered" not in str(re_testssl_tls11).lower():
+                details = "TLS 1.1 " + re_testssl_tls11.group(1)
+                add_issues(ip, port, "TCP", hostname, "TLS_VERSION_1.0_ENABLED", None, details, "TestSSL", evidence, url_with_port, data, listFoundCipherVulns, listFoundCertificateVulns)
         # SSL_SERVER_ANONYMOUS_AUTHENTICATION_ALLOWED >> ADH and AECDH ciphers
         re_testssl_anonymous = "Anonymous NULL Ciphers (no authentication) .*?(offered \(NOT ok\)).*?"
         if re.search(re_testssl_anonymous, data):
@@ -336,7 +344,7 @@ def runCipherParsing(scan_info, url_with_port, data, evidence):
             details = ""
             if ciss.group(1): details = "Issuer " + ciss.group(1)
             else:
-                issuer_found = ciss.group(2).replace("\x1b[m","")
+                issuer_found = ciss.group(2)
                 if re.search(self_issuer_list, issuer_found): details = "Issuer " + issuer_found
             if len(details) > 0: add_issues(ip, port, "TCP", hostname, "SELF_SIGNED_SSL_CERTIFICATES", None, details, "TestSSL", evidence, url_with_port, data, listFoundCipherVulns, listFoundCertificateVulns)'''
         # EXPIRED_SSL_CERTIFICATE >> It is compared with the current date
