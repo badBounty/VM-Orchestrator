@@ -43,6 +43,7 @@ def run_specific_module(scan_information):
     print("run_spec...")
     scan_information['scan_type'] = 'target'
     scan_information['language'] = settings['LANGUAGE']
+    scan_information['invasive_scans'] = True
     # We need to choose which module to run
     function_to_run = module_name_switcher(scan_information['module_identifier'])
     function_to_run(scan_information)

@@ -9,6 +9,11 @@ from contextlib import suppress
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+def update_id_for_custom_issue(issue_id, identifier_custom_id, new_id):
+    redmine_client.issue.update(issue_id, custom_fields=[
+        {'id': identifier_custom_id, 'value': new_id}
+    ])
+
 def get_issues_from_project():
     if redmine_client is None:
         return []
