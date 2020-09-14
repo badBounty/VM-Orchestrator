@@ -11,6 +11,7 @@ import json
 import ast
 import urllib3
 from bson.objectid import ObjectId
+from bson.errors import InvalidId
 
 domains = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['DOMAINS_COLLECTION']]
 logs = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['LOGS_COLLECTION']]
@@ -357,46 +358,135 @@ def approve_resources(info):
 
 
 # -------------------- REDMINE --------------------
-#TODO Update this for several trackers
+# Case where a new issue is added to redmine but does not appear on our local database
 def add_custom_redmine_issue(redmine_issue):
+    # We receive an issue, we will first check out the tracker
+    if redmine_issue.tracker.id == REDMINE_IDS['WEB_FINDING']['FINDING_TRACKER']:
+        # Web case
+        add_custom_web_issue(redmine_issue)
+    elif redmine_issue.tracker.id == REDMINE_IDS['INFRA_FINDING']['FINDING_TRACKER']:
+        #Infra case
+        add_custom_infra_issue(redmine_issue)
+    elif redmine_issue.tracker.id == REDMINE_IDS['CODE_FINDING']['FINDING_TRACKER']:
+        #Code case    
+        add_custom_code_issue(redmine_issue)
+    return
+
+def add_custom_web_issue(redmine_issue):
     #We are going to suppose the resource exists on our local database
     #We will check first and send an exception if its not found
-    resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value,
-     'subdomain': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value})
-    if not resource_exists:
-        print('Failed adding custom redmine resource. Domain %s, resource %s' % 
-        (redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value,redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value))
-        return
-    vuln_status = 'new'
-    status = redmine_issue.status.name
-    if status == 'Remediada':
-        vuln_status = 'resolved'
-    elif status == 'Cerrada':
-        vuln_status = 'closed'
-    elif status == 'Confirmada':
-        vuln_status = 'confirmed'
-    elif status == 'Rechazada':
-        vuln_status = 'rejected'
+    
+    #resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value,
+    # 'subdomain': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value})
+    #if not resource_exists:
+    #    print('Failed adding custom redmine resource. Domain %s, resource %s' % 
+    #    (redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value,redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value))
+    #    return
 
     vuln_to_add = {
         'domain': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['DOMAIN']).value,
         'resource': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['RESOURCE']).value,
         'vulnerability_name': redmine_issue.subject,
-        'observation': None, # TODO we will add observation in the future
+        'observation': {
+            'title': redmine_issue.subject,
+            'observation_title': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['KB_DESCRIPTION']).value,
+            'observation_note': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['KB_DESCRIPTION_NOTES']).value,
+            'implication': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['KB_IMPLICATION']).value,
+            'recommendation_title': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION']).value,
+            'recommendation_note': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION_NOTES']).value,
+            'severity': redmine_issue.priority.name.upper()
+        },
         'extra_info': redmine_issue.description,
         'image_string': None,
         'file_string': None,
         'date_found': datetime.now(),
         'last_seen': datetime.now(),
-        'language': None,
-        'cvss_score': redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['CVSS_SCORE']).value,
-        'state': vuln_status
+        'language': settings['LANGUAGE'],
+        'cvss_score': float(redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['CVSS_SCORE']).value),
+        'vuln_type': 'web',
+        'state': 'new'
     }
-    # TODO add redmine dropdown in which the user can choose the issue type, this will define the fields used
-    #vulnerabilities.insert_one(vuln_to_add)
+    vuln_id = web_vulnerabilities.insert_one(vuln_to_add)
+    vuln_to_add['_id'] = str(vuln_id.inserted_id)
+    add_web_vuln_to_elastic(vuln_to_add)
+    redmine.update_id_for_custom_issue(redmine_issue.id, REDMINE_IDS['WEB_FINDING']['IDENTIFIER'], vuln_to_add['_id'])
     return
 
-#TODO: Update several fields
+def add_custom_infra_issue(redmine_issue):
+    #We are going to suppose the resource exists on our local database
+    #We will check first and send an exception if its not found
+    
+    #resource_exists = resources.find_one({'domain': redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['DOMAIN']).value,
+    # 'subdomain': redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['RESOURCE']).value})
+    #if not resource_exists:
+    #    print('Failed adding custom redmine resource. Domain %s, resource %s' % 
+    #    (redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['DOMAIN']).value,redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['RESOURCE']).value))
+    #    return
+
+    vuln_to_add = {
+        'domain': redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['DOMAIN']).value,
+        'resource': redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['RESOURCE']).value,
+        'vulnerability_name': redmine_issue.subject,
+        'observation': {
+            'title': redmine_issue.subject,
+            'observation_title': redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['KB_DESCRIPTION']).value,
+            'observation_note': redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['KB_DESCRIPTION_NOTES']).value,
+            'implication': redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['KB_IMPLICATION']).value,
+            'recommendation_title': redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION']).value,
+            'recommendation_note': redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION_NOTES']).value,
+            'severity': redmine_issue.priority.name.upper()
+        },
+        'extra_info': redmine_issue.description,
+        'image_string': None,
+        'file_string': None,
+        'date_found': datetime.now(),
+        'last_seen': datetime.now(),
+        'language': settings['LANGUAGE'],
+        'cvss_score': float(redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['CVSS_SCORE']).value),
+        'vuln_type': 'ip',
+        'state': 'new'
+    }
+    vuln_id = infra_vulnerabilities.insert_one(vuln_to_add)
+    vuln_to_add['_id'] = str(vuln_id.inserted_id)
+    add_infra_vuln_to_elastic(vuln_to_add)
+    redmine.update_id_for_custom_issue(redmine_issue.id, REDMINE_IDS['INFRA_FINDING']['IDENTIFIER'], vuln_to_add['_id'])
+
+def add_custom_code_issue(redmine_issue):
+    vuln_to_add = {
+            'title': redmine_issue.subject,
+            'description': redmine_issue.description,
+            'component': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["COMPONENT"]).value,
+            'line': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["LINE"]).value,
+            'affected_code': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["AFFECTED_CODE"]).value,
+            'first_commit': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["FIRST_COMMIT"]).value,
+            'last_commit': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["LAST_COMMIT"]).value,
+            'username': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["USERNAME"]).value,
+            'pipeline_name': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["PIPELINE_NAME"]).value,
+            'language': settings['LANGUAGE'],
+            'hash': None,
+            'severity_tool': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["TOOL_SEVERITY"]).value,
+            'observation': {
+                'title': redmine_issue.subject,
+                'observation_title': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['KB_DESCRIPTION']).value,
+                'observation_note': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['KB_DESCRIPTION_NOTES']).value,
+                'implication': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['KB_IMPLICATION']).value,
+                'recommendation_title': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['KB_RECOMMENDATION']).value,
+                'recommendation_note': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['KB_RECOMMENDATION_NOTES']).value,
+                'severity': redmine_issue.priority.name.upper()
+            },
+            'date_found': datetime.now(),
+            'last_seen': datetime.now(),
+            'cvss_score': redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['CVSS_SCORE']).value,
+            'vuln_type': 'code',
+            'state': 'new'
+        }
+    vuln_id = code_vulnerabilities.insert_one(vuln_to_add)
+    vuln_to_add['_id'] = str(vuln_id.inserted_id)
+    add_code_vuln_to_elastic(vuln_to_add)
+    redmine.update_id_for_custom_issue(redmine_issue.id, REDMINE_IDS['CODE_FINDING']['IDENTIFIER'], vuln_to_add['_id'])
+
+    return
+
 def update_issue_if_needed(redmine_issue):
     # We receive an issue, we will first check out the tracker
     if redmine_issue.tracker.id == REDMINE_IDS['WEB_FINDING']['FINDING_TRACKER']:
@@ -410,12 +500,48 @@ def update_issue_if_needed(redmine_issue):
         update_code_finding(redmine_issue)
 
 def update_web_finding(redmine_issue):
+    # We update everything except the domain and resource.
+    # First we get every information from the redmine issue
+    new_vuln_name = redmine_issue.subject
+    new_description = redmine_issue.description
+    new_kb_description = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['KB_DESCRIPTION']).value
+    new_kb_description_notes = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['KB_DESCRIPTION_NOTES']).value
+    new_kb_implication = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['KB_IMPLICATION']).value
+    new_kb_recommendation = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION']).value
+    new_kb_recommendation_notes = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION_NOTES']).value
+    new_kb_severity = redmine_issue.priority.name.upper()
     cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['CVSS_SCORE']).value
     status_id = redmine_issue.status.id
-    vulnerability = web_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['IDENTIFIER']).value)})
+    
+    try: 
+        vulnerability = web_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['WEB_FINDING']['IDENTIFIER']).value)})
+        # This is the case where the vuln does not exist in our database
+        # Just in case the person enters a valid ID by chance
+        if not vulnerability:
+            print('Adding custom web vulnerability')
+            add_custom_web_issue(redmine_issue)
+        return
+    # Invalid id exception
+    except InvalidId:
+        print('Adding custom web vulnerability')
+        add_custom_web_issue(redmine_issue)
+        return
+    
+    # Re doing observation based on the previous one
+    new_observation = vulnerability['observation']
+    new_observation['observation_title'] =  new_kb_description
+    new_observation['observation_note'] = new_kb_description_notes
+    new_observation['implication'] = new_kb_implication
+    new_observation['recommendation_title'] = new_kb_recommendation
+    new_observation['recommendation_note'] = new_kb_recommendation_notes
+    new_observation['severity'] = new_kb_severity
+    
     try:
         web_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-                'cvss_score': float(cvss_score) 
+                'cvss_score': float(cvss_score),
+                'observation': new_observation,
+                'vulnerability_name': new_vuln_name,
+                'extra_info': new_description
             }})
     except ValueError:
         pass
@@ -439,58 +565,148 @@ def update_web_finding(redmine_issue):
     return
 
 def update_infra_finding(redmine_issue):
+    # We update everything except the domain and resource.
+    # First we get every information from the redmine issue
+    new_vuln_name = redmine_issue.subject
+    new_description = redmine_issue.description
+    new_kb_description = redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['KB_DESCRIPTION']).value
+    new_kb_description_notes = redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['KB_DESCRIPTION_NOTES']).value
+    new_kb_implication = redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['KB_IMPLICATION']).value
+    new_kb_recommendation = redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION']).value
+    new_kb_recommendation_notes = redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['KB_RECOMMENDATION_NOTES']).value
+    new_kb_severity = redmine_issue.priority.name.upper()
     cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['CVSS_SCORE']).value
-    status = redmine_issue.status.name
-    vulnerability = infra_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['IDENTIFIER']).value)})
+    status_id = redmine_issue.status.id
+
+    try:
+        vulnerability = infra_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['INFRA_FINDING']['IDENTIFIER']).value)})
+        # This is the case where the vuln does not exist in our database
+        # Just in case the person enters a valid ID by chance
+        if not vulnerability:
+            print('Adding custom infra vulnerability')
+            add_custom_infra_issue(redmine_issue)
+        return
+    # Invalid id exception
+    except InvalidId:
+        print('Adding custom infra vulnerability')
+        add_custom_infra_issue(redmine_issue)
+        return
+
+    # Re doing observation based on the previous one
+    new_observation = vulnerability['observation']
+    new_observation['observation_title'] =  new_kb_description
+    new_observation['observation_note'] = new_kb_description_notes
+    new_observation['implication'] = new_kb_implication
+    new_observation['recommendation_title'] = new_kb_recommendation
+    new_observation['recommendation_note'] = new_kb_recommendation_notes
+    new_observation['severity'] = new_kb_severity
+
     try:
         infra_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-                'cvss_score': float(cvss_score) 
+                'cvss_score': float(cvss_score),
+                'observation': new_observation,
+                'vulnerability_name': new_vuln_name,
+                'extra_info': new_description
             }})
     except ValueError:
         pass
 
-    if status == 'Remediada':
+    if status_id == REDMINE_IDS['STATUS_SOLVED']:
         infra_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'resolved' 
         }})
-    elif status == 'Cerrada':
+    elif status_id == REDMINE_IDS['STATUS_CLOSED']:
         infra_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'closed' 
         }})
-    elif status == 'Confirmada':
+    elif status_id == REDMINE_IDS['STATUS_CONFIRMED']:
         infra_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'confirmed' 
         }})
-    elif status == 'Rechazada':
+    elif status_id == REDMINE_IDS['STATUS_REJECTED']:
         infra_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'rejected' 
         }})
     return
 
 def update_code_finding(redmine_issue):
+    # We update everything except the domain and resource.
+    # First we get every information from the redmine issue
+    new_vuln_name = redmine_issue.subject
+    new_description = redmine_issue.description
+    new_kb_description = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['KB_DESCRIPTION']).value
+    new_kb_description_notes = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['KB_DESCRIPTION_NOTES']).value
+    new_kb_implication = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['KB_IMPLICATION']).value
+    new_kb_recommendation = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['KB_RECOMMENDATION']).value
+    new_kb_recommendation_notes = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['KB_RECOMMENDATION_NOTES']).value
+    new_kb_severity = redmine_issue.priority.name.upper()
     cvss_score = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['CVSS_SCORE']).value
-    status = redmine_issue.status.name
-    vulnerability = code_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['IDENTIFIER']).value)})
+    status_id = redmine_issue.status.id
+
+    #Custom fields specific to code findings
+    new_component = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["COMPONENT"]).value
+    new_line = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["LINE"]).value
+    new_affected_code = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["AFFECTED_CODE"]).value
+    new_first_commit = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["FIRST_COMMIT"]).value
+    new_last_commit = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["LAST_COMMIT"]).value
+    new_username = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["USERNAME"]).value
+    new_pipeline_name = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["PIPELINE_NAME"]).value
+    new_tool_severity = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["TOOL_SEVERITY"]).value
+
+    try:
+        vulnerability = code_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['IDENTIFIER']).value)})
+        # This is the case where the vuln does not exist in our database
+        # Just in case the person enters a valid ID by chance
+        if not vulnerability:
+            print('Adding custom code vulnerability')
+            add_custom_code_issue(redmine_issue)
+        return
+    # Invalid id exception
+    except InvalidId:
+        print('Adding custom code vulnerability')
+        add_custom_code_issue(redmine_issue)
+        return
+
+    # Re doing observation based on the previous one
+    new_observation = vulnerability['observation']
+    new_observation['observation_title'] =  new_kb_description
+    new_observation['observation_note'] = new_kb_description_notes
+    new_observation['implication'] = new_kb_implication
+    new_observation['recommendation_title'] = new_kb_recommendation
+    new_observation['recommendation_note'] = new_kb_recommendation_notes
+    new_observation['severity'] = new_kb_severity
+
     try:
         code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-                'cvss_score': float(cvss_score) 
+                'cvss_score': float(cvss_score),
+                'observation': new_observation,
+                'title': new_vuln_name,
+                'description': new_description,
+                'component': new_component,
+                'line': new_line,
+                'affected_code': new_affected_code,
+                'first_commit': new_first_commit,
+                'last_commit': new_last_commit,
+                'username': new_username,
+                'pipeline_name': new_pipeline_name,
+                'severity_tool': new_tool_severity
             }})
     except ValueError:
         pass
 
-    if status == 'Remediada':
+    if status_id == REDMINE_IDS['STATUS_SOLVED']:
         code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'resolved' 
         }})
-    elif status == 'Cerrada':
+    elif status_id == REDMINE_IDS['STATUS_CLOSED']:
         code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'closed' 
         }})
-    elif status == 'Confirmada':
+    elif status_id == REDMINE_IDS['STATUS_CONFIRMED']:
         code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'confirmed' 
         }})
-    elif status == 'Rechazada':
+    elif status_id == REDMINE_IDS['STATUS_REJECTED']:
         code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'rejected' 
         }})
@@ -733,11 +949,12 @@ def add_module_status_log(info):
 # We log if a vuln is found
 def add_found_vulnerability_log(vulnerability, vuln_obj=None):
     module_keyword = 'code' if vuln_obj is None else vuln_obj.module_identifier
+    vuln_name = vulnerability['Title'] if vuln_obj is None else vulnerability['vulnerability_name']
     log_to_add = {
         "log_vulnerability_module_keyword": module_keyword,
         "log_vulnerability_found": True,
         "log_vulnerability_id": str(vulnerability['_id']),
-        "log_vulnerability_name": vulnerability['vulnerability_name'],
+        "log_vulnerability_name": vuln_name,
         "log_vulnerability_timestamp": datetime.now()
     }
     log_id = logs.insert_one(log_to_add)
