@@ -467,7 +467,8 @@ def add_custom_redmine_issue(redmine_issue):
         'last_seen': datetime.now(),
         'language': None,
         'cvss_score': redmine_issue.custom_fields.get(REDMINE_IDS['CVSS_SCORE']).value,
-        'state': vuln_status
+        'state': vuln_status,
+        'vuln_type': 'web'
     }
     vulnerabilities.insert_one(vuln_to_add)
     return
@@ -556,7 +557,6 @@ def update_elasticsearch():
     new_vulnerabilities = vulnerabilities.find()
     vulnerabilities_list = list()
     for vuln in new_vulnerabilities:
-        print(vuln)
         if not vuln['observation']:
             observation_data = {
                     'vulnerability_title': None,
