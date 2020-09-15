@@ -112,8 +112,6 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
         vuln_name = constants.CRED_ACCESS_FTP
     elif scan_type == "default_creds":
         vuln_name = constants.DEFAULT_CREDS
-    elif scan_type == 'plaintext_services':
-        vuln_name = constants.PLAINTEXT_COMUNICATION
     elif scan_type == 'unnecessary_services':
         vuln_name = constants.UNNECESSARY_SERVICES
 
