@@ -1101,6 +1101,8 @@ def get_all_resources():
         return_list.append(resource)
     return return_list
 
+def get_specific_observation(mongo_id):
+    return observations.find_one({'_id': ObjectId(mongo_id)})
 
 
 # -------------------- OTHER METHODS --------------------

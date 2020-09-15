@@ -39,6 +39,10 @@ def current_observations(request):
         return response
     return render(request, 'observations.html', {'object_list': resources})
 
+def specific_observation(request, mongo_id):
+    mongo_resource = mongo.get_specific_observation(mongo_id)
+    return render(request, 'specific_observation.html', mongo_resource)
+
 def new_resource(request):
     return JsonResponse({'order': 'new_resource. TODO'})
 
