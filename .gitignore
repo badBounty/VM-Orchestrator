@@ -10,3 +10,5 @@ VM_Orchestrator/celerybeat-schedule.db
 VM_Orchestrator/logfile
 .vscode/.ropeproject/config.py
 .vscode/.ropeproject/objectdb
+*.pyc
+
