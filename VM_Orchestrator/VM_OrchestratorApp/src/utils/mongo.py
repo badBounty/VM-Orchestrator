@@ -1087,10 +1087,12 @@ def get_all_infra_vulnerabilities():
         return_list.append(vuln)
     return return_list
 
-def get_all_observations():
+def get_all_observations(normalize_id = False):
     return_list = list()
     found_observations = observations.find({})
     for value in found_observations:
+        if normalize_id:
+            value['id'] = value.pop('_id')
         return_list.append(value)
     return return_list
 
@@ -1151,3 +1153,18 @@ def find_last_version_of_librarie(name):
         return librarie[0]['version']
     else:
         return ''
+
+def update_observation(new_observation, mongo_observation):
+    observations.update_one({'_id': mongo_observation.get('_id')}, {'$set': {
+            'OBSERVATION': {
+                'TITLE': new_observation['description'],
+                'NOTE': new_observation['description_note']
+            },
+            'IMPLICATION': new_observation['implication'],
+            'RECOMMENDATION': {
+                'TITLE': new_observation['recommendation'],
+                'URLS': new_observation['recommendation_note']
+            },
+            'SEVERITY': new_observation['severity']
+        }})
+    return

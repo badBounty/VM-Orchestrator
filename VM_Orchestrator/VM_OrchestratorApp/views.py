@@ -1,11 +1,12 @@
 # pylint: disable=import-error
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 import VM_OrchestratorApp.tasks as tasks
 import VM_OrchestratorApp.src.utils.mongo as mongo
+import VM_OrchestratorApp.forms as available_forms
 
 from VM_Orchestrator.settings import settings
 
@@ -33,16 +34,23 @@ def current_resources(request):
     return render(request, 'database_resources.html', {'object_list': resources})
 
 def current_observations(request):
-    resources = mongo.get_all_observations()
+    resources = mongo.get_all_observations(True)
     if request.method == 'POST':
         response = utils.get_observations_csv_file(resources)
         return response
     return render(request, 'observations.html', {'object_list': resources})
 
 def specific_observation(request, mongo_id):
-    mongo_resource = mongo.get_specific_observation(mongo_id)
-    return render(request, 'specific_observation.html', mongo_resource)
-
+    resource = mongo.get_specific_observation(mongo_id)
+    if request.method == 'POST':
+        form = available_forms.ObservationForm(request.POST)
+        if form.is_valid():
+            mongo.update_observation(form.cleaned_data, resource)
+            return redirect('/current_observations/')
+    form = available_forms.ObservationForm()
+    form.populate(resource)
+    return render(request, 'specific_observation.html', {'form': form})
+    
 def new_resource(request):
     return JsonResponse({'order': 'new_resource. TODO'})
 

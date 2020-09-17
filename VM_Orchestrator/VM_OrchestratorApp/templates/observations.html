@@ -44,7 +44,7 @@
             <tr>
                 <td>{{ resource.LANGUAGE }}</td>
                 <td>
-                  <a href="{% url 'VM_OrchestratorApp:specific_observation' 'resource.TITLE'%}">
+                  <a href="{% url 'VM_OrchestratorApp:specific_observation' resource.id %}">
                     {{ resource.TITLE }}
                   </a>
                 </td>
