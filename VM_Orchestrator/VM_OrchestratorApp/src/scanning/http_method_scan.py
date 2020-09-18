@@ -134,7 +134,7 @@ def delete_response(url):
         return None
     return response
 
-def add_vulnerability(scan_info, data, message):
+def add_vulnerability(scan_info, data, message, cvssScore):
     vulnerability = Vulnerability(constants.UNSECURE_METHOD, scan_info, message)
 
     img_str = image_creator.create_image_from_string(data)
@@ -145,11 +145,12 @@ def add_vulnerability(scan_info, data, message):
     im.save(output_dir, 'PNG')
     vulnerability.add_attachment(output_dir, 'NMAP-result.png')
 
+    vulnerability.cvss = cvssScore
+
     slack.send_vuln_to_channel(vulnerability, SLACK_NOTIFICATION_CHANNEL)
     vulnerability.id = mongo.add_vulnerability(vulnerability)
     redmine.create_new_issue(vulnerability)
-    with suppress(Exception):
-        os.remove(output_dir)
+    with suppress(Exception): os.remove(output_dir)
 
 
 def scan_target(scan_info, url_to_scan):
@@ -158,12 +159,11 @@ def scan_target(scan_info, url_to_scan):
     
     sp = subprocess.run(['nmap', '-Pn', '--script', 'http-methods,http-trace', '--script-args', 'http-methods.test-all=true', url_to_scan], capture_output=True, timeout=500)
     data = sp.stdout.decode()
-    
-    with open(OUTPUT_FULL_NAME, "w") as f: f.write(data)
 
     dataList = data.splitlines()
     
     listVulnerablePorts = []
+    listMethodsFoundForCVSS = []
 
     for i in range(len(dataList)):
         match = re.search("([0-9]{1,5})/tcp|udp.*open", dataList[i])
@@ -173,12 +173,46 @@ def scan_target(scan_info, url_to_scan):
             while dataList[cnt].startswith("| ") or dataList[cnt].startswith("|_ "):
                 if dataList[cnt].startswith("|_ "):
                     if " methods: " in dataList[cnt]:
-                        listVulnerablePorts.append([portStr, str(dataList[cnt])[str(dataList[cnt]).find(" methods: ")+10:].replace("\t", " ").replace("  ", " ")]); break
+                        methodsFound = str(dataList[cnt])[str(dataList[cnt]).find(" methods: ")+10:].replace("\t", " ").replace("  ", " ")
+                        listMethodsFoundForCVSS += methodsFound.split(" ")
+                        listVulnerablePorts.append([portStr, methodsFound])
+                        break
                 else: cnt += 1
     if listVulnerablePorts:
-        message = "Potentially vulnerable HTTP methods were found in the target:\n\n"
+        sumCVSS = 0
+        cantCVSS = 0
+        # Write in description what methods were found in every port
+        message = "\n*Potentially vulnerable HTTP methods were found in the target:*\n\n"
         for i in range(len(listVulnerablePorts)):
             message += "* On port " + listVulnerablePorts[i][0] + " the following HTTP methods were found: " + listVulnerablePorts[i][1].strip().replace(" ", ", ") + "\n\n"
-        add_vulnerability(scan_info, data, message)
+        # Separator...
+        # Write the CVSS for every HTTP Method found.
+        if len(listMethodsFoundForCVSS) == 1: message += "*CVSS Analysis for the detected method:*\n\n"
+        else:                                 message += "*CVSS Analysis for the detected methods:*\n\n"
+        alreadyChosen = []
+        for i in range(len(listMethodsFoundForCVSS)):
+            if listMethodsFoundForCVSS[i] not in alreadyChosen:
+                alreadyChosen.append(listMethodsFoundForCVSS[i])
+                cnt = 0
+                for j in range(len(listMethodsFoundForCVSS)):
+                    if listMethodsFoundForCVSS[j] == listMethodsFoundForCVSS[i]: cnt += 1
+                if cnt == 1: message += "* Method " + listMethodsFoundForCVSS[i] + " found in 1 port: "
+                else:        message += "* Method " + listMethodsFoundForCVSS[i] + " found in " + str(cnt) + " ports: "
+                if listMethodsFoundForCVSS[i] in ["PUT", "DELETE"]:
+                    sumCVSS += 7.3*cnt
+                    cantCVSS += cnt
+                    message += "7.3 (AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L)\n\n"
+                elif listMethodsFoundForCVSS[i] == "CONNECT":
+                    sumCVSS += 5.8*cnt
+                    cantCVSS += cnt
+                    message += "5.8 (AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N)\n\n"
+                elif listMethodsFoundForCVSS[i] in ["TRACE", "DEBUG"]:
+                    sumCVSS += 5.3*cnt
+                    cantCVSS += cnt
+                    message += "5.3 (AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N)\n\n"
+                else:
+                    message += "To be calculated (don't forget changing the final average value)...\n\n"
+        cvssScore = round(sumCVSS/cantCVSS,1)
+        add_vulnerability(scan_info, data, message, cvssScore)
     else:
         print("No vulnerable HTTP methods were found.")
