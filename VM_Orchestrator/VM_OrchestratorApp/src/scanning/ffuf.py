@@ -85,7 +85,7 @@ def scan_target(scan_info, url_with_http):
         url_with_http = url_with_http + '/'
 
     subprocess.run(
-        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-maxtime', '300', '-timeout', '3', '-c', '-v', '-mc', '200,403',
+        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-maxtime', '300', '-timeout', '3', '-c', '-v', '-ac','-mc', '200,403',
          '-o', JSON_RESULT], capture_output=True)
 
     with open(JSON_RESULT) as json_file:

@@ -354,8 +354,8 @@ def recon_finished(scan_information):
 
 # ------ PERIODIC TASKS ------ #
 # We monitor assets on our domain database
-#@periodic_task(run_every=crontab(hour=settings['PROJECT']['RECON_START_HOUR'], minute=settings['PROJECT']['RECON_START_MINUTE']),
-#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=settings['PROJECT']['RECON_START_HOUR'], minute=settings['PROJECT']['RECON_START_MINUTE']),
+queue='slow_queue', options={'queue': 'slow_queue'})
 def project_monitor_task():
     monitor_data = mongo.get_domains_for_monitor()
     mongo.add_module_status_log({
@@ -376,8 +376,8 @@ def project_monitor_task():
             run_recon.apply_async(args=[scan_info], queue='fast_queue')
     return
 
-#@periodic_task(run_every=crontab(hour=settings['PROJECT']['SCAN_START_HOUR'], minute=settings['PROJECT']['SCAN_START_MINUTE']),
-#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=settings['PROJECT']['SCAN_START_HOUR'], minute=settings['PROJECT']['SCAN_START_MINUTE']),
+queue='slow_queue', options={'queue': 'slow_queue'})
 def start_scan_on_approved_resources():
     slack.send_notification_to_channel('_ Starting scan against approved resources _', '#vm-ondemand')
     resources = mongo.get_data_for_approved_scan()
@@ -427,8 +427,8 @@ def start_scan_on_approved_resources():
             execution_chord.apply_async(queue='fast_queue', interval=300)
     return
 
-#@periodic_task(run_every=crontab(hour=0, minute=0),
-#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=0, minute=0),
+queue='slow_queue', options={'queue': 'slow_queue'})
 def monitor_resolved_issues():
     #We first get our local vuln list from constants.
     nmap_scripts_vulns = [constants.OUTDATED_SOFTWARE_NMAP, constants.HTTP_PASSWD_NMAP, constants.WEB_VERSIONS_NMAP, 
@@ -550,8 +550,8 @@ def task_name_switcher(vulnerability_name):
     }
     return switcher.get(vulnerability_name)
 
-#@periodic_task(run_every=crontab(hour=0, minute=0), 
-#queue='slow_queue', options={'queue': 'slow_queue'})
+@periodic_task(run_every=crontab(hour=0, minute=0), 
+queue='slow_queue', options={'queue': 'slow_queue'})
 @shared_task
 def check_redmine_for_updates():
     print('Synchronizing redmine')
@@ -560,8 +560,8 @@ def check_redmine_for_updates():
         mongo.update_issue_if_needed(issue)
     return
 
-#@periodic_task(run_every=crontab(minute='0', hour='*/12'),
-#queue='fast_queue', options={'queue':'slow_queue'})
+@periodic_task(run_every=crontab(minute='0', hour='*/12'),
+queue='fast_queue', options={'queue':'slow_queue'})
 @shared_task
 def update_elasticsearch():
     mongo.update_elasticsearch()
