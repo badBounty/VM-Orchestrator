@@ -33,6 +33,19 @@ def current_resources(request):
         return response
     return render(request, 'database_resources.html', {'object_list': resources})
 
+def new_resource(request):
+    return JsonResponse({'order': 'new_resource. TODO'})
+
+def approve_resources_beta(request):
+    if request.method == 'POST':
+        form = available_forms.ApproverForm(request.POST, request.FILES)
+        if form.is_valid():
+            manager.handle_uploaded_file(request.FILES['file'])
+            return HttpResponseRedirect('/')
+    else:
+        form = available_forms.ApproverForm()
+    return render(request, 'approve.html', {'form': form})
+
 def current_observations(request):
     resources = mongo.get_all_observations(True)
     if request.method == 'POST':
@@ -51,8 +64,6 @@ def specific_observation(request, mongo_id):
     form.populate(resource)
     return render(request, 'specific_observation.html', {'form': form})
     
-def new_resource(request):
-    return JsonResponse({'order': 'new_resource. TODO'})
 
 def current_vulnerabilities(request):
     return render(request, 'vulns_type.html')

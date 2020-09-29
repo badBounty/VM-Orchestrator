@@ -19,6 +19,7 @@ urlpatterns = [
     #
     path('current_resources/', views.current_resources, name='current_resources'),
     path('new_resource/', views.new_resource, name='new_resource'),
+    path('approve_resource_beta/', views.approve_resources_beta, name='approve_resources'),
     path('current_vulnerabilities/', views.current_vulnerabilities, name='current_vulnerabilities'),
     path('current_observations/', views.current_observations, name='current_observations'),
     path('current_observations/<str:mongo_id>/', views.specific_observation, name='specific_observation'),

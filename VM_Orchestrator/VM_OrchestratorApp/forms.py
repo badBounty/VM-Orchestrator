@@ -34,3 +34,6 @@ class ObservationForm(forms.Form):
         #
         choices = SEVERITY_CHOICES_ENG if mongo_obj['LANGUAGE'] == 'eng' else SEVERITY_CHOICES_SPA
         self.fields['severity'].widget.choices = choices
+
+class ApproverForm(forms.Form):
+    file = forms.FileField()

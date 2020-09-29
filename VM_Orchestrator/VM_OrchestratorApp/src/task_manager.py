@@ -7,6 +7,7 @@ from celery import chain, chord
 
 import copy
 import pandas as pd
+import os
 from VM_Orchestrator.settings import settings
 
 def recon_against_target(information):
@@ -29,6 +30,48 @@ def recon_against_target(information):
             tasks.run_recon.si(current_scan_info).set(queue='slow_queue')
         )
         execution_chain.apply_async(queue='fast_queue', interval=300)
+
+def handle_uploaded_file(f):
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    OUTPUT_DIR = ROOT_DIR+'/scanning/tools_output/output.csv'
+    with open(OUTPUT_DIR, 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+    data = pd.read_csv(OUTPUT_DIR)
+    data['priority'] = data['priority'].fillna(0)
+    data['exposition'] = data['exposition'].fillna(0)
+    data['asset_value'] = data['asset_value'].fillna(0)
+
+    resources_list = list()
+    for index, row in data.iterrows():
+        res = {
+            'domain': row['domain'],
+            'subdomain': row['subdomain'],
+            'url': row['url'],
+            'ip': row['ip'],
+            'isp': row['isp'],
+            'asn': row['asn'],
+            'country': row['country'],
+            'region': row['region'],
+            'city': row['city'],
+            'org': row['org'],
+            'geoloc': row['geoloc'],
+            'first_seen': row['first_seen'],
+            'last_seen': row['last_seen'],
+            'is_alive': row['is_alive'],
+            'has_urls': row['has_urls'],
+            'approved': row['approved'],
+            'type': row['type'],
+            'priority': row['priority'],
+            'exposition': row['exposition'],
+            'asset_value': row['asset_value']
+            }
+        resources_list.append(res)
+    data = {'data': resources_list}
+    approve_resources(data)
+    os.remove(OUTPUT_DIR)
+    
 
 def approve_resources(information):
     execution_chain = chain(
