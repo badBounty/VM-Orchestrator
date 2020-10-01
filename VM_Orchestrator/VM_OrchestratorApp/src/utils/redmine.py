@@ -175,7 +175,7 @@ def create_new_code_issue(vuln):
     priority_dict = {'INFORMATIONAL': REDMINE_IDS['SEVERITY']['INFORMATIONAL'],
          'LOW': REDMINE_IDS['SEVERITY']['LOW'], 'MEDIUM': REDMINE_IDS['SEVERITY']['MEDIUM'],
           'HIGH': REDMINE_IDS['SEVERITY']['HIGH'], 'CRITICAL': REDMINE_IDS['SEVERITY']['CRITICAL']}
-    priority_id = priority_dict[vuln['observation']['severity']]
+    priority_id = priority_dict[vuln['observation']['severity'].upper()]
     timestamp = datetime.now()
     issue = redmine_client.issue.new()
     issue.project_id = settings['REDMINE']['project_name']
