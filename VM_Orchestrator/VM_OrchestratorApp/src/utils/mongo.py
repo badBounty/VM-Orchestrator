@@ -23,12 +23,18 @@ def add_vulnerability(vulnerability):
                                           'vulnerability_name': vulnerability.vulnerability_name,
                                           'language': vulnerability.language})
     if exists:
+        if exists['state'] != 'resolved':
+            new_state = 'reopened'
+        elif exist['state'] == 'rejected':
+            new_state = exists['state']
+        else:
+            new_state = 'new'
         vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
             'extra_info': vulnerability.custom_description,
             'last_seen': vulnerability.time,
             'image_string': vulnerability.image_string,
             'file_string': vulnerability.file_string,
-            'state': 'new' if exists['state'] != 'rejected' else exists['state']
+            'state': new_state
         }})
     else:
         resource = {
