@@ -949,7 +949,7 @@ def add_module_status_log(info):
 # We log if a vuln is found
 def add_found_vulnerability_log(vulnerability, vuln_obj=None):
     module_keyword = 'code' if vuln_obj is None else vuln_obj.module_identifier
-    vuln_name = vulnerability['Title'] if vuln_obj is None else vulnerability['vulnerability_name']
+    vuln_name = vulnerability['title'] if vuln_obj is None else vulnerability['vulnerability_name']
     log_to_add = {
         "log_vulnerability_module_keyword": module_keyword,
         "log_vulnerability_found": True,
