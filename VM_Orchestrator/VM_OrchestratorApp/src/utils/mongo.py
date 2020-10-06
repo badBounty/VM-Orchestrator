@@ -349,6 +349,7 @@ def approve_resources(info):
         resources.update_one({'_id': exists.get('_id')},
          {'$set': 
             {
+            'scanned': resource['scanned'],
             'approved': resource['approved'],
             'priority': resource['priority'],
             'exposition': resource['exposition'],
