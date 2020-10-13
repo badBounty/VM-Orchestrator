@@ -289,6 +289,7 @@ def run_ip_scans(scan_information):
 
 @shared_task
 def approve_resources(information):
+    print('Handling uploaded file...')
     mongo.approve_resources(information)
 
 @shared_task

@@ -98,7 +98,7 @@ def issue_already_exists(vuln):
 def create_new_issue(vuln):
     if vuln.vuln_type == 'web':
         create_new_web_issue(vuln)
-    elif vuln.vuln_type == 'infra':
+    elif vuln.vuln_type == 'ip':
         create_new_infra_issue(vuln)
 
 def create_new_web_issue(vuln):
