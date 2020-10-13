@@ -521,7 +521,7 @@ def update_web_finding(redmine_issue):
         if not vulnerability:
             print('Adding custom web vulnerability')
             add_custom_web_issue(redmine_issue)
-        return
+            return
     # Invalid id exception
     except InvalidId:
         print('Adding custom web vulnerability')
@@ -586,7 +586,7 @@ def update_infra_finding(redmine_issue):
         if not vulnerability:
             print('Adding custom infra vulnerability')
             add_custom_infra_issue(redmine_issue)
-        return
+            return
     # Invalid id exception
     except InvalidId:
         print('Adding custom infra vulnerability')
@@ -661,7 +661,7 @@ def update_code_finding(redmine_issue):
         if not vulnerability:
             print('Adding custom code vulnerability')
             add_custom_code_issue(redmine_issue)
-        return
+            return
     # Invalid id exception
     except InvalidId:
         print('Adding custom code vulnerability')
