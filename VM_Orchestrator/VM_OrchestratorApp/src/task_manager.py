@@ -62,6 +62,7 @@ def handle_uploaded_file(f):
             'is_alive': row['is_alive'],
             'has_urls': row['has_urls'],
             'approved': row['approved'],
+            'scanned': row['scanned'],
             'type': row['type'],
             'priority': row['priority'],
             'exposition': row['exposition'],
