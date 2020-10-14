@@ -613,8 +613,8 @@ def check_redmine_for_updates():
         mongo.update_issue_if_needed(issue)
     return
 
-#@periodic_task(run_every=crontab(minute=0, hour=11),
-#queue='fast_queue', options={'queue':'slow_queue'})
+@periodic_task(run_every=crontab(minute=0, hour=11),
+queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
 
