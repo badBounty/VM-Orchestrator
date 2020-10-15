@@ -27,6 +27,12 @@ def issue_already_exists(vuln):
                 {'id': REDMINE_IDS['RESOURCE'], 'value': vuln.target},
                 {'id': REDMINE_IDS['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))}])
                 return True
+            if issue.status.name == 'Cerrada':
+                redmine_client.issue.update(issue.id, description=vuln.custom_description,status_id=7,
+                custom_fields=[{'id': REDMINE_IDS['DOMAIN'], 'value': vuln.domain},
+                {'id': REDMINE_IDS['RESOURCE'], 'value': vuln.target},
+                {'id': REDMINE_IDS['LAST_SEEN'], 'value': str(vuln.time.strftime("%Y-%m-%d"))}])
+                return True
             redmine_client.issue.update(issue.id, description=vuln.custom_description,
             custom_fields=[{'id': REDMINE_IDS['DOMAIN'], 'value': vuln.domain},
             {'id': REDMINE_IDS['RESOURCE'], 'value': vuln.target},

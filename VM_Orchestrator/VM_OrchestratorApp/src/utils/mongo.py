@@ -23,9 +23,9 @@ def add_vulnerability(vulnerability):
                                           'vulnerability_name': vulnerability.vulnerability_name,
                                           'language': vulnerability.language})
     if exists:
-        if exists['state'] != 'resolved':
+        if exists['state'] == 'resolved':
             new_state = 'reopened'
-        elif exist['state'] == 'rejected':
+        elif exists['state'] == 'rejected':
             new_state = exists['state']
         else:
             new_state = 'new'
