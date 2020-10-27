@@ -155,7 +155,11 @@ def gather_data(project_dir, scan_info):
 
 
 def gather_additional_info(url_info, scan_info):
-    response = requests.get('http://ip-api.com/json/' + url_info['ip'], verify=False)
+    try:
+        response = requests.get('http://ip-api.com/json/' + url_info['ip'], verify=False)
+    except Exception:
+        mongo.add_resource(url_info, scan_info)
+        return
     response_json = response.content.decode().replace('as', 'asn')
     try:
         parsed_json = json.loads(response_json)
