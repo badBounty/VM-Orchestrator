@@ -780,6 +780,8 @@ def update_elasticsearch():
         res = ELASTIC_CLIENT.index(index='resources',doc_type='_doc',id=resource['resource_id'],body=resource)
 
 def update_elasticsearch_logs():
+    if ELASTIC_CLIENT is None:
+        return
     print('Synchronizing log files')
     logs_found = logs.find()
     for log in logs_found:
@@ -934,6 +936,8 @@ def add_resource_to_elastic(resource):
 
 # We log if the module starts or finishes
 def add_module_status_log(info):
+    if ELASTIC_CLIENT is None:
+        return
     log_to_add = {
         'log_module_keyword': info['module_keyword'],
         'log_module_state': info['state'],
@@ -949,6 +953,8 @@ def add_module_status_log(info):
 
 # We log if a vuln is found
 def add_found_vulnerability_log(vulnerability, vuln_obj=None):
+    if ELASTIC_CLIENT is None:
+        return
     module_keyword = 'code' if vuln_obj is None else vuln_obj.module_identifier
     vuln_name = vulnerability['title'] if vuln_obj is None else vulnerability['vulnerability_name']
     log_to_add = {
@@ -964,11 +970,15 @@ def add_found_vulnerability_log(vulnerability, vuln_obj=None):
 
 # We log if a vuln is not found
 def add_not_found_vulnerability_log(vulnerability):
+    if ELASTIC_CLIENT is None:
+        return
     log_id = logs.insert_one({})
     #res = ELASTIC_CLIENT.index(index='log',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
 # We log if a resource is found. IT can be from a recon or a monitor
 def add_resource_log(resource, module_keyword, state):
+    if ELASTIC_CLIENT is None:
+        return
     log_to_add = {
         "log_resource_module_keyword": module_keyword,
         "log_resource_domain": resource['domain'],
