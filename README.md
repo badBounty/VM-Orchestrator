@@ -49,3 +49,37 @@ We will now install our rabbitMQ server (Our broker)
 
 We can start the server with
 `sudo rabbitmq-server`
+
+## Docker usage
+
+### Presteps
+
+1. Create docker containers for the following services:
+    
+    * MongoDB
+    * Elasticseach & Kibanna
+    * Redmine
+    
+    The resouces for this are in the VM_Orchestrator/Resources folder
+
+2.  Create the settings.json file in the VM_Orchestrator folder. 
+
+3.  Build the Dockerfile in this folder passing the following parameter.
+
+    |Parameter | Description |
+    |----------|-------------|
+    |USER| The rabbitmq user|
+    |PASSWORD| The rabbitmq password|
+    |VHOST| The Virtual Host for rabbitmq|
+
+    Command Example:
+    ```
+    docker build -t orchestrator --build-arg USER=username --build-arg PASSWORD=password --build-arg VHOST=orchestrator .
+    ```
+
+4.  Run the image publishing the container's 3000 port in any free port.
+
+    Command Example:
+    ```
+    docker run --name orchestrator -p 4000:3000 -d orchestrator
+    ```
