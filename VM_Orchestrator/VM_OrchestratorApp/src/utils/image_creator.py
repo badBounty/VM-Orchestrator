@@ -5,7 +5,7 @@ from PIL import ImageFont
 from io import BytesIO
 
 font_size = 12
-font = ImageFont.truetype("DejaVuSansMono.ttf", font_size) # Font sacada de la terminal del kali
+font = ImageFont.load_default() # Font sacada de la terminal del kali
 black = (0,0,0)
 small = (640,480)
 normal = (800,600)
