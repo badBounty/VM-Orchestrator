@@ -180,6 +180,7 @@ def add_resource(url_info, scan_info):
         #Rare case in which an IP is actually a string
         if not ip.split('.')[0].isnumeric():
             ip = None
+    # If the resource does not exist in our local database, we add it
     if not exists:
         resource ={
                 'domain': url_info['domain'],
@@ -207,6 +208,7 @@ def add_resource(url_info, scan_info):
                 'nmap_information': None,
                 'approved': False,
         }
+        # TODO-Alert placeholder when new resource is found in monitor state
         if not scan_info['is_first_run']:
             slack.send_new_resource_found("New resource found! %s" % url_info['subdomain'], '#vm-recon-module')
         resource_id = resources.insert_one(resource)
@@ -215,7 +217,8 @@ def add_resource(url_info, scan_info):
         add_resource_log(resource, module_keyword, 'found')
         add_resource_to_elastic(resource)
     else:
-        if exists['is_alive'] and not url_info['is_alive']:
+        # TODO-Alert placeholder when dead existing subdomain appears as alive
+        if not exists['is_alive'] and url_info['is_alive']:
             resource = {
                 '_id': exists.get('_id'),
                 'domain': exists.get('domain'),
@@ -223,6 +226,7 @@ def add_resource(url_info, scan_info):
             }
             module_keyword = 'on_demand_recon_module' if scan_info['is_first_run'] else 'monitor_recon_module'
             add_resource_log(resource, module_keyword, 'found')
+        # TODO-Alert placeholder when alive subdomain changes IP address
         resources.update_one({'_id': exists.get('_id')},
          {'$set': 
             {
@@ -952,6 +956,8 @@ def add_module_status_log(info):
     ELASTIC_CLIENT.index(index='log_module',doc_type='_doc',id=log_to_add['log_id'],body=log_to_add)
 
 # We log if a vuln is found
+# TODO-Alert placeholder when a vulnerability is found
+# We can check here if the vuln comes from monitor or manual scans
 def add_found_vulnerability_log(vulnerability, vuln_obj=None):
     if ELASTIC_CLIENT is None:
         return

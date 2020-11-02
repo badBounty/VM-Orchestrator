@@ -225,7 +225,7 @@ except Exception:
     print('ACUNETIX connection failed, check the settings file or the VPN connection')
     pass
 
-#TODO This is temporary!!!
+#TODO-Alert This is temporary!!! Check for new ways of sending alerts. Slack, teams?
 ### EMAIL SETTINGS ###
 EMAIL_BACKEND = settings['EMAIL']['BACKEND']
 EMAIL_USE_TLS = settings['EMAIL']['USE_TLS']

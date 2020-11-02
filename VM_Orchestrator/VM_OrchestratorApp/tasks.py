@@ -567,6 +567,20 @@ queue='fast_queue', options={'queue':'slow_queue'})
 def update_elasticsearch():
     mongo.update_elasticsearch()
 
+# This was created for reseting elasticsearch logs database
 @shared_task
 def update_elasticsearch_logs():
     mongo.update_elasticsearch_logs()
+
+# TODO-Alert placeholder for checking if a subdomain and or vuln has not been seen in some time
+# Only vulns that are being scanned by the monitor task will be removed if not seen in a while
+# This will become a periodic task
+@shared_task
+def check_for_alive_database_resources():
+    return
+
+# TODO-Alert placeholder for running very light scans in a monitor way
+# This will become a periodic task
+@shared_task
+def vulnerability_monitor_task():
+    return
