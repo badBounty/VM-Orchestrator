@@ -323,8 +323,8 @@ def add_code_vuln(data):
             'severity': data['Severity_tool']
     }
     data['cvss_score'] = 0
-    data['_id'] = mongo.add_code_vuln(data)
-    redmine.create_new_code_issue(data)
+    bulk_vuln = mongo.add_code_vuln(data)
+    redmine.create_new_code_issue(bulk_vuln)
     return
 
 

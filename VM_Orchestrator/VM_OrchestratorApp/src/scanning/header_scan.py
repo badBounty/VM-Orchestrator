@@ -139,6 +139,7 @@ def scan_target(scan_info, url_to_scan):
         message += h + " : " + response.headers[h]+'\n'
     img_b64 = image_creator.create_image_from_string(message)
 
+    # TODO Chequear el header de caches.
     important_headers = ['Content-Security-Policy', 'X-XSS-Protection', 'x-frame-options', 'X-Content-Type-options',
                          'Strict-Transport-Security', 'Access-Control-Allow-Origin']
     reported_invalid = False

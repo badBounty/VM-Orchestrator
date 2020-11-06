@@ -25,15 +25,7 @@
     },
     "MONGO":{
         "CLIENT_URL": "mongodb://localhost:27017/",
-        "DATABASE": "Project",
-        "DOMAINS_COLLECTION": "domains",
-        "LOGS_COLLECTION": "logs",
-        "OBSERVATIONS_COLLECTION": "observations",
-        "LIBRARIES_COLLECTION": "libraries_versions",
-        "RESOURCES_COLLECTION": "resources",
-        "WEB_VULNERABILITIES_COLLECTION": "web_vulnerabilities",
-        "INFRA_VULNERABILITIES_COLLECTION": "infra_vulnerabilities",
-        "CODE_VULNERABILITIES_COLLECTION": "code_vulnerabilities"
+        "DATABASE_NAME": "Project"
     },
     "BURP":{
         "bash_folder":"",
@@ -136,7 +128,7 @@
         "SCAN_TEMPLATE":"a",
         "FOLDER_ID":"",
         "WHITE_LIST_SEVERITY":2,
-        "BLACK_LIST":["SSL Version 2 and 3 Protocol Detection"]
+        "BLACK_LIST":["SSL Version 2 and 3 Protocol Detection","HTTP TRACE / TRACK Methods Allowed"]
     },
     "ACUNETIX":{
         "URL":"",

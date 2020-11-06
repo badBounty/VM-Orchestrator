@@ -157,6 +157,9 @@ def scan_target(scan_info, url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     OUTPUT_FULL_NAME = ROOT_DIR + '/tools_output/' + str(uuid.uuid4().hex) + '.txt'
     
+    # TODO Add http-put
+    # nmap -p 80 <ip> --script http-put --script-args http-put.url='/uploads/rootme.php',http-put.file='/tmp/rootme.php'
+    # https://nmap.org/nsedoc/scripts/http-put.html
     sp = subprocess.run(['nmap', '-Pn', '--script', 'http-methods,http-trace', '--script-args', 'http-methods.test-all=true', url_to_scan], capture_output=True, timeout=500)
     data = sp.stdout.decode()
 
