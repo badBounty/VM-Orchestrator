@@ -129,7 +129,6 @@ def add_code_vuln(vulnerability):
         'description': vulnerability['Description'],
         'component': vulnerability['Component'],
         'affected_code': vulnerability['Affected_code'],
-        'username': vulnerability['Username'],
         'pipeline_name': vulnerability['Pipeline_name']})
     if exists:
         code_vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
