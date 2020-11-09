@@ -10,6 +10,7 @@ from datetime import datetime
 import json
 import ast
 import urllib3
+import traceback
 
 domains = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['DOMAINS_COLLECTION']]
 logs = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['LOGS_COLLECTION']]
@@ -497,13 +498,14 @@ def update_issue_if_needed(redmine_issue):
 
     try:
         vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-                'cvss_score': float(cvss_score) 
-            }})
+            'cvss_score': float(cvss_score) 
+        }})
     except ValueError:
+        print(cvss_score)
         pass
 
 
-    if status == 'En Curso':
+    if status == 'En curso':
         vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'new' 
         }})
