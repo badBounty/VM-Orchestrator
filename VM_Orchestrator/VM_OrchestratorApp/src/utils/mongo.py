@@ -502,6 +502,11 @@ def update_issue_if_needed(redmine_issue):
     except ValueError:
         pass
 
+
+    if status == 'En Curso':
+        vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'new' 
+        }})
     if status == 'Remediada':
         vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
             'state': 'resolved' 
