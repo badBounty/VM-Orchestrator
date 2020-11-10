@@ -446,9 +446,11 @@ curl -X PUT "localhost:9200/code_vulnerabilities/_mapping?pretty" -H 'Content-Ty
     "vulnerability_id": {
       "type": "keyword"
     },
+    
     "vulnerability_branch" : {
       "type" : "keyword"
     },
+    
     "vulnerability_title": {
       "type": "keyword"
     },
