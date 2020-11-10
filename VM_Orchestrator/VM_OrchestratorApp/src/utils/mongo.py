@@ -129,7 +129,9 @@ def add_code_vuln(vulnerability):
         'description': vulnerability['Description'],
         'component': vulnerability['Component'],
         'affected_code': vulnerability['Affected_code'],
-        'pipeline_name': vulnerability['Pipeline_name']})
+        'pipeline_name': vulnerability['Pipeline_name'],
+        'branch': vulnerability['Branch'],
+        'state': {'$ne': 'resolved'}})
     if exists:
         code_vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
             'last_seen': timestamp,
@@ -137,9 +139,7 @@ def add_code_vuln(vulnerability):
             'line': vulnerability['Line'],
             'hash': vulnerability['Hash']
         }})
-        # Modify bulk code vuln object, return bulk vuln
-        exists['_id'] = exists.get('_id')
-        return add_bulk_code_vuln(exists)
+        return str(exists.get('_id'))
     else:
         vuln_to_add = {
             'title': vulnerability['Title'],
@@ -151,6 +151,7 @@ def add_code_vuln(vulnerability):
             'last_commit': vulnerability['Commit'],
             'username': vulnerability['Username'],
             'pipeline_name': vulnerability['Pipeline_name'],
+            'branch': vulnerability['Branch'],
             'language': vulnerability['Language'],
             'hash': vulnerability['Hash'],
             'severity_tool': vulnerability['Severity_tool'],
@@ -165,7 +166,7 @@ def add_code_vuln(vulnerability):
         vuln_to_add['_id'] = str(vuln_id.inserted_id)
         add_found_vulnerability_log(vuln_to_add)
         add_code_vuln_to_elastic(vuln_to_add)
-        return add_bulk_code_vuln(vuln_to_add)
+        return str(vuln_to_add.get('_id'))
 
 # This receives a vulnerability in code_vulnerabilities json format
 def add_bulk_code_vuln(vulnerability):
@@ -724,27 +725,27 @@ def update_code_finding(redmine_issue):
     status_id = redmine_issue.status.id
 
     #Custom fields specific to code findings
-    #new_component = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["COMPONENT"]).value
-    #new_line = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["LINE"]).value
-    #new_affected_code = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["AFFECTED_CODE"]).value
-    #new_first_commit = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["FIRST_COMMIT"]).value
+    new_component = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["COMPONENT"]).value
+    new_line = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["LINE"]).value
+    new_affected_code = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["AFFECTED_CODE"]).value
+    new_first_commit = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["FIRST_COMMIT"]).value
     new_last_commit = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["LAST_COMMIT"]).value
-    #new_username = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["USERNAME"]).value
+    new_username = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["USERNAME"]).value
     new_pipeline_name = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["PIPELINE_NAME"]).value
     new_tool_severity = redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']["TOOL_SEVERITY"]).value
 
     try:
-        vulnerability = bulk_code_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['IDENTIFIER']).value)})
+        vulnerability = code_vulnerabilities.find_one({'_id': ObjectId(redmine_issue.custom_fields.get(REDMINE_IDS['CODE_FINDING']['IDENTIFIER']).value)})
         # This is the case where the vuln does not exist in our database
         # Just in case the person enters a valid ID by chance
         if not vulnerability:
-            print('Adding custom code vulnerability --- NOT SUPPORTED')
-            #add_custom_code_issue(redmine_issue)
+            print('Adding custom code vulnerability')
+            add_custom_code_issue(redmine_issue)
             return
     # Invalid id exception
     except InvalidId:
-        print('Adding custom code vulnerability --- NOT SUPPORTED')
-        #add_custom_code_issue(redmine_issue)
+        print('Adding custom code vulnerability')
+        add_custom_code_issue(redmine_issue)
         return
 
     # Re doing observation based on the previous one
@@ -757,12 +758,17 @@ def update_code_finding(redmine_issue):
     new_observation['severity'] = new_kb_severity
 
     try:
-        bulk_code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
                 'cvss_score': float(cvss_score),
                 'observation': new_observation,
                 'title': new_vuln_name,
                 'description': new_description,
+                'component': new_component,
+                'line': new_line,
+                'affected_code': new_affected_code,
+                'first_commit': new_first_commit,
                 'last_commit': new_last_commit,
+                'username': new_username,
                 'pipeline_name': new_pipeline_name,
                 'severity_tool': new_tool_severity
             }})
@@ -770,51 +776,24 @@ def update_code_finding(redmine_issue):
         pass
 
     if status_id == REDMINE_IDS['STATUS_SOLVED']:
-        individual_issues = vulnerability['individual_issues']
-        for i in range(len(individual_issues)):
-            individual_issues[i]['state'] = 'resolved'
-            code_vulnerabilities.update_one({'_id': ObjectId(individual_issues[i]['_id'])}, {'$set': {
-                'state': 'resolved' 
-            }})
-        bulk_code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'state': 'resolved',
-            'individual_issues': individual_issues
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'resolved' 
         }})
     elif status_id == REDMINE_IDS['STATUS_CLOSED']:
-        individual_issues = vulnerability['individual_issues']
-        for i in range(len(individual_issues)):
-            individual_issues[i]['state'] = 'closed'
-            code_vulnerabilities.update_one({'_id': ObjectId(individual_issues[i]['_id'])}, {'$set': {
-                'state': 'closed' 
-            }})
-        vulnerability['individual_issues'] = individual_issues
-        bulk_code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'state': 'closed',
-            'individual_issues': individual_issues
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'closed' 
         }})
     elif status_id == REDMINE_IDS['STATUS_CONFIRMED']:
-        individual_issues = vulnerability['individual_issues']
-        for i in range(len(individual_issues)):
-            individual_issues[i]['state'] = 'confirmed'
-            code_vulnerabilities.update_one({'_id': ObjectId(individual_issues[i]['_id'])}, {'$set': {
-                'state': 'confirmed'
-            }})
-        vulnerability['individual_issues'] = individual_issues
-        bulk_code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'state': 'confirmed',
-            'individual_issues': individual_issues
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'confirmed' 
         }})
     elif status_id == REDMINE_IDS['STATUS_REJECTED']:
-        individual_issues = vulnerability['individual_issues']
-        for i in range(len(individual_issues)):
-            individual_issues[i]['state'] = 'rejected'
-            code_vulnerabilities.update_one({'_id': ObjectId(individual_issues[i]['_id'])}, {'$set': {
-                'state': 'rejected' 
-            }})
-        vulnerability['individual_issues'] = individual_issues
-        bulk_code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
-            'state': 'rejected',
-            'individual_issues': individual_issues
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'rejected' 
+        }})
+    elif status_id == REDMINE_IDS['STATUS_NEW_VERIFY']:
+        code_vulnerabilities.update_one({'_id': vulnerability.get('_id')}, {'$set': {
+            'state': 'new-verify' 
         }})
     return
 
@@ -987,6 +966,7 @@ def add_code_vuln_to_elastic(vuln):
         'vulnerability_last_commit': vuln['last_commit'],
         'vulnerability_username': vuln['username'],
         'vulnerability_pipeline_name': vuln['pipeline_name'],
+        'vulnerability_branch': vuln['branch'],
         'vulnerability_language': vuln['language'],
         'vulnerability_hash': vuln['hash'],
         'vulnerability_severity_tool': vuln['severity_tool'],

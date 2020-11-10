@@ -323,9 +323,25 @@ def add_code_vuln(data):
             'severity': data['Severity_tool']
     }
     data['cvss_score'] = 0
-    bulk_vuln = mongo.add_code_vuln(data)
-    redmine.create_new_code_issue(bulk_vuln)
+    data['_id'] = mongo.add_code_vuln(data)
+    redmine.create_new_code_issue(data)
     return
+
+'''
+{
+    "Pipeline_name": "PipelineName",
+    "Branch": "BranchName",
+    "Commit": "Short Commit",
+    "Status": "Start/End"
+}
+'''
+#TODO Maybe this is wrong? Should we update separately?
+@shared_task
+def rcv_code_vuln_state(data):
+    #Update redmine issue states
+    redmine.update_code_issues_by_state(data)
+    #Update mongo issues that have an old commit
+    check_redmine_for_updates()
 
 
 

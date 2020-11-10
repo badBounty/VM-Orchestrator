@@ -93,6 +93,7 @@
                 "LAST_COMMIT":17,
                 "USERNAME":18,
                 "PIPELINE_NAME":19,
+                "BRANCH_NAME": 21,
                 "TOOL_SEVERITY":20,
                 "DATE_FOUND": 5,
                 "LAST_SEEN": 6,

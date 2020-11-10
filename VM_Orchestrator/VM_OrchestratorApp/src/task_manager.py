@@ -101,6 +101,12 @@ def add_code_vuln(data):
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
+def rcv_code_vuln_state(data):
+    execution_chain = chain(
+        tasks.rcv_code_vuln_state.si(data).set(queue='fast_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
+
 def force_redmine_sync():
     slack.send_notification_to_channel('_ Forcing redmine sync... _', '#vm-ondemand')
     execution_chain = chain(

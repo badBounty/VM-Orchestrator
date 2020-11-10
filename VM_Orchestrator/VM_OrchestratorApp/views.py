@@ -145,6 +145,14 @@ def add_code_vuln(request):
         return JsonResponse({'INFO': 'Adding code vuln', 'VULN': json_data})
     return JsonResponse({'ERROR': 'Post is required'})
 
+@csrf_exempt
+def rcv_code_vuln_state(request):
+    if request.method == 'POST':
+        json_data = json.loads(request.body)
+        manager.rcv_code_vuln_state(json_data)
+        return JsonResponse({'INFO': 'Processing vuln state', 'State': json_data})
+    return JsonResponse({'ERROR': 'Post is required'})
+
 
 ### ON DEMAND SCAN APPROVED REQUESTS ###
 '''
