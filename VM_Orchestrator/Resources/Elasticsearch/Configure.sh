@@ -869,4 +869,8 @@ curl -X PUT "localhost:9200/log_vuln/_mapping?pretty" -H 'Content-Type: applicat
 }
 '
 
-curl -X POST "localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@dash-all.ndjson
+curl -X POST "localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@code_dash.ndjson
+
+curl -X POST "localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@resources_dash.ndjson
+curl -X POST "localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@vulns_VM_dash.ndjson
+curl -X POST "localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@logs_dash.ndjson
