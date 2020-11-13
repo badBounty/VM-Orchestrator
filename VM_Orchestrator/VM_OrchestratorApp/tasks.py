@@ -14,6 +14,7 @@ from VM_OrchestratorApp.src.scanning import header_scan, http_method_scan, ssl_t
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
     firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack, \
     iis_shortname_scanner, burp_scan, nessus_scan, acunetix_scan
+from VM_OrchestratorApp.src.objects.observation import Observation
 from VM_Orchestrator.settings import settings
 from VM_OrchestratorApp.src.utils import mongo, slack, redmine
 from VM_OrchestratorApp.src import constants
@@ -313,13 +314,14 @@ def add_scanned_resources(scan_info):
 def add_code_vuln(data):
     # We add some extra info, this will probably come in the request in the future
     data['vuln_type'] = 'code'
+    code_observation = Observation(data['Title'], data['Language'])
     data['observation'] = {
-            'title': None,
-            'observation_title': None,
-            'observation_note': None,
-            'implication': None,
-            'recommendation_title': None,
-            'recommendation_note': None,
+            'title': str(code_observation.title),
+            'observation_title': str(code_observation.observation_title),
+            'observation_note': str(code_observation.observation_note),
+            'implication': str(code_observation.implication),
+            'recommendation_title': str(code_observation.recommendation_title),
+            'recommendation_note': str(code_observation.recommendation_urls),
             'severity': data['Severity_tool']
     }
     data['cvss_score'] = 0
