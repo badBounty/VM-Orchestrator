@@ -13,6 +13,15 @@ class Observation:
         self.language = language
         if vuln_name is not None:
             info = load_information(vuln_name, language)
+            if info is None:
+                self.title = None
+                self.observation_title = None
+                self.observation_note = None
+                self.implication = None
+                self.recommendation_title = None
+                self.recommendation_urls = None
+                self.severity = None
+                return
             self.title = info['TITLE']
             self.observation_title = info['OBSERVATION']['TITLE']
             self.observation_note = info['OBSERVATION']['NOTE']
