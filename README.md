@@ -81,5 +81,5 @@ We can start the server with
 
     Command Example:
     ```
-    docker run --name orchestrator -p 4000:3000 -d orchestrator
+    docker run --name orchestrator -p 4000:3000 -v /VM-Orchestrator-project/VM-Orchestrator/VM_Orchestrator/settings.json:PathToMySettings.json -d orchestrator
     ```
