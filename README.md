@@ -56,9 +56,9 @@ We can start the server with
 
 1. Create docker containers for the following services:
     
-    * MongoDB
-    * Elasticseach & Kibanna
-    * Redmine
+    * MongoDB: Execute bash.sh file.
+    * Elasticseach & Kibanna: Execute bash.sh file and after a few minutes execute Configure.sh file.
+    * Redmine: Execute bash.sh file. 
     
     The resouces for this are in the VM_Orchestrator/Resources folder
 
@@ -81,5 +81,5 @@ We can start the server with
 
     Command Example:
     ```
-    docker run --name orchestrator -p 4000:3000 -d orchestrator
+    docker run --name orchestrator -p 4000:3000 -v /VM-Orchestrator-project/VM-Orchestrator/VM_Orchestrator/settings.json:PathToMySettings.json -d orchestrator
     ```

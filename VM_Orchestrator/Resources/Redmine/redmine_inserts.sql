@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 13.0 (Debian 13.0-1.pgdg100+1)
--- Dumped by pg_dump version 13.0 (Debian 13.0-1.pgdg100+1)
+-- Dumped from database version 13.1 (Debian 13.1-1.pgdg100+1)
+-- Dumped by pg_dump version 13.1 (Debian 13.1-1.pgdg100+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2470,348 +2470,6 @@ COPY public.custom_fields_trackers (custom_field_id, tracker_id) FROM stdin;
 --
 
 COPY public.custom_values (id, customized_type, customized_id, custom_field_id, value) FROM stdin;
-115	Issue	2	8	
-118	Issue	2	9	
-120	Issue	3	8	
-122	Issue	1	8	
-123	Issue	2	10	
-124	Issue	1	9	
-125	Issue	3	9	
-126	Issue	2	11	
-127	Issue	4	8	
-128	Issue	3	10	
-129	Issue	4	9	
-130	Issue	1	10	
-131	Issue	4	10	
-132	Issue	2	12	
-133	Issue	1	11	
-134	Issue	3	11	
-135	Issue	1	12	
-136	Issue	4	11	
-138	Issue	3	12	
-139	Issue	4	12	
-105	Issue	1	2	5faeaa7ce26515be1c4232fd
-107	Issue	1	5	2020-11-13
-110	Issue	4	2	5faeaa7bb230fdf62c4232fd
-103	Issue	3	2	5faeaa7cadf61d84d74232fd
-114	Issue	1	6	2020-11-13
-108	Issue	3	5	2020-11-13
-111	Issue	4	5	2020-11-13
-119	Issue	1	7	0
-113	Issue	3	6	2020-11-13
-117	Issue	4	6	2020-11-13
-116	Issue	3	7	0
-140	Issue	1	13	chromecast/src/interceptors.js
-104	Issue	2	2	5faeaa7cbe305cbbde4232fd
-144	Issue	3	13	src/state/detailsOverlay/sagas.js
-121	Issue	4	7	0
-106	Issue	2	5	2020-11-13
-143	Issue	4	13	chromecast/src/components/api.js
-149	Issue	3	14	25
-142	Issue	1	14	96
-109	Issue	2	6	2020-11-13
-148	Issue	4	14	90
-152	Issue	3	15	  try {     const { resourceType = '', blimAsset = false, id = '' } = infoCard;     let populatedInfoCard = infoCard;      if (!blimAsset && resourceType !== RESOURCE_TYPES_ORBIS.SHOWS) {       const { description = '' } = infoCard;        if (!description) {         const { data: entity = {} } = yield call(getEntityService, id);         populatedInfoCard = { ...populatedInfoCard, ...entity};       }     }      if (RESOURCES_BY_TYPE.epg.some(epgResource => resourceType === epgResource)) {       const { stationID = '', stationName = '' } = populatedInfoCard;        if (!stationName && stationID) {         populatedInfoCard = yield call(populateWithStationName, populatedInfoCard);       }     }      if (blimAsset && resourceType === RESOURCE_TYPE_BLIM.MOVIE) {       const { data } = yield call(getBlimMovieDetailsService, id);       const parseAsset = getOrbisAssetsFromBlim([data])[0] || {};       populatedInfoCard = { ...populatedInfoCard, ...parseAsset, resourceType: RESOURCE_TYPE_BLIM.MOVIE };     }      yield put(showDetailsOverlayWithData(populatedInfoCard));   } catch (error) {     console.error(`detailsOverlaySaga-populateInfoCard: ${error}`);   }
-112	Issue	2	7	0
-145	Issue	1	15	      try {         const newSessionToken = await getToken(sessionToken);         !url.includes(API.BLIM_EXPERIENCE_BASE_PATH) && setL(config, 'headers.Authorization', `Bearer ${newSessionToken}`);       } catch (error) {         console.error(error);       };
-156	Issue	3	16	2933fd9
-151	Issue	4	15	  try {     const masterAsset = await getAssetInfo(contentId);     const manifest = masterAsset.data;     const parser = new DOMParser();     let parsedManifest = parser.parseFromString(manifest, 'text/xml');     let psshElements = parsedManifest.querySelectorAll(       'ContentProtection[schemeIdUri="urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed"] > pssh'     );     if (psshElements && psshElements.length > 0) {       let stringToDecode = psshElements[0].innerHTML || psshElements[0].textContent;       let psshDecoded = atob(stringToDecode);       let encodedCompanyCode = psshDecoded.match(/istreamplanet"(.*)/)[1];       [companyId] = atob(encodedCompanyCode).split(';');     } else {       console.error(         'PSSH Element not detected in manifest. Default companyID to be used: ',         process.env.REACT_APP_DRM_COMPANY_ID       );     }    } catch (error) {     console.error(error.toString(), process.env.REACT_APP_DRM_COMPANY_ID);   }
-147	Issue	1	16	2933fd9
-159	Issue	3	17	2933fd9
-137	Issue	2	13	chromecast/src/utils/actionsGlobal.js
-154	Issue	4	16	2933fd9
-150	Issue	1	17	2933fd9
-141	Issue	2	14	260
-173	Issue	3	21	develop
-169	Issue	4	21	develop
-158	Issue	2	17	2933fd9
-163	Issue	2	18	johndaniel.castro@globant.com
-167	Issue	2	19	dtvweb
-171	Issue	2	20	Low
-174	Issue	2	21	develop
-157	Issue	4	17	2933fd9
-161	Issue	4	18	johndaniel.castro@globant.com
-164	Issue	4	19	dtvweb
-166	Issue	4	20	Low
-179	Issue	5	8	
-180	Issue	5	9	
-181	Issue	5	10	
-182	Issue	5	11	
-183	Issue	5	12	
-175	Issue	5	2	5faeaa7de26515be1c4232ff
-176	Issue	5	5	2020-11-13
-177	Issue	5	6	2020-11-13
-178	Issue	5	7	0
-184	Issue	5	13	src/state/home/homeTab/sagas.js
-185	Issue	5	14	97
-186	Issue	5	15	  try {     const group = [];     const firstIndex = (lastPageCalled - 1) * PAGE_SIZE, lastIndex = lastPageCalled * PAGE_SIZE;     const sectionsGroup = allSectionsToLoad.slice(firstIndex, lastIndex);     const groupIds = sectionsGroup.map(({ id }) => id);     const sectionsData = yield getSections(groupIds, LANDERS_URIS.HOME);     const updatedSections = allSectionsToLoad.map((section) => {       const { id } = section;       const { assets, name, key } = sectionsData[id] ? sectionsData[id] : {};        if (!!sectionsData[id]) {         return {           id,           key,           assets,           name,           requested: true         };       }        return section;     });      for (const indexSection in sectionsGroup) {       const absoluteIndexSection = Number(indexSection) + firstIndex;        if (updatedSections[absoluteIndexSection].requested) {         const section = updatedSections[absoluteIndexSection];          if (section !== null) {           const { id, key, assets } = section;            if (assets && (assets.length || id === SECTIONS_URIS.MY_LIST)) {             if (key === MY_LIST_SLIDER_KEY) {               yield put(getMyListSuccess(assets));             }              updatedSections[absoluteIndexSection].assets = yield call(populateFeaturedWithStationName, assets);             group.push(updatedSections[absoluteIndexSection]);           }         }       }     }      return {       group,       updatedSections,       keepRequesting: (lastIndex < allSectionsToLoad.length)     };    } catch (error) {     console.error(`homeTabSaga-homeTab: ${error}`);   }
-187	Issue	5	16	2933fd9
-188	Issue	5	17	2933fd9
-189	Issue	5	18	johndaniel.castro@globant.com
-190	Issue	5	19	dtvweb
-192	Issue	5	20	Low
-195	Issue	5	21	develop
-251	Issue	9	8	
-252	Issue	9	9	
-253	Issue	9	10	
-254	Issue	9	11	
-255	Issue	9	12	
-247	Issue	9	2	5faeaa7ee26515be1c423301
-248	Issue	9	5	2020-11-13
-249	Issue	9	6	2020-11-13
-250	Issue	9	7	0
-256	Issue	9	13	src/utils/actionsGlobal.js
-257	Issue	9	14	994
-258	Issue	9	15	  try {     if (url.indexOf("//") > -1) {       hostname = url.split('/')[2];     } else {       hostname = url.split('/')[0];     }     //find & remove port number     hostname = hostname.split(':')[0];     //find & remove "?"     hostname = hostname.split('?')[0];   } catch (e) {     console.error(e);   }
-259	Issue	9	16	2933fd9
-260	Issue	9	17	2933fd9
-261	Issue	9	18	johndaniel.castro@globant.com
-263	Issue	9	19	dtvweb
-264	Issue	9	20	Low
-266	Issue	9	21	develop
-363	Issue	16	8	
-365	Issue	16	9	
-367	Issue	16	10	
-368	Issue	16	11	
-369	Issue	16	12	
-356	Issue	16	2	5faeaa80adf61d84d7423303
-358	Issue	16	5	2020-11-13
-360	Issue	16	6	2020-11-13
-362	Issue	16	7	0
-371	Issue	16	13	src/utils/actionsGlobal.js
-373	Issue	16	14	1345
-375	Issue	16	15	  return (+new Date() + Math.random() * 100).toString(32);
-377	Issue	16	16	2933fd9
-378	Issue	16	17	2933fd9
-381	Issue	16	18	johndaniel.castro@globant.com
-384	Issue	16	19	dtvweb
-386	Issue	16	20	Low
-388	Issue	16	21	develop
-155	Issue	1	18	johndaniel.castro@globant.com
-160	Issue	1	19	dtvweb
-162	Issue	1	20	Low
-170	Issue	1	21	develop
-212	Issue	8	8	
-215	Issue	8	9	
-219	Issue	8	10	
-222	Issue	8	11	
-224	Issue	8	12	
-199	Issue	8	2	5faeaa7dadf61d84d74232ff
-202	Issue	8	5	2020-11-13
-203	Issue	8	6	2020-11-13
-209	Issue	8	7	0
-227	Issue	8	13	src/state/sections/sagas.js
-230	Issue	8	14	30
-233	Issue	8	15	  try {     const timeZone = getTimeZone();     const { account: { entitlements = [] } = {} } = user;     const entitlementsString = entitlements       .map(({ package: { id = '' } = {} }) => id)       .join(', ');      const {       data: { section: { items = [], label = '' } = {} } = {}     } = yield call(getContinueWatchingService, timeZone, entitlementsString);      return {       data: {         section: {           label,           sectionID: sectionId,           subsections: [{             items,             blockLabel: label,             subsectionName: CONTINUE_WATCHING_SLIDER_KEY           }]         }       }     };   } catch (error) {     console.error(`sections>saga-getContinueWatching: ${error}`);   }
-234	Issue	8	16	2933fd9
-236	Issue	8	17	2933fd9
-238	Issue	8	18	johndaniel.castro@globant.com
-240	Issue	8	19	dtvweb
-242	Issue	8	20	Low
-244	Issue	8	21	develop
-269	Issue	10	8	
-270	Issue	10	9	
-271	Issue	10	10	
-272	Issue	10	11	
-273	Issue	10	12	
-262	Issue	10	2	5faeaa7eb230fdf62c423301
-265	Issue	10	5	2020-11-13
-267	Issue	10	6	2020-11-13
-268	Issue	10	7	0
-274	Issue	10	13	src/utils/actionsGlobal.js
-275	Issue	10	14	1320
-276	Issue	10	15	  try {     await eventReportGA(gaParams);   } catch (error) {     console.error(`actionsGlobal-gaReportError: ${error}`);   }
-277	Issue	10	16	2933fd9
-278	Issue	10	17	2933fd9
-279	Issue	10	18	johndaniel.castro@globant.com
-281	Issue	10	19	dtvweb
-284	Issue	10	20	Low
-285	Issue	10	21	develop
-364	Issue	15	8	
-366	Issue	15	9	
-370	Issue	15	10	
-372	Issue	15	11	
-374	Issue	15	12	
-355	Issue	15	2	5faeaa80be305cbbde423303
-357	Issue	15	5	2020-11-13
-359	Issue	15	6	2020-11-13
-361	Issue	15	7	0
-376	Issue	15	13	src/userMenu/settings/general/GeneralContainer.js
-379	Issue	15	14	15
-380	Issue	15	15	export const CHANGE_PASSWORD = 'CHANGE_PASSWORD';
-382	Issue	15	16	2933fd9
-383	Issue	15	17	2933fd9
-385	Issue	15	18	johndaniel.castro@globant.com
-387	Issue	15	19	dtvweb
-389	Issue	15	20	Medium
-390	Issue	15	21	develop
-431	Issue	19	8	
-432	Issue	19	9	
-433	Issue	19	10	
-434	Issue	19	11	
-435	Issue	19	12	
-427	Issue	19	2	5faeaa82adf61d84d7423305
-428	Issue	19	5	2020-11-13
-429	Issue	19	6	2020-11-13
-430	Issue	19	7	0
-436	Issue	19	13	src/utils/localStorageState.js
-437	Issue	19	14	66
-438	Issue	19	15	    sessionToken && localStorage.setItem(SESSION_TOKEN, sessionToken);
-439	Issue	19	16	2933fd9
-440	Issue	19	17	2933fd9
-441	Issue	19	18	johndaniel.castro@globant.com
-442	Issue	19	19	dtvweb
-443	Issue	19	20	LOW
-444	Issue	19	21	develop
-165	Issue	3	18	johndaniel.castro@globant.com
-168	Issue	3	19	dtvweb
-172	Issue	3	20	Low
-198	Issue	6	8	
-200	Issue	6	9	
-204	Issue	6	10	
-205	Issue	6	11	
-207	Issue	6	12	
-191	Issue	6	2	5faeaa7db230fdf62c4232ff
-193	Issue	6	5	2020-11-13
-194	Issue	6	6	2020-11-13
-196	Issue	6	7	0
-211	Issue	6	13	src/state/search/sagas.js
-213	Issue	6	14	72
-214	Issue	6	15	  try {     if (query.length < SEARCH_KEYWORD_THRESHOLD) {       yield put(replace({ search: null }));       return yield call(cleanSearch);     }      yield put(replace({ search: qs.stringify({ q: query }, { format: 'RFC1738' }) }));     yield put(actions.search(query));   } catch (error) {     console.error(`searchSaga-updateSearchTerm: ${error}`);   }
-218	Issue	6	16	2933fd9
-220	Issue	6	17	2933fd9
-223	Issue	6	18	johndaniel.castro@globant.com
-226	Issue	6	19	dtvweb
-228	Issue	6	20	Low
-232	Issue	6	21	develop
-289	Issue	11	8	
-292	Issue	11	9	
-294	Issue	11	10	
-295	Issue	11	11	
-296	Issue	11	12	
-280	Issue	11	2	5faeaa7eadf61d84d7423301
-282	Issue	11	5	2020-11-13
-283	Issue	11	6	2020-11-13
-286	Issue	11	7	0
-299	Issue	11	13	src/utils/localStorageState.js
-300	Issue	11	14	77
-302	Issue	11	15	  try {     const {       digitalData: {         user: { numberOfVisitsEver, numberOfVisitsMonth, lastVisits }, session: { dayLastSession }       } } = global;     localStorage.clear();     let serializedDataLayer = {       user: { numberOfVisitsEver, numberOfVisitsMonth, lastVisits }, session: { dayLastSession }     };     serializedDataLayer = JSON.stringify(serializedDataLayer);     localStorage.setItem(DATA_LAYER, serializedDataLayer);   } catch (error) {     console.error(`localStorageState-clearState: ${error}`);   }
-304	Issue	11	16	2933fd9
-305	Issue	11	17	2933fd9
-308	Issue	11	18	johndaniel.castro@globant.com
-310	Issue	11	19	dtvweb
-311	Issue	11	20	Low
-314	Issue	11	21	develop
-323	Issue	13	8	
-324	Issue	13	9	
-325	Issue	13	10	
-326	Issue	13	11	
-327	Issue	13	12	
-319	Issue	13	2	5faeaa7fe26515be1c423303
-320	Issue	13	5	2020-11-13
-321	Issue	13	6	2020-11-13
-322	Issue	13	7	0
-328	Issue	13	13	chromecast/src/utils/actionsGlobal.js
-331	Issue	13	14	187
-334	Issue	13	15	  return (+new Date() + Math.random() * 100).toString(32);
-336	Issue	13	16	2933fd9
-338	Issue	13	17	2933fd9
-340	Issue	13	18	johndaniel.castro@globant.com
-342	Issue	13	19	dtvweb
-345	Issue	13	20	Low
-348	Issue	13	21	develop
-146	Issue	2	15	  try {     if (url.indexOf("//") > -1) {       hostname = url.split('/')[2];     } else {       hostname = url.split('/')[0];     }     //find & remove port number     hostname = hostname.split(':')[0];     //find & remove "?"     hostname = hostname.split('?')[0];   } catch (e) {     console.error(e);   }
-153	Issue	2	16	2933fd9
-210	Issue	7	8	
-216	Issue	7	9	
-217	Issue	7	10	
-221	Issue	7	11	
-225	Issue	7	12	
-197	Issue	7	2	5faeaa7dbe305cbbde4232ff
-201	Issue	7	5	2020-11-13
-206	Issue	7	6	2020-11-13
-208	Issue	7	7	0
-229	Issue	7	13	src/state/search/sagas.js
-231	Issue	7	14	163
-235	Issue	7	15	  try {     yield put(actions.searchReset());   } catch (error) {     console.error(`searchSaga-cleanSearch: ${error}`);   }
-237	Issue	7	16	2933fd9
-239	Issue	7	17	2933fd9
-241	Issue	7	18	johndaniel.castro@globant.com
-243	Issue	7	19	dtvweb
-245	Issue	7	20	Low
-246	Issue	7	21	develop
-293	Issue	12	8	
-297	Issue	12	9	
-298	Issue	12	10	
-301	Issue	12	11	
-303	Issue	12	12	
-287	Issue	12	2	5faeaa7ebe305cbbde423301
-288	Issue	12	5	2020-11-13
-290	Issue	12	6	2020-11-13
-291	Issue	12	7	0
-306	Issue	12	13	chromecast/src/components/chromecastContainer/ChromecastContainer.js
-307	Issue	12	14	36
-309	Issue	12	15	    const deviceId = (+new Date() + Math.random() * 100).toString(32);
-312	Issue	12	16	2933fd9
-313	Issue	12	17	2933fd9
-315	Issue	12	18	johndaniel.castro@globant.com
-316	Issue	12	19	dtvweb
-317	Issue	12	20	Low
-318	Issue	12	21	develop
-335	Issue	14	8	
-337	Issue	14	9	
-339	Issue	14	10	
-341	Issue	14	11	
-343	Issue	14	12	
-329	Issue	14	2	5faeaa7fb230fdf62c423303
-330	Issue	14	5	2020-11-13
-332	Issue	14	6	2020-11-13
-333	Issue	14	7	0
-344	Issue	14	13	src/dataLayer/entities/User.js
-346	Issue	14	14	19
-347	Issue	14	15	        defaultValue: `000-${+new Date()}-${(Math.random() * 100).toString(32)}`
-349	Issue	14	16	2933fd9
-350	Issue	14	17	2933fd9
-351	Issue	14	18	johndaniel.castro@globant.com
-352	Issue	14	19	dtvweb
-353	Issue	14	20	Low
-354	Issue	14	21	develop
-395	Issue	17	8	
-396	Issue	17	9	
-397	Issue	17	10	
-398	Issue	17	11	
-399	Issue	17	12	
-411	Issue	18	8	
-414	Issue	18	9	
-415	Issue	18	10	
-416	Issue	18	11	
-391	Issue	17	2	5faeaa82e26515be1c423305
-417	Issue	18	12	
-392	Issue	17	5	2020-11-13
-393	Issue	17	6	2020-11-13
-394	Issue	17	7	0
-400	Issue	17	13	src/state/ads/actionTypes.js
-401	Issue	17	14	19
-402	Issue	17	15	export const USER_CONFIG = 'ads/USER_CONFIG';
-404	Issue	17	16	2933fd9
-406	Issue	17	17	2933fd9
-408	Issue	17	18	johndaniel.castro@globant.com
-410	Issue	17	19	dtvweb
-412	Issue	17	20	Medium
-413	Issue	17	21	develop
-403	Issue	18	2	5faeaa82b230fdf62c423305
-405	Issue	18	5	2020-11-13
-407	Issue	18	6	2020-11-13
-409	Issue	18	7	0
-418	Issue	18	13	src/utils/localStorageState.js
-419	Issue	18	14	20
-420	Issue	18	15	const USER = 'user';
-421	Issue	18	16	2933fd9
-422	Issue	18	17	2933fd9
-423	Issue	18	18	johndaniel.castro@globant.com
-424	Issue	18	19	dtvweb
-425	Issue	18	20	Medium
-426	Issue	18	21	develop
 \.
 
 
@@ -2837,16 +2495,6 @@ COPY public.email_addresses (id, user_id, address, is_default, notify, created_o
 --
 
 COPY public.enabled_modules (id, project_id, name) FROM stdin;
-11	1	issue_tracking
-12	1	time_tracking
-13	1	news
-14	1	documents
-15	1	files
-16	1	wiki
-17	1	repository
-18	1	boards
-19	1	calendar
-20	1	gantt
 \.
 
 
@@ -2929,25 +2577,6 @@ COPY public.issue_statuses (id, name, is_closed, "position", default_done_ratio)
 --
 
 COPY public.issues (id, tracker_id, project_id, subject, description, due_date, category_id, status_id, assigned_to_id, priority_id, fixed_version_id, author_id, lock_version, created_on, updated_on, start_date, done_ratio, estimated_hours, parent_id, root_id, lft, rgt, is_private, closed_on) FROM stdin;
-1	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:08.770919	2020-11-13 15:48:38.00195	\N	0	\N	\N	1	1	2	f	\N
-2	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:08.774981	2020-11-13 15:48:38.108488	\N	0	\N	\N	2	1	2	f	\N
-3	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:08.779125	2020-11-13 15:48:38.211727	\N	0	\N	\N	3	1	2	f	\N
-4	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:08.783747	2020-11-13 15:48:38.368081	\N	0	\N	\N	4	1	2	f	\N
-5	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:09.850982	2020-11-13 15:48:38.58964	\N	0	\N	\N	5	1	2	f	\N
-6	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:09.999771	2020-11-13 15:48:38.71086	\N	0	\N	\N	6	1	2	f	\N
-7	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:10.023163	2020-11-13 15:48:38.867744	\N	0	\N	\N	7	1	2	f	\N
-8	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:10.028134	2020-11-13 15:48:39.080978	\N	0	\N	\N	8	1	2	f	\N
-9	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:11.323652	2020-11-13 15:48:39.269495	\N	0	\N	\N	9	1	2	f	\N
-10	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:11.48232	2020-11-13 15:48:39.407675	\N	0	\N	\N	10	1	2	f	\N
-11	6	1	Inadequeate error handler	generic_error_disclosure	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:11.623153	2020-11-13 15:48:39.526149	\N	0	\N	\N	11	1	2	f	\N
-12	6	1	Insecure random generator	node_insecure_random_generator	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:11.682992	2020-11-13 15:48:39.641753	\N	0	\N	\N	12	1	2	f	\N
-13	6	1	Insecure random generator	node_insecure_random_generator	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:13.658662	2020-11-13 15:48:39.765136	\N	0	\N	\N	13	1	2	f	\N
-14	6	1	Insecure random generator	node_insecure_random_generator	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:13.893891	2020-11-13 15:48:39.926788	\N	0	\N	\N	14	1	2	f	\N
-15	6	1	A hardcoded password in plain text is identified. Store it properly in an environment variable.	node_password	\N	\N	9	1	11	\N	1	1	2020-11-13 15:47:14.158385	2020-11-13 15:48:40.036179	\N	0	\N	\N	15	1	2	f	\N
-16	6	1	Insecure random generator	node_insecure_random_generator	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:14.169631	2020-11-13 15:48:40.188838	\N	0	\N	\N	16	1	2	f	\N
-17	6	1	A hardcoded username in plain text is identified. Store it properly in an environment variable.	node_username	\N	\N	9	1	11	\N	1	1	2020-11-13 15:47:16.300516	2020-11-13 15:48:40.294017	\N	0	\N	\N	17	1	2	f	\N
-18	6	1	A hardcoded username in plain text is identified. Store it properly in an environment variable.	node_username	\N	\N	9	1	11	\N	1	1	2020-11-13 15:47:16.502063	2020-11-13 15:48:40.407875	\N	0	\N	\N	18	1	2	f	\N
-19	6	1	Potentially sensitive information in localstorage	Potentially sensitive information in localstorage	\N	\N	9	1	1	\N	1	1	2020-11-13 15:47:16.633944	2020-11-13 15:48:40.536075	\N	0	\N	\N	19	1	2	f	\N
 \.
 
 
@@ -2956,25 +2585,6 @@ COPY public.issues (id, tracker_id, project_id, subject, description, due_date, 
 --
 
 COPY public.journal_details (id, journal_id, property, prop_key, old_value, value) FROM stdin;
-3	3	attr	status_id	1	9
-4	4	attr	status_id	1	9
-5	5	attr	status_id	1	9
-6	6	attr	status_id	1	9
-7	7	attr	status_id	1	9
-8	8	attr	status_id	1	9
-9	9	attr	status_id	1	9
-10	10	attr	status_id	1	9
-11	11	attr	status_id	1	9
-12	12	attr	status_id	1	9
-13	13	attr	status_id	1	9
-14	14	attr	status_id	1	9
-15	15	attr	status_id	1	9
-16	16	attr	status_id	1	9
-17	17	attr	status_id	1	9
-18	18	attr	status_id	1	9
-19	19	attr	status_id	1	9
-20	20	attr	status_id	1	9
-21	21	attr	status_id	1	9
 \.
 
 
@@ -2983,25 +2593,6 @@ COPY public.journal_details (id, journal_id, property, prop_key, old_value, valu
 --
 
 COPY public.journals (id, journalized_id, journalized_type, user_id, notes, created_on, private_notes) FROM stdin;
-3	1	Issue	1	\N	2020-11-13 15:48:38.040991	f
-4	2	Issue	1	\N	2020-11-13 15:48:38.12095	f
-5	3	Issue	1	\N	2020-11-13 15:48:38.223606	f
-6	4	Issue	1	\N	2020-11-13 15:48:38.384441	f
-7	5	Issue	1	\N	2020-11-13 15:48:38.623225	f
-8	6	Issue	1	\N	2020-11-13 15:48:38.721983	f
-9	7	Issue	1	\N	2020-11-13 15:48:38.897291	f
-10	8	Issue	1	\N	2020-11-13 15:48:39.098288	f
-11	9	Issue	1	\N	2020-11-13 15:48:39.298071	f
-12	10	Issue	1	\N	2020-11-13 15:48:39.428026	f
-13	11	Issue	1	\N	2020-11-13 15:48:39.539711	f
-14	12	Issue	1	\N	2020-11-13 15:48:39.658326	f
-15	13	Issue	1	\N	2020-11-13 15:48:39.780376	f
-16	14	Issue	1	\N	2020-11-13 15:48:39.940611	f
-17	15	Issue	1	\N	2020-11-13 15:48:40.059299	f
-18	16	Issue	1	\N	2020-11-13 15:48:40.201764	f
-19	17	Issue	1	\N	2020-11-13 15:48:40.317921	f
-20	18	Issue	1	\N	2020-11-13 15:48:40.418207	f
-21	19	Issue	1	\N	2020-11-13 15:48:40.549192	f
 \.
 
 
@@ -3058,7 +2649,6 @@ COPY public.open_id_authentication_nonces (id, "timestamp", server_url, salt) FR
 --
 
 COPY public.projects (id, name, description, homepage, is_public, parent_id, created_on, updated_on, identifier, status, lft, rgt, inherit_members, default_version_id, default_assigned_to_id) FROM stdin;
-1	TestProject			t	\N	2020-11-13 15:42:01.192458	2020-11-13 15:42:01.192458	testproject	1	1	2	f	\N	\N
 \.
 
 
@@ -3067,9 +2657,6 @@ COPY public.projects (id, name, description, homepage, is_public, parent_id, cre
 --
 
 COPY public.projects_trackers (project_id, tracker_id) FROM stdin;
-1	4
-1	5
-1	6
 \.
 
 
@@ -3449,6 +3036,7 @@ COPY public.tokens (id, user_id, action, value, created_on, updated_on) FROM std
 11	1	session	a1ab0253f36ae0e9fb5a6357ccacd8bbc09d6c21	2020-09-10 16:22:01.357377	2020-09-10 16:24:23.808049
 10	1	session	e15c953a13ae345858674730fae0a2a708f9b17b	2020-09-10 16:20:51.181361	2020-09-10 16:52:53.694764
 12	1	session	269e1e8425074bb727f907198b9a0913afe951d1	2020-11-13 15:37:58.816945	2020-11-13 15:52:59.875674
+13	1	session	3307b62f7c1627951a12dff2940c8f32f440b798	2020-11-24 13:48:37.937907	2020-11-24 13:48:49.692841
 \.
 
 
@@ -3480,7 +3068,7 @@ COPY public.users (id, login, hashed_password, firstname, lastname, admin, statu
 2				Anonymous users	f	1	\N		\N	2020-09-04 16:38:12.582871	2020-09-04 16:38:12.582871	GroupAnonymous	\N		\N	f	\N
 3				Non member users	f	1	\N		\N	2020-09-04 16:38:12.661368	2020-09-04 16:38:12.661368	GroupNonMember	\N		\N	f	\N
 4				Anonymous	f	0	\N		\N	2020-09-04 16:38:21.328527	2020-09-04 16:38:21.328527	AnonymousUser	\N	only_my_events	\N	f	\N
-1	admin	c28dd339002ef77f41f906b37c981a6092e96df3	Redmine	Admin	t	1	2020-11-13 15:49:23.252495		\N	2020-09-04 16:38:05.505611	2020-09-04 16:40:19.852077	User	\N	all	e0aecc28f14936ad507b533cdd772a87	f	2020-09-04 16:40:19
+1	admin	c28dd339002ef77f41f906b37c981a6092e96df3	Redmine	Admin	t	1	2020-11-24 13:48:37.93094		\N	2020-09-04 16:38:05.505611	2020-09-04 16:40:19.852077	User	\N	all	e0aecc28f14936ad507b533cdd772a87	f	2020-09-04 16:40:19
 \.
 
 
@@ -3497,25 +3085,6 @@ COPY public.versions (id, project_id, name, description, effective_date, created
 --
 
 COPY public.watchers (id, watchable_type, watchable_id, user_id) FROM stdin;
-7	Issue	4	1
-8	Issue	1	1
-9	Issue	3	1
-10	Issue	2	1
-11	Issue	5	1
-12	Issue	6	1
-13	Issue	8	1
-14	Issue	7	1
-15	Issue	9	1
-16	Issue	10	1
-17	Issue	11	1
-18	Issue	12	1
-19	Issue	13	1
-20	Issue	14	1
-21	Issue	16	1
-22	Issue	15	1
-23	Issue	17	1
-24	Issue	18	1
-25	Issue	19	1
 \.
 
 
@@ -3556,7 +3125,6 @@ COPY public.wiki_redirects (id, wiki_id, title, redirects_to, created_on, redire
 --
 
 COPY public.wikis (id, project_id, start_page, status) FROM stdin;
-2	1	Wiki	1
 \.
 
 
@@ -4160,7 +3728,7 @@ SELECT pg_catalog.setval('public.open_id_authentication_nonces_id_seq', 1, false
 -- Name: projects_id_seq; Type: SEQUENCE SET; Schema: public; Owner: redmine
 --
 
-SELECT pg_catalog.setval('public.projects_id_seq', 1, true);
+SELECT pg_catalog.setval('public.projects_id_seq', 1, false);
 
 
 --
@@ -4202,7 +3770,7 @@ SELECT pg_catalog.setval('public.time_entries_id_seq', 1, false);
 -- Name: tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: redmine
 --
 
-SELECT pg_catalog.setval('public.tokens_id_seq', 12, true);
+SELECT pg_catalog.setval('public.tokens_id_seq', 13, true);
 
 
 --
