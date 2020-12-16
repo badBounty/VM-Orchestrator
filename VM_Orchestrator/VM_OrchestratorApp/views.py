@@ -64,6 +64,11 @@ def specific_observation(request, mongo_id):
     form.populate(resource)
     return render(request, 'specific_observation.html', {'form': form})
     
+# Testing
+def domains(request):
+    resources = mongo.get_domains()
+    return render(request, 'domains.html', {'object_list': resources})
+
 
 def current_vulnerabilities(request):
     return render(request, 'vulns_type.html')

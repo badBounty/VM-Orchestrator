@@ -27,5 +27,7 @@ urlpatterns = [
     path('web_vulnerabilities/', views.web_vulnerabilities, name='web_vulnerabilities'),
     path('infra_vulnerabilities/', views.infra_vulnerabilities, name='infra_vulnerabilities'),
     path('code_vulnerabilities/', views.code_vulnerabilities, name='code_vulnerabilities'),
-    path('new_vulnerability/', views.new_vulnerability, name='new_vulnerability')
+    path('new_vulnerability/', views.new_vulnerability, name='new_vulnerability'),
+    #
+    path('domains/', views.domains, name='domains')
 ]

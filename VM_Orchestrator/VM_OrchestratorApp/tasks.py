@@ -206,7 +206,7 @@ def run_recon(scan_information):
     })
 
     #We add the domain to our domain database
-    mongo.add_domain(scan_information, True)
+    mongo.add_domain(scan_information, True, True)
     # Scanning for subdomains
     subdomain_recon_task(scan_information)
     # We resolve to get http/https urls
