@@ -929,14 +929,25 @@ def add_web_vuln_to_elastic(vuln):
 def add_infra_vuln_to_elastic(vuln):
     if ELASTIC_CLIENT is None:
         return
-    observation_data = {
-        'vulnerability_observation_title': vuln['observation']['observation_title'],
-        'vulnerability_observation_note': vuln['observation']['observation_note'],
-        'vulnerability_implication': vuln['observation']['implication'],
-        'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
-        'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
-        'vulnerability_severity': vuln['observation']['severity']
-    }
+
+    if not vuln['observation']:
+        observation_data = {
+        'vulnerability_observation_title': '<TO DEFINE>',
+        'vulnerability_observation_note': '<TO DEFINE>',
+        'vulnerability_implication': '<TO DEFINE>',
+        'vulnerability_recommendation_title': '<TO DEFINE>',
+        'vulnerability_recommendation_note': '<TO DEFINE>',
+        'vulnerability_severity': '<TO DEFINE>'
+        }
+    else:
+        observation_data = {
+            'vulnerability_observation_title': vuln['observation']['observation_title'],
+            'vulnerability_observation_note': vuln['observation']['observation_note'],
+            'vulnerability_implication': vuln['observation']['implication'],
+            'vulnerability_recommendation_title': vuln['observation']['recommendation_title'],
+            'vulnerability_recommendation_note': vuln['observation']['recommendation_note'],
+            'vulnerability_severity': vuln['observation']['severity']
+        }
     vulnerability_to_add = {
         'vulnerability_id': str(vuln['_id']),
         'vulnerability_domain': vuln['domain'],
