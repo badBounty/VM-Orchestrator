@@ -890,7 +890,17 @@ def update_elasticsearch_logs():
 def add_web_vuln_to_elastic(vuln):
     if ELASTIC_CLIENT is None:
         return
-    observation_data = {
+    if not vuln['observation']:
+        observation_data = {
+        'vulnerability_observation_title': '<TO DEFINE>',
+        'vulnerability_observation_note': '<TO DEFINE>',
+        'vulnerability_implication': '<TO DEFINE>',
+        'vulnerability_recommendation_title': '<TO DEFINE>',
+        'vulnerability_recommendation_note': '<TO DEFINE>',
+        'vulnerability_severity': '<TO DEFINE>'
+        }
+    else:
+        observation_data = {
         'vulnerability_observation_title': vuln['observation']['observation_title'],
         'vulnerability_observation_note': vuln['observation']['observation_note'],
         'vulnerability_implication': vuln['observation']['implication'],
