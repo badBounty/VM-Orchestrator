@@ -351,7 +351,7 @@ def rcv_code_vuln_state(data):
 @shared_task
 def on_demand_scan_finished(results, information):
     add_scanned_resources(information)
-    slack.send_notification_to_channel('_ On demand scan against %s finished! _' % information['resource'], '#vm-ondemand')
+    slack.send_notification_to_channel('_ On demand scan against %s finished! _' % information['target'], '#vm-ondemand')
     return
 
 @shared_task
