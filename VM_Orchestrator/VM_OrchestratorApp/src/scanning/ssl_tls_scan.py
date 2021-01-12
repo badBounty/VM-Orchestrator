@@ -558,16 +558,19 @@ def scan_target(scan_info, url, url_with_port):
                 startTime = datetime.now()
                 try: sp = subprocess.run(['sslscan', '--no-failed', '--no-colour', url_with_port], capture_output=True, timeout=setTimeout)
                 except subprocess.TimeoutExpired: print("Module SSL/TLS timed out ("+str(setTimeout)+"s) when running SSLSCAN on " + str(url_with_port) + " (canceled tool 1/3)"); continue
+                except Exception as e: print("Module SSL/TLS failed on SSLSCAN stage (tool 1/3). Error: " + str(e)); continue
                 print("Module SSL/TLS finished running SSLSCAN on " + str(url_with_port) + " (tool 1/3) -> Elapsed time: " + format_seconds_to_mmss((datetime.now()-startTime).total_seconds()))
             if i == 1:
                 startTime = datetime.now() # IN NEXT LINE -> Parameters used: -f (Perfect Forward Secrecy) & -p (SSL/TLS protocols) & -S (certificate information) & -h (header information) & -U (ALL VULNERABILITIES)
                 try: sp = subprocess.run([TOOL_DIR, '-f', '-p', '-S', '-h', '-U', '--color', '0', '--warnings=off', "--ip", "one", url_with_port], capture_output=True, timeout=setTimeout)
                 except subprocess.TimeoutExpired: print("Module SSL/TLS timed out ("+str(setTimeout)+"s) when running TESTSSL on " + str(url_with_port) + " (canceled tool 2/3)"); continue
+                except Exception as e: print("Module SSL/TLS failed on TESTSSL stage (tool 2/3). Error: " + str(e)); continue
                 print("Module SSL/TLS finished running TESTSSL on " + str(url_with_port) + " (tool 2/3) -> Elapsed time: " + format_seconds_to_mmss((datetime.now()-startTime).total_seconds()))
             if i == 2:
                 startTime = datetime.now()
                 try: sp = subprocess.run(['sslyze', '--reneg', '--robot', '--sslv2', '--sslv3', str(url_with_port)], capture_output=True, timeout=setTimeout)
                 except subprocess.TimeoutExpired: print("Module SSL/TLS timed out ("+str(setTimeout)+"s) when running SSLYZE on " + str(url_with_port) + " (canceled tool 3/3)"); continue
+                except Exception as e: print("Module SSL/TLS failed on SSLYZE stage (tool 3/3). Error: " + str(e)); continue
                 print("Module SSL/TLS finished running SSLYZE on " + str(url_with_port) + " (tool 3/3) -> Elapsed time: " + format_seconds_to_mmss((datetime.now()-startTime).total_seconds()))
             # Grab the data...
             data = sp.stdout.decode()
@@ -662,14 +665,16 @@ def scan_target(scan_info, url, url_with_port):
     strMessage = "Cipher vulnerabilities were found.\n\n\n" + observation + "\n\n" + implication + "\n\n" + recommendation + "\n\n\n*Detection of issues:*\n\n"
     vulnsAlreadyReported = []
     img_str_list = [False, False, False] # It will be [SSLSCANboolean, TestSSLboolean, SSLYZEboolean] (Example: Only SSLSCAN -> [True, False, False])
+    onlyPFS = True
     for i in range(len(listFoundCipherVulns)):
         if listFoundCipherVulns[i][4].lower() == "sslscan": img_str_list[0] = True
         if listFoundCipherVulns[i][4].lower() == "testssl": img_str_list[1] = True
         if listFoundCipherVulns[i][4].lower() == "sslyze":  img_str_list[2] = True
+        if listFoundCipherVulns[i][3] != "PERFECT_FORWARD_SECRECY_DISABLED": onlyPFS = False
         if listFoundCipherVulns[i][3] in vulnsAlreadyReported: continue # Si ya se reporto un issue con SSLSCAN
         else: vulnsAlreadyReported.append(listFoundCipherVulns[i][3])   # no volver a reportarlo con TestSSL...
         strMessage += listFoundCipherVulns[i][2] + "\n\n"
-    if listFoundCipherVulns: add_vulnerability(scan_info, strMessage, isCipherVuln=True, img_str_list=img_str_list, listData=listData)
+    if listFoundCipherVulns and not onlyPFS: add_vulnerability(scan_info, strMessage, isCipherVuln=True, img_str_list=img_str_list, listData=listData)
 
     # Create the Observation, Implication and Recommendation depending on the vulnerable certificate.
     observation = "*Observation*:\n\n"
