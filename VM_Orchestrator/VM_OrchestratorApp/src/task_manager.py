@@ -101,6 +101,12 @@ def add_code_vuln(data):
     )
     execution_chain.apply_async(queue='fast_queue', interval=300)
 
+def add_web_vuln(data):
+    execution_chain = chain(
+        tasks.add_web_vuln.si(data).set(queue='fast_queue')
+    )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
+
 def rcv_code_vuln_state(data):
     execution_chain = chain(
         tasks.rcv_code_vuln_state.si(data).set(queue='fast_queue')

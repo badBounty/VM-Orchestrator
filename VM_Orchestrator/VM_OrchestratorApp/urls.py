@@ -12,6 +12,7 @@ urlpatterns = [
     path('sync_redmine/', views.force_redmine_sync, name='sync_redmine'),
     path('add_code_vulnerability/', views.add_code_vuln, name='add_code_vulnerability'),
     path('rcv_code_vulnerability_state/', views.rcv_code_vuln_state, name='rcv_code_vulnerability_state'),
+    path('add_web_vulnerability', views.add_web_vuln, name='add_web_vulnerability'),
     path('run_module/', views.run_specific_module, name='run_module'),
     path('on_demand_scan/', views.on_demand_scan, name='on_demand_scan'), ## ON DEMAND
     # Views

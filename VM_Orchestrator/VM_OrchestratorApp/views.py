@@ -142,12 +142,36 @@ def force_redmine_sync(request):
         return JsonResponse({'INFO': 'Synchronizing redmine'})
     return JsonResponse({'ERROR': 'Post is required'})
 
+'''
+{
+  "Title": "Unrestricted Spring's RequestMapping makes the method vulnerable to CSRF attacks",
+  "Description": "Tool title \n tool description",
+  "Component": "src/main/java/org/owasp/webwolf/FileServer.java",
+  "Line": 25,
+  "Affected_code": "string",
+  "Commit": "261283c",
+ "Username": "username",
+  "Pipeline_name": "name",
+  "Language": "spa/eng",
+  "Hash": "hash",
+  "Severity_tool": "Severity"
+}
+'''
+
 @csrf_exempt
 def add_code_vuln(request):
     if request.method == 'POST':
         json_data = json.loads(request.body)
         manager.add_code_vuln(json_data)
         return JsonResponse({'INFO': 'Adding code vuln', 'VULN': json_data})
+    return JsonResponse({'ERROR': 'Post is required'})
+
+@csrf_exempt
+def add_web_vuln(request):
+    if request.method == 'POST':
+        json_data = json.loads(request.body)
+        manager.add_web_vuln(json_data)
+        return JsonResponse({'INFO': 'Adding web vuln', 'VULN': json_data})
     return JsonResponse({'ERROR': 'Post is required'})
 
 @csrf_exempt

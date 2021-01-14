@@ -329,6 +329,10 @@ def add_code_vuln(data):
     redmine.create_new_code_issue(data)
     return
 
+@shared_task
+def add_web_vuln(data):
+    return
+
 '''
 {
     "Pipeline_name": "PipelineName",
@@ -350,7 +354,7 @@ def rcv_code_vuln_state(data):
 # -------------------- TASK CALLBACKS -------------------- #
 @shared_task
 def on_demand_scan_finished(results, information):
-    add_scanned_resources(information)
+    #add_scanned_resources(information)
     slack.send_notification_to_channel('_ On demand scan against %s finished! _' % information['target'], '#vm-ondemand')
     return
 
