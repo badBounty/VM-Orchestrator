@@ -12,8 +12,15 @@ RUN  apt-get update \
   && apt-get install -y screen \
   && apt-get install -y dnsutils \
   && apt-get install -y nmap \
-  && apt-get install -y git \
-  && apt-get install -y python3-pip
+  && apt-get install -y git \ 
+  && apt-get install -y curl
+
+RUN apt-get update && \
+    apt-get install -y python3.8
+
+RUN apt-get install -y --no-install-recommends python3-distutils \
+  && curl https://bootstrap.pypa.io/get-pip.py | python3.8
+
 
 RUN wget https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go1.13.4.linux-amd64.tar.gz \
@@ -49,6 +56,8 @@ EXPOSE 3000
 WORKDIR /VM-Orchestrator-project/VM-Orchestrator/VM_Orchestrator
 
 ADD init.sh /VM-Orchestrator-project/VM-Orchestrator/VM_Orchestrator/init.sh
+RUN chmod +x /VM-Orchestrator-project/VM-Orchestrator/VM_Orchestrator/init.sh
+RUN python3.8 -V
 
 CMD ["/VM-Orchestrator-project/VM-Orchestrator/VM_Orchestrator/init.sh"]
 
