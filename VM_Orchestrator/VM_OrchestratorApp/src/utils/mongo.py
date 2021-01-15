@@ -239,7 +239,47 @@ def add_bulk_code_vuln(vulnerability):
         bulk_to_add['_id'] = str(bulk_vuln_id.inserted_id)
         return bulk_to_add
     
-
+'''
+{
+    "Title": "Absence of Anti-CSRF Tokens",
+    "Description": "No Anti-CSRF tokens were found in a html submission form",
+    "Domain": "altoromutual.com",
+    "Resource": "http://altoromutual.com/",
+    "Severity": "Low"
+}
+'''
+def add_web_vuln_bis(vulnerability):
+    exists = web_vulnerabilities.find_one({'domain': vulnerability['Domain'], 'resource': vulnerability['Resource'],
+                                          'vulnerability_name': vulnerability['Title'],
+                                          'language': settings['LANGUAGE']})
+    if exists:
+        web_vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
+            'extra_info': vulnerability['Description'],
+            'last_seen': datetime.now()
+        }})
+        return str(exists.get('_id'))
+    else:
+        resource = {
+            'domain': vulnerability['Domain'],
+            'resource': vulnerability['Resource'],
+            'vulnerability_name': vulnerability['Title'],
+            'observation': vulnerability['observation'],
+            'extra_info': vulnerability['Description'],
+            'image_string': None,
+            'file_string': None,
+            'date_found': datetime.now(),
+            'last_seen': datetime.now(),
+            'language': settings['LANGUAGE'],
+            'cvss_score': vulnerability['cvss_score'],
+            'vuln_type': vulnerability['vuln_type'],
+            'state': 'new'
+        }
+        vuln_id = web_vulnerabilities.insert_one(resource)
+        resource['_id'] = str(vuln_id.inserted_id)
+        add_found_vulnerability_log(resource, vulnerability)
+        add_web_vuln_to_elastic(resource)
+        return str(resource.get('_id'))
+    return
 
 
 
@@ -1106,9 +1146,9 @@ def add_resource_log(resource, module_keyword, state):
 #Returns resolved vulnerabilities
 def get_resolved_vulnerabilities():
     vulns = []
-    vulns.append(web_vulnerabilities.find({'state': 'resolved'}))
-    vulns.append(infra_vulnerabilities.find({'state': 'resolved'}))
-    vulns.append(code_vulnerabilities.find({'state': 'resolved'}))
+    vulns.extend(list(web_vulnerabilities.find({'state': 'resolved'})))
+    vulns.extend(list(infra_vulnerabilities.find({'state': 'resolved'})))
+    vulns.extend(list(code_vulnerabilities.find({'state': 'resolved'})))
     return vulns
 
 def get_alive_subdomains_from_target(target):

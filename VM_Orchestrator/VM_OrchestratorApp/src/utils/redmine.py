@@ -211,6 +211,42 @@ def create_new_code_issue(vuln):
     except Exception as e:
         print("Redmine error" + str(e))
 
+def create_new_web_issue_bis(vuln):
+    if redmine_client is None:
+        return
+    priority_dict = {'INFORMATIONAL': REDMINE_IDS['SEVERITY']['INFORMATIONAL'],
+         'LOW': REDMINE_IDS['SEVERITY']['LOW'], 'MEDIUM': REDMINE_IDS['SEVERITY']['MEDIUM'],
+          'HIGH': REDMINE_IDS['SEVERITY']['HIGH'], 'CRITICAL': REDMINE_IDS['SEVERITY']['CRITICAL']}
+    priority_id = priority_dict[vuln['observation']['severity'].upper()]
+    issue = redmine_client.issue.new()
+    issue.project_id = settings['REDMINE']['project_name']
+    issue.subject = vuln['Title']
+    issue.tracker_id = REDMINE_IDS['WEB_FINDING']['FINDING_TRACKER']
+    issue.description = vuln['Description']
+    issue.status_id = REDMINE_IDS['STATUS_NEW']
+    issue.priority_id = priority_id
+    issue.assigned_to_id = REDMINE_IDS['ASSIGNED_USER']
+    issue.watcher_user_ids = REDMINE_IDS['WATCHERS']
+    timestamp = datetime.now()
+    issue.custom_fields= [
+    {'id': REDMINE_IDS['WEB_FINDING']['IDENTIFIER'], 'value': vuln['_id']},
+    {'id': REDMINE_IDS['WEB_FINDING']['DOMAIN'], 'value': vuln['Domain']},
+    {'id': REDMINE_IDS['WEB_FINDING']['RESOURCE'], 'value': vuln['Resource']},
+    {'id': REDMINE_IDS['WEB_FINDING']['DATE_FOUND'], 'value': str(timestamp.strftime("%Y-%m-%d"))},
+    {'id': REDMINE_IDS['WEB_FINDING']['LAST_SEEN'], 'value': str(timestamp.strftime("%Y-%m-%d"))},
+    {'id': REDMINE_IDS['WEB_FINDING']['CVSS_SCORE'], 'value': vuln['cvss_score']},
+    {'id': REDMINE_IDS['WEB_FINDING']['KB_DESCRIPTION'], 'value': str(vuln['observation']['observation_title'])},
+    {'id': REDMINE_IDS['WEB_FINDING']['KB_DESCRIPTION_NOTES'], 'value': str(vuln['observation']['observation_note'])},
+    {'id': REDMINE_IDS['WEB_FINDING']['KB_IMPLICATION'], 'value': str(vuln['observation']['implication'])},
+    {'id': REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION'], 'value': str(vuln['observation']['recommendation_title'])},
+    {'id': REDMINE_IDS['WEB_FINDING']['KB_RECOMMENDATION_NOTES'], 'value': str(vuln['observation']['recommendation_note'])}
+    ]
+    try:
+        issue.save()
+    except Exception as e:
+        print("Redmine error" + str(e))
+    return
+
 def update_code_issues_by_state(data):
     if redmine_client is None:
         return

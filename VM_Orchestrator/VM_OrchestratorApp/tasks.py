@@ -331,6 +331,20 @@ def add_code_vuln(data):
 
 @shared_task
 def add_web_vuln(data):
+    data['vuln_type'] = 'web'
+    #web_observation = Observation(data['Title'], data['Language'])
+    data['observation'] = {
+            'title': data['Title'],
+            'observation_title': None,
+            'observation_note': None,
+            'implication': None,
+            'recommendation_title': None,
+            'recommendation_note': None,
+            'severity': data['Severity']
+    }
+    data['cvss_score'] = 0
+    data['_id'] = mongo.add_web_vuln_bis(data)
+    redmine.create_new_web_issue_bis(data)
     return
 
 '''
