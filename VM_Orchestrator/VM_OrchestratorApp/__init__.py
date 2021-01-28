@@ -12,14 +12,6 @@ if settings['ELASTIC']['IP'] != '':
         ELASTIC_CLIENT = Elasticsearch([{'host':settings['ELASTIC']['IP'],'port':settings['ELASTIC']['PORT']}])
     else:
         pathCertificate = settings['ELASTIC']["ELASTICCERTIFICATE"]
-        """context = create_default_context(cafile=pathCertificate)
-        ELASTIC_CLIENT = Elasticsearch(
-            [settings['ELASTIC']['IP']],
-            http_auth=(settings['ELASTIC']['USER'], settings['ELASTIC']['SECRET']),
-            scheme="https",
-            port=settings['ELASTIC']['PORT'],
-            ssl_context=context,
-        )"""
         host = "{}:{}".format(settings['ELASTIC']['IP'],settings['ELASTIC']['PORT'])
         ELASTIC_CLIENT = Elasticsearch([host], use_ssl=True, ssl_assert_hostname=False,
                         verify_certs=True, ca_certs=pathCertificate, http_auth=(settings['ELASTIC']['USER'], settings['ELASTIC']['SECRET']))
