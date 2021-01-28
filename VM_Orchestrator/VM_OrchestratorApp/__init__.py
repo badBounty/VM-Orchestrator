@@ -11,7 +11,7 @@ if settings['ELASTIC']['IP'] != '':
     if settings['ELASTIC']['USER'] == '':
         ELASTIC_CLIENT = Elasticsearch([{'host':settings['ELASTIC']['IP'],'port':settings['ELASTIC']['PORT']}])
     else:
-        pathCertificate = settings["ELASTICCERTIFICATE"]
+        pathCertificate = settings['ELASTIC']["ELASTICCERTIFICATE"]
         """context = create_default_context(cafile=pathCertificate)
         ELASTIC_CLIENT = Elasticsearch(
             [settings['ELASTIC']['IP']],
@@ -20,7 +20,8 @@ if settings['ELASTIC']['IP'] != '':
             port=settings['ELASTIC']['PORT'],
             ssl_context=context,
         )"""
-        ELASTIC_CLIENT = Elasticsearch([settings['ELASTIC']['IP']+":"+settings['ELASTIC']['PORT']], use_ssl=True, ssl_assert_hostname=False,
+        host = "{}:{}".format(settings['ELASTIC']['IP'],settings['ELASTIC']['PORT'])
+        ELASTIC_CLIENT = Elasticsearch([host], use_ssl=True, ssl_assert_hostname=False,
                         verify_certs=True, ca_certs=pathCertificate)
 MONGO_CLIENT = pymongo.MongoClient(MONGO_INFO['CLIENT_URL'], connect=False)
 if settings['SLACK']['INTERNAL_SLACK_KEY'] != '':
