@@ -32,6 +32,8 @@
         "blacklist_findings": ["Strict transport security not enforced","Frameable response (potential Clickjacking)","Content type incorrectly stated","Unencrypted communications"]
         },
     "ELASTIC":{
+        "USER": "",
+        "SECRET": "",
         "IP": "localhost",
         "PORT": 9200
     },
