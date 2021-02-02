@@ -1,7 +1,7 @@
 ##Resources index creation
-curl -X PUT "localhost:9200/resources?pretty"
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/resources?pretty"
 
-curl -X PUT "localhost:9200/resources/_mapping?pretty" -H 'Content-Type: application/json' -d'
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/resources/_mapping?pretty" -H 'Content-Type: application/json' -d'
 {
   "properties": {
     "resource_additional_info": {
@@ -244,9 +244,9 @@ curl -X PUT "localhost:9200/resources/_mapping?pretty" -H 'Content-Type: applica
 '
 
 ##web_vulnerabilities index creation
-curl -X PUT "localhost:9200/web_vulnerabilities?pretty"
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/web_vulnerabilities?pretty"
 
-curl -X PUT "localhost:9200/web_vulnerabilities/_mapping?pretty" -H 'Content-Type: application/json' -d'
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/web_vulnerabilities/_mapping?pretty" -H 'Content-Type: application/json' -d'
 {
   "properties": {
     "vulnerability_cvss3_severity": {
@@ -341,9 +341,9 @@ curl -X PUT "localhost:9200/web_vulnerabilities/_mapping?pretty" -H 'Content-Typ
 '
 
 ##infra_vulnerabilities index creation
-curl -X PUT "localhost:9200/infra_vulnerabilities?pretty"
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/infra_vulnerabilities?pretty"
 
-curl -X PUT "localhost:9200/infra_vulnerabilities/_mapping?pretty" -H 'Content-Type: application/json' -d'
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/infra_vulnerabilities/_mapping?pretty" -H 'Content-Type: application/json' -d'
 {
   "properties": {
     "vulnerability_cvss3_severity": {
@@ -438,9 +438,9 @@ curl -X PUT "localhost:9200/infra_vulnerabilities/_mapping?pretty" -H 'Content-T
 '
 
 ##code_vulnerabilities index creation
-curl -X PUT "localhost:9200/code_vulnerabilities?pretty"
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/code_vulnerabilities?pretty"
 
-curl -X PUT "localhost:9200/code_vulnerabilities/_mapping?pretty" -H 'Content-Type: application/json' -d'
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/code_vulnerabilities/_mapping?pretty" -H 'Content-Type: application/json' -d'
 {
   "properties": {
     "vulnerability_id": {
@@ -555,9 +555,9 @@ curl -X PUT "localhost:9200/code_vulnerabilities/_mapping?pretty" -H 'Content-Ty
 '
 
 ##log_resource index creation
-curl -X PUT "localhost:9200/log_resource?pretty"
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/log_resource?pretty"
 
-curl -X PUT "localhost:9200/log_resource/_mapping?pretty" -H 'Content-Type: application/json' -d'
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/log_resource/_mapping?pretty" -H 'Content-Type: application/json' -d'
 {
   "properties": {
     "log_id": {
@@ -628,9 +628,9 @@ curl -X PUT "localhost:9200/log_resource/_mapping?pretty" -H 'Content-Type: appl
 '
 
 ##log_module index creation
-curl -X PUT "localhost:9200/log_module?pretty"
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/log_module?pretty"
 
-curl -X PUT "localhost:9200/log_module/_mapping?pretty" -H 'Content-Type: application/json' -d'
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/log_module/_mapping?pretty" -H 'Content-Type: application/json' -d'
 {
   "properties": {
     "log_id": {
@@ -805,9 +805,9 @@ curl -X PUT "localhost:9200/log_module/_mapping?pretty" -H 'Content-Type: applic
 '
 
 ##log_vuln index creation
-curl -X PUT "localhost:9200/log_vuln?pretty"
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/log_vuln?pretty"
 
-curl -X PUT "localhost:9200/log_vuln/_mapping?pretty" -H 'Content-Type: application/json' -d'
+curl -X PUT --insecure "https://elastic:elastic@localhost:9200/log_vuln/_mapping?pretty" -H 'Content-Type: application/json' -d'
 {
   "properties": {
     "log_id": {
@@ -869,8 +869,8 @@ curl -X PUT "localhost:9200/log_vuln/_mapping?pretty" -H 'Content-Type: applicat
 }
 '
 
-curl -X POST "localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@code_dash.ndjson
+curl -X POST --insecure "https://elastic:elastic@localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@code_dash.ndjson
 
-curl -X POST "localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@resources_dash.ndjson
-curl -X POST "localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@vulns_VM_dash.ndjson
-curl -X POST "localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@logs_dash.ndjson
+curl -X POST --insecure "https://elastic:elastic@localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@resources_dash.ndjson
+curl -X POST --insecure "https://elastic:elastic@localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@vulns_VM_dash.ndjson
+curl -X POST --insecure "https://elastic:elastic@localhost:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@logs_dash.ndjson

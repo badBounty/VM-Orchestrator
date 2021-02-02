@@ -36,6 +36,7 @@ WORKDIR /home/elasticsearch/elasticsearch-${EK_VERSION}
 RUN mkdir ./config/certs
 RUN ./bin/elasticsearch-certutil ca --silent --out ./config/certs/elastic-stack-ca.p12 --pass ""
 RUN ./bin/elasticsearch-certutil cert --ca ./config/certs/elastic-stack-ca.p12 --ca-pass "" --silent --out ./config/certs/elastic-certificates.p12 --pass ""
+RUN ./bin/elasticsearch-certutil cert -name kibana-server -dns localhost,127.0.0.1 --out /home/elasticsearch/elasticsearch-${EK_VERSION}/config/certs/kibana-server.p12 --pass ""
 RUN /home/elasticsearch/ConfigHTTPs.sh
 RUN unzip elasticsearch-ssl-http.zip
 RUN cp elasticsearch/http.p12 config/certs/
@@ -51,18 +52,23 @@ WORKDIR /home/elasticsearch/kibana-${EK_VERSION}-linux-x86_64
 
 RUN  mkdir ./config/certs
 RUN cp /home/elasticsearch/elasticsearch-${EK_VERSION}/kibana/elasticsearch-ca.pem config/certs
+RUN cp /home/elasticsearch/elasticsearch-${EK_VERSION}/config/certs/kibana-server.p12 config/certs
 
 RUN echo 'elasticsearch.username: "elastic"' >> config/kibana.yml
 RUN echo 'elasticsearch.password: "elastic"' >> config/kibana.yml
 RUN echo 'elasticsearch.hosts: [https://localhost:9200]' >> config/kibana.yml
 RUN echo 'elasticsearch.ssl.certificateAuthorities: [ "/home/elasticsearch/kibana-7.10.2-linux-x86_64/config/certs/elasticsearch-ca.pem" ]' >> config/kibana.yml
-RUN echo 'elasticsearch.ssl.verificationMode: none' >> config/kibana.yml
+RUN echo 'elasticsearch.ssl.verificationMode: certificate' >> config/kibana.yml
+RUN echo "server.ssl.enabled: true" >> config/kibana.yml
+RUN echo 'server.ssl.keystore.path: "/home/elasticsearch/kibana-7.10.2-linux-x86_64/config/certs/kibana-server.p12"' >> config/kibana.yml
 
 WORKDIR /home/elasticsearch/
 
 ADD ConfigPasswords.sh /home/elasticsearch/ConfigPasswords.sh
 
 RUN /home/elasticsearch/elasticsearch-${EK_VERSION}/bin/elasticsearch-keystore create
+RUN /home/elasticsearch/kibana-${EK_VERSION}-linux-x86_64/bin/kibana-keystore create 
+RUN echo "" | /home/elasticsearch/kibana-${EK_VERSION}-linux-x86_64/bin/kibana-keystore add server.ssl.keystore.password
 RUN elasticsearch-${EKVERSION}/bin/elasticsearch -E http.host=0.0.0.0 --quiet & (sleep 2m; /home/elasticsearch/ConfigPasswords.sh)
 
 
