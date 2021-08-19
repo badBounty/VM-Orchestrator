@@ -64,6 +64,8 @@ We can start the server with
 
 2.  Create the settings.json file in the VM_Orchestrator folder. 
 
+3.  Copy the content of settings-example.json into settings.json. You will have to modify some values in order to get the proper functionality. Consult which values you will need to modify. 
+
 3.  Build the Dockerfile in this folder passing the following parameter.
 
     |Parameter | Description |
@@ -76,10 +78,12 @@ We can start the server with
     ```
     docker build -t orchestrator --build-arg USER=username --build-arg PASSWORD=password --build-arg VHOST=orchestrator .
     ```
+    Note: In the build-arg parameters you will need to provide the values of rabbitmq (user, password, host).
 
 4.  Run the image publishing the container's 3000 port in any free port.
 
     Command Example:
     ```
-    docker run --name orchestrator -p 4000:3000 -v /VM-Orchestrator-project/VM-Orchestrator/VM_Orchestrator/settings.json:PathToMySettings.json -d orchestrator
+    docker run --name orchestrator -p 4000:3000 -v PathToMySettings.json:/VM-Orchestrator-project/VM-Orchestrator/VM_Orchestrator/settings.json -d orchestrator
     ```
+    Note: PathToMySettings.json refers to the path in which your host's settings.json is allocated.
