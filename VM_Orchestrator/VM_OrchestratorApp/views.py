@@ -161,7 +161,7 @@ def force_redmine_sync(request):
 @csrf_exempt
 def add_code_vuln(request):
     if request.method == 'POST':
-        json_data = json.loads(request.body)
+        json_data = json.loads(request.body, strict=False)
         manager.add_code_vuln(json_data)
         return JsonResponse({'INFO': 'Adding code vuln', 'VULN': json_data})
     return JsonResponse({'ERROR': 'Post is required'})
