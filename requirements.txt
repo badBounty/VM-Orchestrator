@@ -26,7 +26,7 @@ kombu==4.6.10
 multidict==4.7.6
 numpy==1.19.0
 pandas==1.0.5
-pillow==7.1.2
+pillow==9.0.1
 pymongo[srv]==3.10.1
 python-dateutil==2.8.1
 python-redmine==2.3.0
