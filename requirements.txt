@@ -24,7 +24,7 @@ importlib-metadata==1.6.1
 jsbeautifier==1.11.0
 kombu==4.6.10
 multidict==4.7.6
-numpy==1.19.0
+numpy==1.22.0
 pandas==1.0.5
 pillow==7.1.2
 pymongo[srv]==3.10.1
